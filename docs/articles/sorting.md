@@ -52,7 +52,7 @@ Example order by distance from a Point.
  var geoSpatialFieldType = myIndex.FieldValueTypeCollection.ValueTypes.First(f
                     => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as ISpatialIndexFieldValueTypeBase;
 
-var fieldShapeFactory = geoSpatialFieldType.ExamineSpatialShapeFactory;
+var fieldShapeFactory = geoSpatialFieldType.SpatialShapeFactory;
 
 // Define the location to compare against
 var searchLocation = fieldShapeFactory.CreatePoint(0.0, 0.0);

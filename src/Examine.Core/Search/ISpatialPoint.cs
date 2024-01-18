@@ -3,7 +3,7 @@ namespace Examine.Search
     /// <summary>
     /// Spatial Point Shape
     /// </summary>
-    public interface IExamineSpatialPoint : IExamineSpatialShape
+    public interface ISpatialPoint : ISpatialShape
     {
         /// <summary>
         /// The X coordinate, or Longitude in geospatial contexts.

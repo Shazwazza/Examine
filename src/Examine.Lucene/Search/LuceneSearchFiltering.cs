@@ -398,10 +398,10 @@ namespace Examine.Lucene.Search
         #endregion
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        public override IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape)
            => SpatialOperationFilterInternal(field, spatialOperation, shape, Occurrence);
 
-        internal IBooleanFilterOperation SpatialOperationFilterInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape, Occur occurance)
+        internal IBooleanFilterOperation SpatialOperationFilterInternal(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape, Occur occurance)
         {
             var spatialField = _luceneSearchQuery.SearchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
             var filterToAdd = spatialField.GetFilter(field, spatialOperation, shape);
@@ -414,7 +414,7 @@ namespace Examine.Lucene.Search
             return op;
         }
 
-        internal INestedBooleanFilterOperation NestedSpatialOperationFilterInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape, Occur occurance)
+        internal INestedBooleanFilterOperation NestedSpatialOperationFilterInternal(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape, Occur occurance)
         {
             var spatialField = _luceneSearchQuery.SearchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
             var filterToAdd = spatialField.GetFilter(field, spatialOperation, shape);
@@ -428,7 +428,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        protected override INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        protected override INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape)
             => NestedSpatialOperationFilterInternal(field, spatialOperation, shape, Occurrence);
     }
 }

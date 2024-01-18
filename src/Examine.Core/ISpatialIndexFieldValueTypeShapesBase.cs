@@ -10,6 +10,6 @@ namespace Examine
         /// <summary>
         /// Gets the Shape Factory for the fields spatial strategy
         /// </summary>
-        IExamineSpatialShapeFactory ExamineSpatialShapeFactory { get; }
+        ISpatialShapeFactory SpatialShapeFactory { get; }
     }
 }

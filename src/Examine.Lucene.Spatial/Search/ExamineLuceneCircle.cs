@@ -6,7 +6,7 @@ namespace Examine.Lucene.Spatial.Search
     /// <summary>
     /// Spatial Circle Shape
     /// </summary>
-    public class ExamineLuceneCircle : ExamineLuceneShape, IExamineSpatialCircle
+    public class ExamineLuceneCircle : ExamineLuceneShape, ISpatialCircle
     {
         private readonly ICircle _circle;
 

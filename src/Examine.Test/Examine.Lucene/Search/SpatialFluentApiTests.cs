@@ -42,7 +42,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var geoSpatialFieldType = indexer.FieldValueTypeCollection.ValueTypes.First(f
                     => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as ISpatialIndexFieldValueTypeBase;
 
-                var fieldShapeFactory = geoSpatialFieldType.ExamineSpatialShapeFactory;
+                var fieldShapeFactory = geoSpatialFieldType.SpatialShapeFactory;
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -95,7 +95,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var geoSpatialFieldType = indexer.FieldValueTypeCollection.ValueTypes.First(f
                     => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as ISpatialIndexFieldValueTypeBase;
 
-                var fieldShapeFactory = geoSpatialFieldType.ExamineSpatialShapeFactory;
+                var fieldShapeFactory = geoSpatialFieldType.SpatialShapeFactory;
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -150,7 +150,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var geoSpatialFieldType = indexer.FieldValueTypeCollection.ValueTypes.First(f
                     => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as ISpatialIndexFieldValueTypeShapesBase;
 
-                var fieldShapeFactory = geoSpatialFieldType.ExamineSpatialShapeFactory;
+                var fieldShapeFactory = geoSpatialFieldType.SpatialShapeFactory;
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",

@@ -3,12 +3,12 @@ namespace Examine.Search
     /// <summary>
     /// Spatial Shape
     /// </summary>
-    public interface IExamineSpatialShape
+    public interface ISpatialShape
     {
         /// <summary>
         /// Center Point of Shape
         /// </summary>
-        IExamineSpatialPoint Center { get; }
+        ISpatialPoint Center { get; }
 
         /// <summary>
         /// Whether the Shape is Empty

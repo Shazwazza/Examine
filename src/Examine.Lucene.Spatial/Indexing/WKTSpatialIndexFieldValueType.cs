@@ -22,7 +22,7 @@ namespace Examine.Lucene.Spatial.Indexing
         private Spatial4nShapeFactory _shapeFactory;
 
         /// <inheritdoc/>
-        public override IExamineSpatialShapeFactory ExamineSpatialShapeFactory => _shapeFactory;
+        public override ISpatialShapeFactory SpatialShapeFactory => _shapeFactory;
 
         /// <summary>
         /// Constructor
@@ -89,9 +89,9 @@ namespace Examine.Lucene.Spatial.Indexing
         }
 
         /// <inheritdoc/>
-        public override Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        public override Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape)
         {
-            var shapeVal = shape(ExamineSpatialShapeFactory);
+            var shapeVal = shape(SpatialShapeFactory);
             var luceneSpatialOperation = MapToSpatialOperation(spatialOperation);
             var spatial4nShape = (shapeVal as ExamineLuceneShape)?.Shape;
             var spatialArgs = new SpatialArgs(luceneSpatialOperation, spatial4nShape);
@@ -100,9 +100,9 @@ namespace Examine.Lucene.Spatial.Indexing
         }
 
         /// <inheritdoc/>
-        public override Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        public override Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape)
         {
-            var shapeVal = shape(ExamineSpatialShapeFactory);
+            var shapeVal = shape(SpatialShapeFactory);
             var luceneSpatialOperation = MapToSpatialOperation(spatialOperation);
             var spatial4nShape = (shapeVal as ExamineLuceneShape)?.Shape;
             var spatialArgs = new SpatialArgs(luceneSpatialOperation, spatial4nShape);

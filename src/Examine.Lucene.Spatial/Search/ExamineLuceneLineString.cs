@@ -6,7 +6,7 @@ namespace Examine.Lucene.Spatial.Search
     /// <summary>
     /// Spatial Line String Shape
     /// </summary>
-    public class ExamineLuceneLineString : ExamineLuceneShape, IExamineSpatialLineString
+    public class ExamineLuceneLineString : ExamineLuceneShape, ISpatialLineString
     {
         private readonly IShape _lineString;
 

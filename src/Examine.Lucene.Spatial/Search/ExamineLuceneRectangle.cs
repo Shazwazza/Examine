@@ -6,7 +6,7 @@ namespace Examine.Lucene.Spatial.Search
     /// <summary>
     /// Spatial Rectangle Shape
     /// </summary>
-    public class ExamineLuceneRectangle : ExamineLuceneShape, IExamineSpatialRectangle
+    public class ExamineLuceneRectangle : ExamineLuceneShape, ISpatialRectangle
     {
         private readonly IRectangle _rectangle;
 

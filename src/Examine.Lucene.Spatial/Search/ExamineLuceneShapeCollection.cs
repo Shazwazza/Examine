@@ -8,7 +8,7 @@ namespace Examine.Lucene.Spatial.Search
     /// <summary>
     /// Collection of Shapes
     /// </summary>
-    public class ExamineLuceneShapeCollection : ExamineLuceneShape, IExamineSpatialShapeCollection
+    public class ExamineLuceneShapeCollection : ExamineLuceneShape, ISpatialShapeCollection
     {
         /// <summary>
         /// Constructor
@@ -26,6 +26,6 @@ namespace Examine.Lucene.Spatial.Search
         public ShapeCollection Shapes { get; }
 
         /// <inheritdoc/>
-        IList<IExamineSpatialShape> IExamineSpatialShapeCollection.Shapes => Shapes.Shapes.Select(x=> new ExamineLuceneShape(x)).ToList<IExamineSpatialShape>();
+        IList<ISpatialShape> ISpatialShapeCollection.Shapes => Shapes.Shapes.Select(x=> new ExamineLuceneShape(x)).ToList<ISpatialShape>();
     }
 }

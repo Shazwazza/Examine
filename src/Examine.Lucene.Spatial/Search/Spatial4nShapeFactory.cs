@@ -7,7 +7,7 @@ using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Spatial.Search
 {
-    public class Spatial4nShapeFactory : IExamineSpatialShapeFactory
+    public class Spatial4nShapeFactory : ISpatialShapeFactory
     {
         private SpatialContext _spatialContext;
         /// <summary>
@@ -22,34 +22,34 @@ namespace Examine.Lucene.Spatial.Search
         public SpatialContext SpatialContext { get => _spatialContext; }
 
         /// <inheritdoc/>
-        public IExamineSpatialCircle CreateCircle(double x, double y, double distance)
+        public ISpatialCircle CreateCircle(double x, double y, double distance)
         {
             var spatial4NCircle = _spatialContext.MakeCircle(x, y, distance);
             return new ExamineLuceneCircle(spatial4NCircle);
         }
 
         /// <inheritdoc/>
-        public IExamineSpatialCircle CreateEarthEquatorialSearchRadiusKMCircle(double x, double y, double radius)
+        public ISpatialCircle CreateEarthEquatorialSearchRadiusKMCircle(double x, double y, double radius)
         {
             var spatial4NCircle = _spatialContext.MakeCircle(x, y, DistanceUtils.Dist2Degrees(radius, DistanceUtils.EarthEquatorialRadiusKilometers));
             return new ExamineLuceneCircle(spatial4NCircle);
         }
 
         /// <inheritdoc/>
-        public IExamineSpatialCircle CreateEarthMeanSearchRadiusKMCircle(double x, double y, double radius)
+        public ISpatialCircle CreateEarthMeanSearchRadiusKMCircle(double x, double y, double radius)
         {
             var spatial4NCircle = _spatialContext.MakeCircle(x, y, DistanceUtils.Dist2Degrees(radius, DistanceUtils.EarthMeanRadiusKilometers));
             return new ExamineLuceneCircle(spatial4NCircle);
         }
 
         /// <inheritdoc/>
-        public IExamineSpatialEmptyShape CreateEmpty()
+        public ISpatialEmptyShape CreateEmpty()
         {
             return new ExamineLuceneEmptyShape();
         }
 
         /// <inheritdoc/>
-        public IExamineSpatialPoint CreateGeoPoint(double latitude, double longitude)
+        public ISpatialPoint CreateGeoPoint(double latitude, double longitude)
         {
             //Swapped on purpose
             double y = latitude;
@@ -59,21 +59,21 @@ namespace Examine.Lucene.Spatial.Search
         }
 
         /// <inheritdoc/>
-        public IExamineSpatialPoint CreatePoint(double x, double y)
+        public ISpatialPoint CreatePoint(double x, double y)
         {
             var spatial4NPoint = _spatialContext.MakePoint(x, y);
             return new ExamineLucenePoint(spatial4NPoint);
         }
 
         /// <inheritdoc/>
-        public IExamineSpatialRectangle CreateRectangle(double minX, double maxX, double minY, double maxY)
+        public ISpatialRectangle CreateRectangle(double minX, double maxX, double minY, double maxY)
         {
             var spatial4NRect = _spatialContext.MakeRectangle(minX, maxX, minY, maxY);
             return new ExamineLuceneRectangle(spatial4NRect);
         }
 
         /// <inheritdoc/>
-        public IExamineSpatialShapeCollection CreateShapeCollection(IList<IExamineSpatialShape> shapes)
+        public ISpatialShapeCollection CreateShapeCollection(IList<ISpatialShape> shapes)
         {
             var shapeList = shapes.Select(x => x as ExamineLuceneShape).Select(x => x.Shape).ToList();
             var shapeCollection = new ShapeCollection(shapeList, SpatialContext);
@@ -82,7 +82,7 @@ namespace Examine.Lucene.Spatial.Search
         }
 
         /// <inheritdoc/>
-        public IExamineSpatialLineString CreateLineString(IList<IExamineSpatialPoint> points)
+        public ISpatialLineString CreateLineString(IList<ISpatialPoint> points)
         {
             var shapeList = points.Select(x => x as ExamineLucenePoint).Select(x => x.Shape as IPoint).ToList();
             var spatial4NRect = _spatialContext.MakeLineString(shapeList);

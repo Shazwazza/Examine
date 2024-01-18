@@ -24,7 +24,7 @@ namespace Examine.Lucene.Indexing
         /// <param name="spatialOperation"></param>
         /// <param name="shape"></param>
         /// <returns></returns>
-        Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+        Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
 
         /// <summary>
         /// Gets a spatial filer as a Lucene Filter
@@ -33,6 +33,6 @@ namespace Examine.Lucene.Indexing
         /// <param name="spatialOperation"></param>
         /// <param name="shape"></param>
         /// <returns></returns>
-        Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+        Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
     }
 }

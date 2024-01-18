@@ -482,10 +482,10 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape)
             => SpatialOperationQueryInternal(field, spatialOperation, shape, Occurrence);
 
-        internal IBooleanOperation SpatialOperationQueryInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape, Occur occurance)
+        internal IBooleanOperation SpatialOperationQueryInternal(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape, Occur occurance)
         {
             var spatialField = SearchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
             var queryToAdd = spatialField.GetQuery(field, spatialOperation, shape);

@@ -164,6 +164,6 @@ namespace Examine.Lucene.Search
         #endregion
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+        public abstract IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
     }
 }

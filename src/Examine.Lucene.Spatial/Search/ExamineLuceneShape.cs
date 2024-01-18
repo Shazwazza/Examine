@@ -6,7 +6,7 @@ namespace Examine.Lucene.Spatial.Search
     /// <summary>
     /// Lucene.Net Shape
     /// </summary>
-    public class ExamineLuceneShape : IExamineSpatialShape
+    public class ExamineLuceneShape : ISpatialShape
     {
         /// <summary>
         /// Constructor
@@ -18,7 +18,7 @@ namespace Examine.Lucene.Spatial.Search
         }
 
         ///<inheritdoc/>
-        public IExamineSpatialPoint Center => new ExamineLucenePoint(Shape.Center);
+        public ISpatialPoint Center => new ExamineLucenePoint(Shape.Center);
 
         ///<inheritdoc/>
         public virtual bool IsEmpty => Shape.IsEmpty;

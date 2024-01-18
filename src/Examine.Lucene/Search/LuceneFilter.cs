@@ -62,7 +62,7 @@ namespace Examine.Lucene.Search
         public INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => _search.NestedQueryFilterInternal(inner, defaultOp, _occurrence);
 
         /// <inheritdoc/>
-        public INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        public INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape)
            => _search.NestedSpatialOperationFilterInternal(field, spatialOperation, shape, _occurrence);
 
         /// <inheritdoc/>
@@ -77,7 +77,7 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive) => _search.DoubleRangeFilterInternal(field, min, max, minInclusive, maxInclusive, _occurrence);
 
-        public IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        public IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape)
            => _search.SpatialOperationFilterInternal(field, spatialOperation, shape, _occurrence);
     }
 }

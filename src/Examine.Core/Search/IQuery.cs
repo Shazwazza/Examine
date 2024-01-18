@@ -141,7 +141,7 @@ namespace Examine.Search
         /// <param name="field">Index field name</param>
         /// <param name="shape">Shape</param>
         /// <returns></returns>
-        IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+        IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
 
         /// <summary>
         /// Apply Filters

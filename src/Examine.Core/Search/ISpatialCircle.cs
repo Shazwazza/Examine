@@ -3,7 +3,7 @@ namespace Examine.Search
     /// <summary>
     /// Spatial Circle Shape
     /// </summary>
-    public interface IExamineSpatialCircle : IExamineSpatialShape
+    public interface ISpatialCircle : ISpatialShape
     {
         /// <summary>
         /// Circle Radius

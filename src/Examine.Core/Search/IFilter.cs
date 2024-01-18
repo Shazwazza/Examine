@@ -105,6 +105,6 @@ namespace Examine.Search
         /// <param name="field">Index field name</param>
         /// <param name="shape">Shape</param>
         /// <returns></returns>
-        IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+        IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
     }
 }

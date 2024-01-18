@@ -28,7 +28,7 @@ namespace Examine.Lucene.Spatial.Indexing
 
 
         /// <inheritdoc/>
-        public abstract IExamineSpatialShapeFactory ExamineSpatialShapeFactory { get; }
+        public abstract ISpatialShapeFactory SpatialShapeFactory { get; }
 
         /// <summary>
         /// Constructor
@@ -66,9 +66,9 @@ namespace Examine.Lucene.Spatial.Indexing
         }
 
         /// <inheritdoc/>
-        public abstract Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+        public abstract Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
 
         /// <inheritdoc/>
-        public abstract Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+        public abstract Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
     }
 }

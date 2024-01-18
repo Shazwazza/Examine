@@ -6,7 +6,7 @@ namespace Examine.Lucene.Spatial.Search
     /// <summary>
     /// Spatial Point Shape
     /// </summary>
-    public class ExamineLucenePoint : ExamineLuceneShape, IExamineSpatialPoint
+    public class ExamineLucenePoint : ExamineLuceneShape, ISpatialPoint
     {
         private readonly IPoint _point;
 

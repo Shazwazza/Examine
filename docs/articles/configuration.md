@@ -138,6 +138,8 @@ These are the default field value types provided with Examine. Each value type c
 | FacetTaxonomyDateDay  | Just like DateTime but with precision only to the day. Stored in the Taxonomy Facet sidecar index.   | ✅ |✅ | ✅ | ❌ | ✅ |  - |
 | FacetTaxonomyDateHour  | Just like DateTime but with precision only to the hour.    Stored in the Taxonomy Facet sidecar index. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
 | FacetTaxonomyDateMinute  | Just like DateTime but with precision only to the minute.   Stored in the Taxonomy Facet sidecar index.  | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| GeoSpatialWKT | GeoSpatial field using WKT GeoSpatial format. Uses the GeoSpatialPrefixTreeStrategy | ✅ | ❌ | ✅ | ✅ | ✅ | - |
+
 ### Custom field value types
 
 A field value type is defined by [`IIndexFieldValueType`](xref:Examine.Lucene.Indexing.IIndexFieldValueType)

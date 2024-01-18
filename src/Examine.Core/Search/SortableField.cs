@@ -18,7 +18,7 @@ namespace Examine.Search
         /// <summary>
         /// The point to calculate distance from
         /// </summary>
-        public IExamineSpatialPoint SpatialPoint { get; }
+        public ISpatialPoint SpatialPoint { get; }
 
         /// <summary>
         /// Constructor
@@ -48,7 +48,7 @@ namespace Examine.Search
         /// </summary>
         /// <param name="fieldName">The field name to sort by</param>
         /// <param name="spatialPoint">The point to calculate distance from</param>
-        public SortableField(string fieldName, IExamineSpatialPoint spatialPoint)
+        public SortableField(string fieldName, ISpatialPoint spatialPoint)
         {
             FieldName = fieldName;
             SortType = SortType.SpatialDistance;

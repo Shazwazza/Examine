@@ -54,6 +54,6 @@ namespace Examine.Search
         /// <param name="field">Index field name</param>
         /// <param name="shape">Shape</param>
         /// <returns></returns>
-        INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+        INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
     }
 }

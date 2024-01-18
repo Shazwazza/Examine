@@ -5,11 +5,11 @@ namespace Examine.Search
     /// <summary>
     /// A Collection of Shapes
     /// </summary>
-    public interface IExamineSpatialShapeCollection : IExamineSpatialShape
+    public interface ISpatialShapeCollection : ISpatialShape
     {
         /// <summary>
         /// Shapes in the Shape Collection
         /// </summary>
-        IList<IExamineSpatialShape> Shapes { get; }
+        IList<ISpatialShape> Shapes { get; }
     }
 }

@@ -5,7 +5,7 @@ namespace Examine.Lucene.Spatial.Search
     /// <summary>
     /// Empty Spatial Shape
     /// </summary>
-    public class ExamineLuceneEmptyShape : ExamineLuceneShape, IExamineSpatialEmptyShape
+    public class ExamineLuceneEmptyShape : ExamineLuceneShape, ISpatialEmptyShape
     {
         /// <summary>
         /// Constructor

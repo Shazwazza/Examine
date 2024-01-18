@@ -82,7 +82,7 @@ namespace Examine.Lucene.Search
 
 
         /// <inheritdoc />
-        public override IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        public override IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape)
             => _search.SpatialOperationFilter(field, spatialOperation, shape);
 
     }

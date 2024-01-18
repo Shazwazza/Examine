@@ -3,7 +3,7 @@ namespace Examine.Search
     /// <summary>
     /// Spatial Rectangle Shape
     /// </summary>
-    public interface IExamineSpatialRectangle : IExamineSpatialShape
+    public interface ISpatialRectangle : ISpatialShape
     {
         /// <summary>The left edge of the X coordinate.</summary>
         double MinX { get; }

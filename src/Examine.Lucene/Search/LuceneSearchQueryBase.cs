@@ -669,7 +669,7 @@ namespace Examine.Lucene.Search
         public override string ToString() => $"{{ Category: {Category}, LuceneQuery: {Query} }}";
 
         /// <inheritdoc/>
-        public abstract IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+        public abstract IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
 
         /// <summary>
         /// Apply a filter
