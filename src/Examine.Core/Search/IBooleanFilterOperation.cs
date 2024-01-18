@@ -1,54 +1,49 @@
-
 using System;
 
 namespace Examine.Search
 {
-    /// <summary>
-    /// Defines the supported operation for addition of additional clauses in the fluent API
-    /// </summary>
-    public interface IBooleanOperation : IOrdering
+    public interface IBooleanFilterOperation
     {
         /// <summary>
         /// Sets the next operation to be AND
         /// </summary>
         /// <returns></returns>
-        IQuery And();
+        IFilter AndFilter();
 
         /// <summary>
-        /// Adds the nested query
+        /// Adds the nested filter
         /// </summary>
         /// <param name="inner"></param>
         /// <param name="defaultOp"></param>
         /// <returns></returns>
-        IBooleanOperation And(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
+        IBooleanFilterOperation AndFilter(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <summary>
         /// Sets the next operation to be OR
         /// </summary>
         /// <returns></returns>
-        IQuery Or();
+        IFilter OrFilter();
 
         /// <summary>
-        /// Adds the nested query
+        /// Adds the nested filter
         /// </summary>
         /// <param name="inner"></param>
         /// <param name="defaultOp"></param>
         /// <returns></returns>
-        IBooleanOperation Or(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
+        IBooleanFilterOperation OrFilter(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <summary>
         /// Sets the next operation to be NOT
         /// </summary>
         /// <returns></returns>
-        IQuery Not();
+        IFilter NotFilter();
 
         /// <summary>
-        /// Adds the nested query
+        /// Adds the nested filter
         /// </summary>
         /// <param name="inner"></param>
         /// <param name="defaultOp"></param>
         /// <returns></returns>
-        IBooleanOperation AndNot(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
-
+        IBooleanFilterOperation AndNotFilter(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
     }
 }

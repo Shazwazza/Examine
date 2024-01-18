@@ -13,9 +13,15 @@ namespace Examine
         public const string Integer = "int";
 
         /// <summary>
-        /// Will be indexed as a float
+        /// Will be indexed as a single
         /// </summary>
         public const string Float = "float";
+
+        /// <summary>
+        /// Will be indexed as a single
+        /// </summary>
+        [Obsolete("To remove in Examine V5. Use Float")]
+        public const string Single = "single";
 
         /// <summary>
         /// Will be indexed as a double
@@ -202,6 +208,12 @@ namespace Examine
         /// </summary>
         public const string FacetTaxonomyFullTextSortable = "facettaxonomyfulltextsortable";
 
+
+
+        /// <summary>
+        /// GEO Spatial Shape. Index as WKT
+        /// </summary>
+        public const string GeoSpatialWKT = "spatial.geo.wkt";
 
     }
 }

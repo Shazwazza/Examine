@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Examine.Search;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Index;
+using Lucene.Net.Queries;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 
@@ -34,11 +33,20 @@ namespace Examine.Lucene.Search
         /// </summary>
         public IList<SortField> SortFields { get; } = new List<SortField>();
 
+        internal Stack<BooleanFilter> Filters { get; } = new Stack<BooleanFilter>();
+
+        /// <summary>
+        /// The <see cref="BooleanFilter"/>
+        /// </summary>
+        public BooleanFilter Filter => Filters.Peek();
+
         /// <summary>
         /// Specifies how clauses are to occur in matching documents
         /// </summary>
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
+
+        private BooleanOperation _boolFilterOp;
 
         /// <inheritdoc/>
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
@@ -47,6 +55,7 @@ namespace Examine.Lucene.Search
             Category = category;
             SearchOptions = searchOptions;
             Queries.Push(new BooleanQuery());
+            Filters.Push(new BooleanFilter());
             BooleanOperation = occurance;
             _queryParser = queryParser;
         }
@@ -67,6 +76,19 @@ namespace Examine.Lucene.Search
             {
                 _boolOp = value;
                 Occurrence = _boolOp.ToLuceneOccurrence();
+            }
+        }
+
+        /// <summary>
+        /// The type of boolean operation
+        /// </summary>
+        public BooleanOperation BooleanFilterOperation
+        {
+            get => _boolFilterOp;
+            set
+            {
+                _boolFilterOp = value;
+                Occurrence = _boolFilterOp.ToLuceneOccurrence();
             }
         }
 
@@ -118,6 +140,19 @@ namespace Examine.Lucene.Search
             Query.Add(query, (op ?? BooleanOperation).ToLuceneOccurrence());
             return CreateOp();
         }
+
+        /// <summary>
+        /// Adds a true Lucene Filter 
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public LuceneBooleanOperationBase LuceneFilter(Filter filter, BooleanOperation? op = null)
+        {
+            Filter.Add(filter, (op ?? BooleanOperation).ToLuceneOccurrence());
+            return CreateOp();
+        }
+
 
         /// <inheritdoc/>
         public IBooleanOperation Id(string id) => IdInternal(id, Occurrence);
@@ -632,5 +667,15 @@ namespace Examine.Lucene.Search
         /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public override string ToString() => $"{{ Category: {Category}, LuceneQuery: {Query} }}";
+
+        /// <inheritdoc/>
+        public abstract IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
+
+        /// <summary>
+        /// Apply a filter
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public abstract IQuery WithFilter(Action<IFilter> filter);
     }
 }

@@ -14,11 +14,15 @@ namespace Examine.Test
 {
     public abstract class ExamineBaseTest
     {
+        private ILoggerFactory _loggerFactory;
+
+        protected ILoggerFactory Logging { get => _loggerFactory; }
+
         [SetUp]
         public virtual void Setup()
         {
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
-            loggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
+            _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            _loggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
         }
 
         public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig facetsConfig = null)

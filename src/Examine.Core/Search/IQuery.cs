@@ -134,5 +134,20 @@ namespace Examine.Search
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
         IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+
+        /// <summary>
+        /// Executes Spatial operation on field and shape as a Query
+        /// </summary>
+        /// <param name="field">Index field name</param>
+        /// <param name="shape">Shape</param>
+        /// <returns></returns>
+        IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
+
+        /// <summary>
+        /// Apply Filters
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        IQuery WithFilter(Action<IFilter> filter);
     }
 }

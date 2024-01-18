@@ -45,6 +45,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Examine.Core\Examine.Core.csproj" />
     <ProjectReference Include="..\Examine.Host\Examine.csproj" />
+    <ProjectReference Include="..\Examine.Lucene.Spatial\Examine.Lucene.Spatial.csproj" />
     <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj" />
   </ItemGroup>
   <ItemGroup>
