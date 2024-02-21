@@ -19,7 +19,7 @@ namespace Examine.Test.Examine.Lucene.Search
 {
     [TestFixture]
     public class FluentApiTests : ExamineBaseTest
-    {        
+    {
         [Test]
         public void Fluent_And_Native_Return_Different_Results()
         {
@@ -29,12 +29,14 @@ namespace Examine.Test.Examine.Lucene.Search
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
-                        new { nodeName = "location 1", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "Glasgow, Scotland, UK" }),
+                        new { nodeName = "location 1", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "Glasgow, Scotland, United Kingdom" }),
                     ValueSet.FromObject(2.ToString(), "content",
-                        new { nodeName = "location 2", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "England, UK" }),
+                        new { nodeName = "location 2", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "Manchester, England, United Kingdom" }),
                     ValueSet.FromObject(3.ToString(), "content",
-                        new { nodeName = "location 3", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "Edinburgh, Scotland, UK" })
-                    });
+                        new { nodeName = "location 3", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "Edinburgh, Scotland, United Kingdom" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "location 4", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "Birmingham, Alabama, United States" })
+                });
 
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
