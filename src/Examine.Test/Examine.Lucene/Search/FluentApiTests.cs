@@ -19,7 +19,60 @@ namespace Examine.Test.Examine.Lucene.Search
 {
     [TestFixture]
     public class FluentApiTests : ExamineBaseTest
-    {
+    {        
+        [Test]
+        public void Fluent_And_Native_Return_Different_Results()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "location 1", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "Glasgow, Scotland, UK" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "location 2", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "England, UK" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "location 3", __NodeTypeAlias = "wviewlibrary", wWpPropLibraryAddress = "Edinburgh, Scotland, UK" })
+                    });
+
+                var searcher = (BaseLuceneSearcher)indexer.Searcher;
+
+                var query = searcher
+                    .CreateQuery(IndexTypes.Content)
+                    .NodeTypeAlias("wviewlibrary");
+
+                // What someone is searching for
+                var locationFilter = "Scotland, UK";
+                var locationParts = locationFilter.Split(',');
+                var locationPartsExamineValues = new List<IExamineValue>();
+                foreach (var part in locationParts)
+                {
+                    // Calling .Escape() on a string does ExamineValue(Examineness.Escaped, s)
+                    locationPartsExamineValues.Add(new ExamineValue(Examineness.Escaped, part.Trim()));
+                }
+
+                query.And().GroupedAnd(new string[] { "wWpPropLibraryAddress" }, query: locationPartsExamineValues.ToArray());
+
+                // Run the same query it generates above as a string in as NativeQuery
+                // +__NodeTypeAlias:wviewlibrary +(+wWpPropLibraryAddress:"Scotland" +wWpPropLibraryAddress:"UK")
+                var queryNative = searcher
+                    .CreateQuery(IndexTypes.Content)
+                    .NativeQuery("+__NodeTypeAlias:wviewlibrary +(+wWpPropLibraryAddress:\"Scotland\" +wWpPropLibraryAddress:\"UK\")");
+
+                var results = query.Execute();
+                var resultsNative = queryNative.Execute();
+
+                // Should expect both to be the same as its running the same query
+                // Should return 2 results each
+                Assert.AreEqual(results.TotalItemCount, resultsNative.TotalItemCount);
+
+                // These are not the same in the end
+                Assert.IsTrue(string.Equals(query.ToString(), queryNative.ToString(), StringComparison.InvariantCultureIgnoreCase));
+            }
+        }
+
+
         [Test]
         public void Allow_Leading_Wildcards()
         {
