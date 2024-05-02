@@ -61,7 +61,7 @@ namespace Examine.Lucene.Directories
                         IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy())
                     }))
                 using (var tempMainIndex = new LuceneIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
-                using (var tempLocalDirectory = new SimpleFSDirectory(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
+                using (var tempLocalDirectory = FSDirectory.Open(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
                 using (var replicator = new ExamineReplicator(_loggerFactory, tempMainIndex, tempLocalDirectory, tempDir))
                 {
                     if (forceUnlock)

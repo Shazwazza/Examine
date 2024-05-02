@@ -715,7 +715,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 var tempPath = Path.Combine(tempBasePath, Guid.NewGuid().ToString());
                 System.IO.Directory.CreateDirectory(tempPath);
                 temp = new DirectoryInfo(tempPath);
-                directory = new SimpleFSDirectory(temp);
+                directory = FSDirectory.Open(temp);
             }
             try
             {
