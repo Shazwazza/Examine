@@ -52,39 +52,6 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
 }
 ```
 
-### After construction
-
-You can modify the field definitions [FieldDefinitionCollection](xref:Examine.FieldDefinitionCollection) for an index after it is constructed by using any of the following methods:
-
-* `myIndex.FieldDefinitionCollection.TryAdd`
-* `myIndex.FieldDefinitionCollection.AddOrUpdate`
-* `myIndex.FieldDefinitionCollection.GetOrAdd`
-
-These modifications __must__ be done before any indexing or searching is executed.
-
-### Add a field value type after construction
-
-It is possible to add custom field value types after the construction of the index, but this must be done before the index is used. Some people may prefer this method of adding custom field value types. Generally, these should be modified directly after the construction of the index.
-
-```cs
-// Create the index with all of the defaults
-var myIndex = new LuceneIndex(
-    "MyIndex",
-    new SimpleFSDirectory(new DirectoryInfo("C:\\TestIndexes")));
-
-// Add a custom field value type
-myIndex.FieldValueTypeCollection.ValueTypeFactories
-    .TryAdd(
-        "phonenumber", 
-        name => new GenericAnalyzerFieldValueType(
-            name, 
-            new PhoneNumberAnalyzer()));
-
-// Map a field to use the custom field value type
-myIndex.FieldDefinitionCollection.TryAdd(
-    new FieldDefinition("Phone", "phonenumber"));
-```
-
 ## Value types
 
 Value types are responsible for:
