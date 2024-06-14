@@ -18,6 +18,7 @@ using Microsoft.Extensions.Options;
 using Lucene.Net.Analysis.Standard;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Directories;
+using static Lucene.Net.Queries.Function.ValueSources.MultiFunction;
 
 namespace Examine.Lucene.Providers
 {
@@ -757,8 +758,10 @@ namespace Examine.Lucene.Providers
             }
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
-            _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
+            _latestGen = UpdateLuceneDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
         }
+
+        protected virtual long? UpdateLuceneDocument(Term term, Document doc) => IndexWriter.UpdateDocument(term, doc);
 
         /// <summary>
         /// This queues up a commit for the index so that a commit doesn't happen on every individual write since that is quite expensive

@@ -1,0 +1,1 @@
+virtual Examine.Lucene.Providers.LuceneIndex.UpdateLuceneDocument(Lucene.Net.Index.Term term, Lucene.Net.Documents.Document doc) -> long?
