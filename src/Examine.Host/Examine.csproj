@@ -5,8 +5,8 @@
     <PackageTags>examine lucene lucene.net lucenenet search index</PackageTags>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
-    <LangVersion>10</LangVersion>
-    <TargetFrameworks>net6.0;</TargetFrameworks>
+    <LangVersion>12</LangVersion>
+    <TargetFrameworks>net8.0;</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,8 +28,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="6.0.15" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
