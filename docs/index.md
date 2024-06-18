@@ -36,7 +36,7 @@ Releases are available [here](https://github.com/Shazwazza/Examine/releases) and
 
 | Examine Version | .NET |
 | --------------- | ---- |
-| V4 | .NET 6.0 |
+| V4 | .NET 8.0 |
 | V3 | .NET Standard 2.0 |
 | V2 | .NET Standard 2.0 |
 | V1 | .NET Framework 4.5.2 |
