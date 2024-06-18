@@ -7,7 +7,8 @@
     <PackageTags>examine search index</PackageTags>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
-    <LangVersion>9</LangVersion>
+    <LangVersion>12</LangVersion>
+    <TargetFrameworks>net8.0;</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,8 +30,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
   </ItemGroup>
 
 </Project>
