@@ -17,8 +17,12 @@ namespace Examine.Test.Examine.Lucene.Directories
     [TestFixture]
     public class SyncedFileSystemDirectoryFactoryTests : ExamineBaseTest
     {
+        [TestCase(false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
+        [TestCase(true, SyncedFileSystemDirectoryFactory.CreateResult.MissingSegments | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew)]
         [Test]
-        public void Given_ExistingCorruptIndex_When_CreatingDirectory_Then_IndexFixed()
+        public void Given_ExistingCorruptIndex_When_CreatingDirectory_Then_IndexCreatedOrOpened(
+            bool removeSegments,
+            Enum expected)
         {
             var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -44,7 +48,12 @@ namespace Examine.Test.Examine.Lucene.Directories
                     Assert.IsTrue(DirectoryReader.IndexExists(mainDir));
 
                     // Get an index (non segments file) and delete it (corrupt index)
-                    var indexFile = mainDir.Directory.GetFiles().Where(x => !x.Name.Contains("segment", StringComparison.OrdinalIgnoreCase)).First();
+                    var indexFile = mainDir.Directory.GetFiles()
+                        .Where(x => removeSegments
+                            ? x.Name.Contains("segments_", StringComparison.OrdinalIgnoreCase)
+                            : !x.Name.Contains("segments", StringComparison.OrdinalIgnoreCase))
+                        .First();
+
                     File.Delete(indexFile.FullName);
                 }
 
@@ -64,9 +73,7 @@ namespace Examine.Test.Examine.Lucene.Directories
 
                 var result = syncedDirFactory.TryCreateDirectory(index, false, out var dir);
 
-                Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.NotClean));
-                Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.Fixed));
-                Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully));
+                Assert.IsTrue(result.HasFlag(expected));
             }
             finally
             {
