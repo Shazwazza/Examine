@@ -17,10 +17,12 @@ namespace Examine.Test.Examine.Lucene.Directories
     [TestFixture]
     public class SyncedFileSystemDirectoryFactoryTests : ExamineBaseTest
     {
-        [TestCase(false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
-        [TestCase(true, SyncedFileSystemDirectoryFactory.CreateResult.MissingSegments | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew)]
+        [TestCase(true, false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
+        [TestCase(true, true, SyncedFileSystemDirectoryFactory.CreateResult.MissingSegments | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew)]
+        [TestCase(false, false, SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
         [Test]
         public void Given_ExistingCorruptIndex_When_CreatingDirectory_Then_IndexCreatedOrOpened(
+            bool corruptIndex,
             bool removeSegments,
             Enum expected)
         {
@@ -47,14 +49,17 @@ namespace Examine.Test.Examine.Lucene.Directories
 
                     Assert.IsTrue(DirectoryReader.IndexExists(mainDir));
 
-                    // Get an index (non segments file) and delete it (corrupt index)
-                    var indexFile = mainDir.Directory.GetFiles()
-                        .Where(x => removeSegments
-                            ? x.Name.Contains("segments_", StringComparison.OrdinalIgnoreCase)
-                            : !x.Name.Contains("segments", StringComparison.OrdinalIgnoreCase))
-                        .First();
+                    if (corruptIndex)
+                    {
+                        // Get an index (non segments file) and delete it (corrupt index)
+                        var indexFile = mainDir.Directory.GetFiles()
+                            .Where(x => removeSegments
+                                ? x.Name.Contains("segments_", StringComparison.OrdinalIgnoreCase)
+                                : !x.Name.Contains("segments", StringComparison.OrdinalIgnoreCase))
+                            .First();
 
-                    File.Delete(indexFile.FullName);
+                        File.Delete(indexFile.FullName);
+                    }
                 }
 
                 using var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
