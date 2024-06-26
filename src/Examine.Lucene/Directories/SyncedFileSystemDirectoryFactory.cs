@@ -110,8 +110,20 @@ namespace Examine.Lucene.Directories
 
                 try
                 {
-                    indexWriter = GetIndexWriter(mainDir, OpenMode.APPEND);
-                    result |= CreateResult.OpenedSuccessfully;
+                    var openMode = result == CreateResult.Init || result.HasFlag(CreateResult.Fixed)
+                            ? OpenMode.APPEND
+                            : OpenMode.CREATE;
+
+                    indexWriter = GetIndexWriter(mainDir, openMode);
+
+                    if (openMode == OpenMode.APPEND)
+                    {
+                        result |= CreateResult.OpenedSuccessfully;
+                    }
+                    else
+                    {
+                        result |= CreateResult.CorruptCreatedNew;
+                    }
                 }
                 catch (Exception ex)
                 {
