@@ -1,7 +1,6 @@
 
 using System;
 using System.IO;
-using System.Threading;
 using Examine.Lucene.Providers;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
@@ -46,28 +45,49 @@ namespace Examine.Lucene.Directories
 
             var mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
 
-            var checker = new CheckIndex(mainDir);
-            // TODO: We can redirect the logging output
-            // checker.InfoStream = 
-            var status = checker.DoCheckIndex();
-
-            if (!status.Clean)
+            using (var writer = new StringWriter())
             {
-                _logger.LogInformation("Checked main director index and it is not clean, attempting to fix {IndexName}...", luceneIndex.Name);
+                var checker = new CheckIndex(mainDir)
+                {
+                    // Redirect the logging output of the checker
+                    InfoStream = writer
+                };
 
-                try
+                var status = checker.DoCheckIndex();
+                writer.Flush();
+
+                _logger.LogDebug("{IndexName} health check report {IndexReport}", luceneIndex.Name, writer.ToString());
+
+                if (status.MissingSegments)
                 {
-                    checker.FixIndex(status);
-                    _logger.LogInformation("Index {IndexName} fixed.", luceneIndex.Name);
+                    _logger.LogError("{IndexName} index is missing segments, it will be deleted.", luceneIndex.Name);
                 }
-                catch (Exception ex)
+                else if (!status.Clean)
                 {
-                    _logger.LogError(ex, "{IndexName} index could not be fixed, it will be deleted.", luceneIndex.Name);
+                    _logger.LogWarning("Checked main director index and it is not clean, attempting to fix {IndexName}. {DocumentsLost} documents will be lost.", luceneIndex.Name, status.TotLoseDocCount);
+
+                    try
+                    {
+                        checker.FixIndex(status);
+
+                        if (!status.Clean)
+                        {
+                            _logger.LogError("{IndexName} index could not be fixed, it will be deleted.", luceneIndex.Name);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Index {IndexName} fixed. {DocumentsLost} documents were lost.", luceneIndex.Name, status.TotLoseDocCount);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "{IndexName} index could not be fixed, it will be deleted.", luceneIndex.Name);
+                    }
                 }
-            }
-            else
-            {
-                _logger.LogInformation("Checked main director index {IndexName} and it is clean.", luceneIndex.Name);
+                else
+                {
+                    _logger.LogInformation("Checked main director index {IndexName} and it is clean.", luceneIndex.Name);
+                }
             }
 
             // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
