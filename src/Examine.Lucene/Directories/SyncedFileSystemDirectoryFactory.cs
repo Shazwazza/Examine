@@ -38,8 +38,10 @@ namespace Examine.Lucene.Directories
             _logger = _loggerFactory.CreateLogger<SyncedFileSystemDirectoryFactory>();
         }
 
-        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        internal CreateResult TryCreateDirectory(LuceneIndex luceneIndex, bool forceUnlock, out Directory directory)
         {
+            var result = CreateResult.OpenedSuccessfully;
+
             var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
             var localLuceneIndexFolder = new DirectoryInfo(path);
 
@@ -61,27 +63,33 @@ namespace Examine.Lucene.Directories
                 if (status.MissingSegments)
                 {
                     _logger.LogError("{IndexName} index is missing segments, it will be deleted.", luceneIndex.Name);
+                    result = CreateResult.MissingSegments;
                 }
                 else if (!status.Clean)
                 {
                     _logger.LogWarning("Checked main director index and it is not clean, attempting to fix {IndexName}. {DocumentsLost} documents will be lost.", luceneIndex.Name, status.TotLoseDocCount);
+                    result = CreateResult.NotClean;
 
                     try
                     {
                         checker.FixIndex(status);
+                        status = checker.DoCheckIndex();
 
                         if (!status.Clean)
                         {
                             _logger.LogError("{IndexName} index could not be fixed, it will be deleted.", luceneIndex.Name);
+                            result |= CreateResult.NotFixed;
                         }
                         else
                         {
                             _logger.LogInformation("Index {IndexName} fixed. {DocumentsLost} documents were lost.", luceneIndex.Name, status.TotLoseDocCount);
+                            result |= CreateResult.Fixed;
                         }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "{IndexName} index could not be fixed, it will be deleted.", luceneIndex.Name);
+                        result |= CreateResult.ExceptionNotFixed;
                     }
                 }
                 else
@@ -103,6 +111,7 @@ namespace Examine.Lucene.Directories
                 try
                 {
                     indexWriter = GetIndexWriter(mainDir, OpenMode.APPEND);
+                    result |= CreateResult.OpenedSuccessfully;
                 }
                 catch (Exception ex)
                 {
@@ -110,6 +119,7 @@ namespace Examine.Lucene.Directories
                     _logger.LogError(ex, "{IndexName} index is corrupt, a new one will be created", luceneIndex.Name);
 
                     indexWriter = GetIndexWriter(mainDir, OpenMode.CREATE);
+                    result |= CreateResult.CorruptCreatedNew;
                 }
 
                 using (var tempMainIndexWriter = indexWriter)
@@ -141,7 +151,28 @@ namespace Examine.Lucene.Directories
             // Start replicating back to main
             _replicator.StartIndexReplicationOnSchedule(1000);
 
-            return localLuceneDir;
+            directory = localLuceneDir;
+
+            return result;
+        }
+
+        [Flags]
+        internal enum CreateResult
+        {
+            Init = 0,
+            MissingSegments = 1,
+            NotClean = 2,
+            Fixed = 4,
+            NotFixed = 8,
+            ExceptionNotFixed = 16,
+            CorruptCreatedNew = 32,
+            OpenedSuccessfully = 64
+        }
+
+        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        {
+            _ = TryCreateDirectory(luceneIndex, forceUnlock, out var directory);
+            return directory;
         }
 
         protected override void Dispose(bool disposing)

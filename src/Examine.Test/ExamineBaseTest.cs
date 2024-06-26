@@ -13,21 +13,21 @@ namespace Examine.Test
 {
     public abstract class ExamineBaseTest
     {
-        private ILoggerFactory _loggerFactory;
+        protected ILoggerFactory LoggerFactory { get; private set; }
 
         [SetUp]
         public virtual void Setup()
         {
-            _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
-            _loggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
+            LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            LoggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
         }
 
         [TearDown]
-        public virtual void TearDown() => _loggerFactory.Dispose();
+        public virtual void TearDown() => LoggerFactory.Dispose();
 
         public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             => new TestIndex(
-                _loggerFactory,
+                LoggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,
@@ -39,7 +39,7 @@ namespace Examine.Test
 
         public TestIndex GetTestIndex(IndexWriter writer)
             => new TestIndex(
-                _loggerFactory,
+                LoggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions()),
                 writer);
     }

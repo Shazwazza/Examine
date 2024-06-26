@@ -13,7 +13,7 @@ namespace Examine.Test.Examine.Lucene.Sync
     public class ExamineReplicatorTests : ExamineBaseTest
     {
         private ILoggerFactory GetLoggerFactory()
-            => LoggerFactory.Create(x => x.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            => Microsoft.Extensions.Logging.LoggerFactory.Create(x => x.AddConsole().SetMinimumLevel(LogLevel.Debug));
 
         [Test]
         public void GivenAMainIndex_WhenReplicatedLocally_TheLocalIndexIsPopulated()
