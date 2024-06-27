@@ -24,6 +24,7 @@ namespace Examine.Lucene.Directories
         private readonly DirectoryInfo _localDir;
         private readonly DirectoryInfo _mainDir;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly bool _tryFixMainIndexIfCorrupt;
         private readonly ILogger<SyncedFileSystemDirectoryFactory> _logger;
         private ExamineReplicator _replicator;
 
@@ -32,11 +33,22 @@ namespace Examine.Lucene.Directories
             DirectoryInfo mainDir,
             ILockFactory lockFactory,
             ILoggerFactory loggerFactory)
+            : this(localDir, mainDir, lockFactory, loggerFactory, false)
+        {
+        }
+
+        public SyncedFileSystemDirectoryFactory(
+            DirectoryInfo localDir,
+            DirectoryInfo mainDir,
+            ILockFactory lockFactory,
+            ILoggerFactory loggerFactory,
+            bool tryFixMainIndexIfCorrupt)
             : base(mainDir, lockFactory)
         {
             _localDir = localDir;
             _mainDir = mainDir;
             _loggerFactory = loggerFactory;
+            _tryFixMainIndexIfCorrupt = tryFixMainIndexIfCorrupt;
             _logger = _loggerFactory.CreateLogger<SyncedFileSystemDirectoryFactory>();
         }
 
@@ -63,13 +75,13 @@ namespace Examine.Lucene.Directories
 
             if (mainIndexExists)
             {
-                mainResult = CheckIndexHealthAndFix(mainLuceneDir, luceneIndex.Name);
+                mainResult = CheckIndexHealthAndFix(mainLuceneDir, luceneIndex.Name, _tryFixMainIndexIfCorrupt);
             }
 
             // the main index is/was unhealthy or missing, lets check the local index if it exists
             if (localIndexExists && (!mainIndexExists || mainResult.HasFlag(CreateResult.NotClean) || mainResult.HasFlag(CreateResult.MissingSegments)))
             {
-                var localResult = CheckIndexHealthAndFix(localLuceneDir, luceneIndex.Name);
+                var localResult = CheckIndexHealthAndFix(localLuceneDir, luceneIndex.Name, false);
 
                 if (localResult == CreateResult.Init)
                 {
@@ -213,7 +225,10 @@ namespace Examine.Lucene.Directories
             }
         }
 
-        private CreateResult CheckIndexHealthAndFix(Directory luceneDir, string indexName)
+        private CreateResult CheckIndexHealthAndFix(
+            Directory luceneDir,
+            string indexName,
+            bool doFix)
         {
             using var writer = new StringWriter();
             var result = CreateResult.Init;
@@ -239,26 +254,29 @@ namespace Examine.Lucene.Directories
                 _logger.LogWarning("Checked main index and it is not clean, attempting to fix {IndexName}. {DocumentsLost} documents will be lost.", indexName, status.TotLoseDocCount);
                 result = CreateResult.NotClean;
 
-                try
+                if (doFix)
                 {
-                    checker.FixIndex(status);
-                    status = checker.DoCheckIndex();
+                    try
+                    {
+                        checker.FixIndex(status);
+                        status = checker.DoCheckIndex();
 
-                    if (!status.Clean)
-                    {
-                        _logger.LogError("{IndexName} index could not be fixed, it will be deleted.", indexName);
-                        result |= CreateResult.NotFixed;
+                        if (!status.Clean)
+                        {
+                            _logger.LogError("{IndexName} index could not be fixed, it will be deleted.", indexName);
+                            result |= CreateResult.NotFixed;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Index {IndexName} fixed. {DocumentsLost} documents were lost.", indexName, status.TotLoseDocCount);
+                            result |= CreateResult.Fixed;
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        _logger.LogInformation("Index {IndexName} fixed. {DocumentsLost} documents were lost.", indexName, status.TotLoseDocCount);
-                        result |= CreateResult.Fixed;
+                        _logger.LogError(ex, "{IndexName} index could not be fixed, it will be deleted.", indexName);
+                        result |= CreateResult.ExceptionNotFixed;
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "{IndexName} index could not be fixed, it will be deleted.", indexName);
-                    result |= CreateResult.ExceptionNotFixed;
                 }
             }
             else

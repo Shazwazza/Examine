@@ -38,7 +38,8 @@ namespace Examine.Test.Examine.Lucene.Directories
                     new DirectoryInfo(tempPath),
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
-                    LoggerFactory);
+                    LoggerFactory,
+                    true);
 
                 using var index = new LuceneIndex(
                     LoggerFactory,
@@ -77,7 +78,8 @@ namespace Examine.Test.Examine.Lucene.Directories
                     new DirectoryInfo(tempPath),
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
-                    LoggerFactory))
+                    LoggerFactory,
+                    true))
                 {
                     using var index = new LuceneIndex(
                         LoggerFactory,
