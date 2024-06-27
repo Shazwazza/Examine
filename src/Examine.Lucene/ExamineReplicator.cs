@@ -74,6 +74,11 @@ namespace Examine.Lucene
                 throw new InvalidOperationException("The destination directory is locked");
             }
 
+            _logger.LogInformation(
+                "Replicating index from {SourceIndex} to {DestinationIndex}",
+                _sourceIndex.GetLuceneDirectory(),
+                _destinationDirectory);
+
             IndexRevision rev;
             try
             {
@@ -82,11 +87,17 @@ namespace Examine.Lucene
             catch (InvalidOperationException)
             {
                 // will occur if there is nothing to sync
+                _logger.LogInformation("There was nothing to replicate to {DestinationIndex}", _destinationDirectory);
                 return;
             }
 
             _replicator.Publish(rev);
             _localReplicationClient.UpdateNow();
+
+            _logger.LogInformation(
+                "Replication from index {SourceIndex} to {DestinationIndex} complete.",
+                _sourceIndex.GetLuceneDirectory(),
+                _destinationDirectory);
         }
 
         public void StartIndexReplicationOnSchedule(int milliseconds)
