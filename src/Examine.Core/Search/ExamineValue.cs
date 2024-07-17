@@ -1,8 +1,8 @@
-﻿using Examine.Search;
+using Examine.Search;
 
 namespace Examine.Search
 {
-    public struct ExamineValue : IExamineValue
+    public readonly struct ExamineValue : IExamineValue
     {
         public ExamineValue(Examineness vagueness, string value)
             : this(vagueness, value, 1)
@@ -21,6 +21,5 @@ namespace Examine.Search
         public string Value { get; }
 
         public float Level { get; }
-
     }
 }

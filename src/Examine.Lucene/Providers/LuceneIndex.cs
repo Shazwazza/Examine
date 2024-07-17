@@ -89,12 +89,13 @@ namespace Examine.Lucene.Providers
 
         #endregion
 
+        private static readonly string[] s_possibleSuffixes = new[] { "Index", "Indexer" };
         private readonly LuceneIndexOptions _options;
         private PerFieldAnalyzerWrapper _fieldAnalyzer;
         private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
         private readonly Lazy<Directory> _directory;
-        private FileStream _logOutput;
+        private readonly FileStream _logOutput;
         private bool _disposedValue;
         private readonly IndexCommiter _committer;
 
@@ -1029,9 +1030,8 @@ namespace Examine.Lucene.Providers
 
         private LuceneSearcher CreateSearcher()
         {
-            var possibleSuffixes = new[] { "Index", "Indexer" };
             var name = Name;
-            foreach (var suffix in possibleSuffixes)
+            foreach (var suffix in s_possibleSuffixes)
             {
                 //trim the "Indexer" / "Index" suffix if it exists
                 if (!name.EndsWith(suffix))

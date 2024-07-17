@@ -1,0 +1,1 @@
+static Examine.SearchExtensions.Escape(this string s, float boost) -> Examine.Search.IExamineValue

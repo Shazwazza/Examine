@@ -28,6 +28,7 @@ namespace Examine.Lucene.Directories
             {
                 IndexWriter.Unlock(dir);
             }
+
             return dir;
         }
     }

@@ -1,6 +1,6 @@
 namespace Examine
 {
-    public struct ValueSetValidationResult
+    public readonly struct ValueSetValidationResult
     {
         public ValueSetValidationResult(ValueSetValidationStatus status, ValueSet valueSet)
         {
