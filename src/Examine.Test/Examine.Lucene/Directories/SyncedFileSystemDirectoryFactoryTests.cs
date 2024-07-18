@@ -51,7 +51,7 @@ namespace Examine.Test.Examine.Lucene.Directories
 
                 var result = syncedDirFactory.TryCreateDirectory(index, false, out var dir);
 
-                Assert.IsTrue(result.HasFlag(expected));
+                Assert.IsTrue(result.HasFlag(expected), $"{result} does not have flag {expected}");
             }
             finally
             {
