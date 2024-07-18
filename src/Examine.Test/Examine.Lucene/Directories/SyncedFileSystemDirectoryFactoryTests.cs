@@ -8,6 +8,7 @@ using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
@@ -18,6 +19,13 @@ namespace Examine.Test.Examine.Lucene.Directories
     [TestFixture]
     public class SyncedFileSystemDirectoryFactoryTests : ExamineBaseTest
     {
+        private readonly ILogger _logger;
+
+        public SyncedFileSystemDirectoryFactoryTests()
+        {
+            _logger = LoggerFactory.CreateLogger<SyncedFileSystemDirectoryFactoryTests>();
+        }
+
         [TestCase(true, false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
         [TestCase(true, true, SyncedFileSystemDirectoryFactory.CreateResult.MissingSegments | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew, Ignore = "testing")]
         [TestCase(false, false, SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully, Ignore = "testing")]
@@ -115,7 +123,10 @@ namespace Examine.Test.Examine.Lucene.Directories
 
         private void CreateIndex(string rootPath, bool corruptIndex, bool removeSegments)
         {
-            using var luceneDir = FSDirectory.Open(Path.Combine(rootPath, TestIndex.TestIndexName));
+            var indexPath = Path.Combine(rootPath, TestIndex.TestIndexName);
+            _logger.LogInformation("Creating index at " + indexPath);
+
+            using var luceneDir = FSDirectory.Open(indexPath);
 
             using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
             using (var indexer = GetTestIndex(writer))
@@ -138,6 +149,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     });
             }
 
+            _logger.LogInformation("Created index at " + luceneDir.Directory);
             Assert.IsTrue(DirectoryReader.IndexExists(luceneDir));
 
             if (corruptIndex)
@@ -155,6 +167,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     : !x.Name.Contains("segments", StringComparison.OrdinalIgnoreCase))
                 .First();
 
+            Console.WriteLine($"Deleting {indexFile.FullName}");
             File.Delete(indexFile.FullName);
         }
     }
