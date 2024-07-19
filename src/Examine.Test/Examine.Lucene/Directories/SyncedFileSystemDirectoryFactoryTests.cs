@@ -17,6 +17,7 @@ using Directory = Lucene.Net.Store.Directory;
 namespace Examine.Test.Examine.Lucene.Directories
 {
     [TestFixture]
+    [NonParallelizable]
     public class SyncedFileSystemDirectoryFactoryTests : ExamineBaseTest
     {
         [TestCase(true, false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
