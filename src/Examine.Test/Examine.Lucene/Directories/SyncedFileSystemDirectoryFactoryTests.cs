@@ -19,13 +19,6 @@ namespace Examine.Test.Examine.Lucene.Directories
     [TestFixture]
     public class SyncedFileSystemDirectoryFactoryTests : ExamineBaseTest
     {
-        private readonly ILogger _logger;
-
-        public SyncedFileSystemDirectoryFactoryTests()
-        {
-            _logger = LoggerFactory.CreateLogger<SyncedFileSystemDirectoryFactoryTests>();
-        }
-
         [TestCase(true, false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
         [TestCase(true, true, SyncedFileSystemDirectoryFactory.CreateResult.MissingSegments | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew, Ignore = "testing")]
         [TestCase(false, false, SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully, Ignore = "testing")]
@@ -123,8 +116,10 @@ namespace Examine.Test.Examine.Lucene.Directories
 
         private void CreateIndex(string rootPath, bool corruptIndex, bool removeSegments)
         {
+            var logger = LoggerFactory.CreateLogger<SyncedFileSystemDirectoryFactoryTests>();
+
             var indexPath = Path.Combine(rootPath, TestIndex.TestIndexName);
-            _logger.LogInformation("Creating index at " + indexPath);
+            logger.LogInformation("Creating index at " + indexPath);
 
             using var luceneDir = FSDirectory.Open(indexPath);
 
@@ -149,7 +144,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     });
             }
 
-            _logger.LogInformation("Created index at " + luceneDir.Directory);
+            logger.LogInformation("Created index at " + luceneDir.Directory);
             Assert.IsTrue(DirectoryReader.IndexExists(luceneDir));
 
             if (corruptIndex)
