@@ -119,7 +119,7 @@ namespace Examine.Test.Examine.Lucene.Directories
             var logger = LoggerFactory.CreateLogger<SyncedFileSystemDirectoryFactoryTests>();
 
             var indexPath = Path.Combine(rootPath, TestIndex.TestIndexName);
-            logger.LogInformation("Creating index at " + indexPath);
+            logger.LogInformation($"Creating index at {indexPath} with options: corruptIndex: {corruptIndex}, removeSegments: {removeSegments}");
 
             using var luceneDir = FSDirectory.Open(indexPath);
 
@@ -149,11 +149,11 @@ namespace Examine.Test.Examine.Lucene.Directories
 
             if (corruptIndex)
             {
-                CorruptIndex(luceneDir.Directory, removeSegments);
+                CorruptIndex(luceneDir.Directory, removeSegments, logger);
             }
         }
 
-        private void CorruptIndex(DirectoryInfo dir, bool removeSegments)
+        private void CorruptIndex(DirectoryInfo dir, bool removeSegments, ILogger logger)
         {
             // Get an index (non segments file) and delete it (corrupt index)
             var indexFile = dir.GetFiles()
@@ -162,7 +162,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     : !x.Name.Contains("segments", StringComparison.OrdinalIgnoreCase))
                 .First();
 
-            Console.WriteLine($"Deleting {indexFile.FullName}");
+            logger.LogInformation($"Deleting {indexFile.FullName}");
             File.Delete(indexFile.FullName);
         }
     }
