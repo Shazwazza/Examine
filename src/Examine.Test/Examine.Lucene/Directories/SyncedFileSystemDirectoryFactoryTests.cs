@@ -6,6 +6,7 @@ using Examine.Lucene;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
+using Lucene.Net.Codecs.Lucene46;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
@@ -21,8 +22,8 @@ namespace Examine.Test.Examine.Lucene.Directories
     public class SyncedFileSystemDirectoryFactoryTests : ExamineBaseTest
     {
         [TestCase(true, false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
-        [TestCase(true, true, SyncedFileSystemDirectoryFactory.CreateResult.MissingSegments | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew, Ignore = "testing")]
-        [TestCase(false, false, SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully, Ignore = "testing")]
+        [TestCase(true, true, SyncedFileSystemDirectoryFactory.CreateResult.MissingSegments | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew)]
+        [TestCase(false, false, SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
         [Test]
         public void Given_ExistingCorruptIndex_When_CreatingDirectory_Then_IndexCreatedOrOpened(
             bool corruptIndex,
@@ -94,7 +95,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     var result = syncedDirFactory.TryCreateDirectory(index, false, out var dir);
 
                     Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
-                }   
+                }
 
                 // Ensure the docs are there in main
                 using var mainIndex = new LuceneIndex(
@@ -156,11 +157,16 @@ namespace Examine.Test.Examine.Lucene.Directories
 
         private void CorruptIndex(DirectoryInfo dir, bool removeSegments, ILogger logger)
         {
+            // index file extensions (no segments, no gen)
+            var indexFileExtensions = IndexFileNames.INDEX_EXTENSIONS
+                .Except(new[] { IndexFileNames.GEN_EXTENSION })
+                .ToArray();
+
             // Get an index (non segments file) and delete it (corrupt index)
             var indexFile = dir.GetFiles()
                 .Where(x => removeSegments
-                    ? x.Name.Contains("segments_", StringComparison.OrdinalIgnoreCase)
-                    : !x.Name.Contains("segments", StringComparison.OrdinalIgnoreCase))
+                    ? x.Extension.Contains(Lucene46SegmentInfoFormat.SI_EXTENSION, StringComparison.OrdinalIgnoreCase)
+                    : indexFileExtensions.Any(e => IndexFileNames.MatchesExtension(x.Extension, e)))
                 .First();
 
             logger.LogInformation($"Deleting {indexFile.FullName}");

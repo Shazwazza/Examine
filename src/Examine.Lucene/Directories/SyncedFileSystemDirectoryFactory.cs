@@ -246,7 +246,7 @@ namespace Examine.Lucene.Directories
 
             if (status.MissingSegments)
             {
-                _logger.LogError("{IndexName} index is missing segments, it will be deleted.", indexName);
+                _logger.LogWarning("{IndexName} index is missing segments, it will be deleted.", indexName);
                 result = CreateResult.MissingSegments;
             }
             else if (!status.Clean)
