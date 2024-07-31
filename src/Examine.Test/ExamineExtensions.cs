@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Xml.Linq;
+using Examine.Search;
 
 namespace Examine
 {
@@ -11,6 +12,15 @@ namespace Examine
     /// </summary>
     public static class ExamineExtensions
     {
+        // Same as one in Umbraco CMS
+        public static IBooleanOperation NodeTypeAlias(this IQuery query, string nodeTypeAlias)
+        {
+            IBooleanOperation? fieldQuery = query.Field(
+                ExamineFieldNames.ItemTypeFieldName,
+                (IExamineValue)new ExamineValue(Examineness.Explicit, nodeTypeAlias));
+            return fieldQuery;
+        }
+
         /// <summary>
         /// Returns true if the XElement is recognized as an umbraco xml NODE (doc type) 
         /// </summary>

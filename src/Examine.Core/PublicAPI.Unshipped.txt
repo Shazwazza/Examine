@@ -1,1 +1,5 @@
-static Examine.SearchExtensions.Escape(this string s, float boost) -> Examine.Search.IExamineValue
+Examine.Search.Examineness.Boosted = 6 -> Examine.Search.Examineness
+Examine.Search.Examineness.Escaped = 5 -> Examine.Search.Examineness
+Examine.Search.Examineness.Phrase = 4 -> Examine.Search.Examineness
+Examine.Search.Examineness.Proximity = 7 -> Examine.Search.Examineness
+static Examine.SearchExtensions.Phrase(this string s) -> Examine.Search.IExamineValue

@@ -1,6 +1,7 @@
 using System;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Core;
+using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
@@ -8,6 +9,7 @@ using Lucene.Net.Util;
 
 namespace Examine.Lucene.Search
 {
+    // TODO: We can have the user pass a map of boosts so they don't need to re-define them all of the time.
 
     /// <summary>
     /// We use this to get at the protected methods directly since the new version makes them not public

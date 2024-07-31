@@ -1,4 +1,4 @@
-﻿
+
 namespace Examine.Search
 {
 
@@ -23,12 +23,17 @@ namespace Examine.Search
         ComplexWildcard,
 
         /// <summary>
-        /// A normal phrase query
+        /// A normal query
         /// </summary>
         Explicit,
 
         /// <summary>
-        /// Becomes exact match
+        /// A phrase query
+        /// </summary>
+        Phrase,
+
+        /// <summary>
+        /// Becomes exact match - only works if the field is analyzed with KeywordAnalyzer
         /// </summary>
         Escaped,
 
@@ -41,7 +46,5 @@ namespace Examine.Search
         /// Searches for terms within a proximity of each other
         /// </summary>
         Proximity
-
-
     }
 }

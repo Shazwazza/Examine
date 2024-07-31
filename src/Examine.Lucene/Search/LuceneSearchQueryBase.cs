@@ -10,6 +10,8 @@ namespace Examine.Lucene.Search
 {
     public abstract class LuceneSearchQueryBase : IQuery, INestedQuery
     {
+        private static readonly char[] s_split = new[] { ' ' };
+
         private readonly CustomMultiFieldQueryParser _queryParser;
 
         public QueryParser QueryParser => _queryParser;
@@ -361,15 +363,20 @@ namespace Examine.Lucene.Search
                     }
                     break;
                 case Examineness.Escaped:
-
-                    //This uses the KeywordAnalyzer to parse the 'phrase'
-                    //var stdQuery = fieldName + ":" + fieldValue.Value;
-
-                    //NOTE: We used to just use this but it's more accurate/exact with the below usage of phrase query
-                    //queryToAdd = ParseRawQuery(stdQuery);
-
-                    //This uses the PhraseQuery to parse the phrase, the results seem identical
+                    // This uses the PhraseQuery to parse the phrase, the results seem identical.
+                    // Under the hood, I think this uses the KeywordAnalyzer and this Escaped method,
+                    // will generally only work if the field is indexed with RAW (KeywordAnalyzer)
                     queryToAdd = CreatePhraseQuery(fieldName, fieldValue.Value);
+                    break;
+                case Examineness.Phrase:
+                    if (useQueryParser)
+                    {
+                        queryToAdd = _queryParser.CreatePhraseQuery(fieldName, fieldValue.Value);
+                    }
+                    else
+                    {
+                        queryToAdd = CreatePhraseQuery(fieldName, fieldValue.Value);
+                    }
 
                     break;
                 case Examineness.Explicit:
@@ -416,11 +423,18 @@ namespace Examine.Lucene.Search
         /// </remarks>
         private static Query CreatePhraseQuery(string field, string txt)
         {
-            var phraseQuery = new PhraseQuery { Slop = 0 };
-            foreach (var val in txt.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            var phraseQuery = new PhraseQuery
+            {
+                Slop = 0,                
+            };
+
+            //phraseQuery.Boost = 0;
+
+            foreach (var val in txt.Split(s_split, StringSplitOptions.RemoveEmptyEntries))
             {
                 phraseQuery.Add(new Term(field, val));
             }
+
             return phraseQuery;
         }
 

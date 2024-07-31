@@ -17,7 +17,9 @@ namespace Examine
         public static IExamineValue SingleCharacterWildcard(this string s)
         {
             if (string.IsNullOrWhiteSpace(s))
+            {
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
+            }
 
             return new ExamineValue(Examineness.SimpleWildcard, s);
         }
@@ -31,7 +33,10 @@ namespace Examine
         public static IExamineValue MultipleCharacterWildcard(this string s)
         {
             if (string.IsNullOrWhiteSpace(s))
+            {
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
+            }
+
             return new ExamineValue(Examineness.ComplexWildcard, s);
         }
 
@@ -58,7 +63,10 @@ namespace Examine
         public static IExamineValue Fuzzy(this string s, float fuzzieness)
         {
             if (string.IsNullOrWhiteSpace(s))
+            {
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
+            }
+
             return new ExamineValue(Examineness.Fuzzy, s, fuzzieness);
         }
 
@@ -74,7 +82,10 @@ namespace Examine
         public static IExamineValue Boost(this string s, float boost)
         {
             if (string.IsNullOrWhiteSpace(s))
+            {
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
+            }
+
             return new ExamineValue(Examineness.Boosted, s, boost);
         }
 
@@ -90,12 +101,16 @@ namespace Examine
         public static IExamineValue Proximity(this string s, int proximity)
         {
             if (string.IsNullOrWhiteSpace(s))
+            {
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
+            }
+
             return new ExamineValue(Examineness.Proximity, s, Convert.ToSingle(proximity));
         }
 
         /// <summary>
-        /// Escapes the string within Lucene
+        /// Provides an 'exact' which uses the KeywordAnalyzer. If the field being queried is not configured to use KeywordAnalyzer,
+        /// than this method will probably not work.
         /// </summary>
         /// <param name="s">The string to escape.</param>
         /// <returns>An IExamineValue for the required operation</returns>
@@ -103,14 +118,25 @@ namespace Examine
         public static IExamineValue Escape(this string s)
         {
             if (string.IsNullOrWhiteSpace(s))
+            {
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
-
-            //NOTE: You would be tempted to use QueryParser.Escape(s) here but that is incorrect because
-            // inside of LuceneSearchCriteria when we detect Escaped, we use a PhraseQuery which automatically
-            // escapes invalid chars.
+            }
 
             return new ExamineValue(Examineness.Escaped, s);
         }
 
+        /// <summary>
+        /// Used to match the whole phrase provided by the string
+        /// </summary>
+        /// <param name="s">The phrase to match</param>        
+        public static IExamineValue Phrase(this string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                throw new ArgumentException("Supplied string is null or empty.", nameof(s));
+            }
+
+            return new ExamineValue(Examineness.Phrase, s);
+        }
     }
 }

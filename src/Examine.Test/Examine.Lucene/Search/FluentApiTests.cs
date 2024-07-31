@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Examine.Lucene.Providers;
@@ -20,6 +21,77 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class FluentApiTests : ExamineBaseTest
     {
+        [Test]
+        public void Can_Search_On_Negative_Numbers_With_Standard_Analyzer()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { spath = "-1 -20 1250" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { spath = "-1 -20 1251" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { spath = "-1 -20 1252" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { spath = "-1 -20 1253" }),
+                });
+
+                var searcher = (BaseLuceneSearcher)indexer.Searcher;
+
+                var query = searcher
+                    .CreateQuery(IndexTypes.Content)
+                    .Field("spath", "-1");
+
+                Console.WriteLine(query);
+                var results = query.Execute();
+
+                Assert.AreEqual(4, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Can_Boost_Phrase_Query_With_Native_Query()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { phrase = "If You Can't Stand the Heat, Get Out of the Kitchen" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { phrase = "When the Rubber Hits the Road" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { phrase = "A Fool and His Money Are Soon Parted" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { spaphraseth = "A Hundred and Ten Percent" }),
+                });
+
+                var searcher = (BaseLuceneSearcher)indexer.Searcher;
+
+                var query = searcher
+                    .CreateQuery(IndexTypes.Content)
+                    .NativeQuery("+phrase:\"Get Out of the Kitchen\"");
+
+                Console.WriteLine(query);
+                var results = query.Execute();
+
+                Assert.AreEqual(1, results.TotalItemCount);
+
+                query = searcher
+                    .CreateQuery(IndexTypes.Content)
+                    .Field("phrase", "Get Out of the Kitchen".Escape().Value.Boost(2));
+
+                Console.WriteLine(query);
+                results = query.Execute();
+
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+
         [Test]
         public void Allow_Leading_Wildcards()
         {
@@ -2277,37 +2349,50 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        //[Test]
-        //public void Wildcard_Results_Sorted_By_Score()
-        //{
-        //    //Arrange
-        //    var sc = _searcher.CreateCriteria("content", SearchCriteria.BooleanOperation.Or);
+        [Test]
+        public void Wildcard_Results_Sorted_By_Score()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { Content = "hello world", Type = "type1", Name = "bloo" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { Content = "hello everyone", Type = "custom type2", Name = "blee" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { Content = "hello you guys", Type = "custom type1", Name = "blah" })
+                    });
 
-        //    //set the rewrite method before adding queries
-        //    var lsc = (LuceneSearchCriteria)sc;
-        //    lsc.QueryParser.MultiTermRewriteMethod = MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE;
+                var searcher = indexer.Searcher;
 
-        //    sc = sc.NodeName("umbrac".MultipleCharacterWildcard())
-        //        .Or().Field("headerText", "umbrac".MultipleCharacterWildcard())
-        //        .Or().Field("bodyText", "umbrac".MultipleCharacterWildcard()).Compile();
+                var results = searcher
+                    .CreateQuery("content", BooleanOperation.Or)
+                    .Field("Content", "hel".MultipleCharacterWildcard())
+                    .Or()
+                    .Field("Type", "cust".MultipleCharacterWildcard())
+                    .Or()
+                    .Field("Name", "bla".MultipleCharacterWildcard())
+                    .Execute();
 
-        //    //Act
-        //    var results = _searcher.Search(sc);
+                Assert.Greater(results.TotalItemCount, 0);
 
-        //    Assert.Greater(results.TotalItemCount, 0);
+                //Assert
+                for (int i = 0; i < results.TotalItemCount - 1; i++)
+                {
+                    var curr = results.ElementAt(i);
+                    var next = results.ElementAtOrDefault(i + 1);
 
-        //    //Assert
-        //    for (int i = 0; i < results.TotalItemCount - 1; i++)
-        //    {
-        //        var curr = results.ElementAt(i);
-        //        var next = results.ElementAtOrDefault(i + 1);
+                    if (next == null)
+                    {
+                        break;
+                    }
 
-        //        if (next == null)
-        //            break;
-
-        //        Assert.IsTrue(curr.Score > next.Score, $"Result at index {i} must have a higher score than result at index {i + 1}");
-        //    }
-        //}
+                    Assert.IsTrue(curr.Score > next.Score, $"Result at index {i} must have a higher score than result at index {i + 1}");
+                }
+            }
+        }
 
         //[Test]
         //public void Wildcard_Results_Sorted_By_Score_TooManyClauses_Exception()
