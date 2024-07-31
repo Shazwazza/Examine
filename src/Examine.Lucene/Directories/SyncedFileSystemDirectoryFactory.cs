@@ -13,11 +13,12 @@ namespace Examine.Lucene.Directories
 {
     /// <summary>
     /// A directory factory that replicates the index from main storage on initialization to another
-    /// directory, then creates a lucene Directory based on that replicated index. A replication thread
-    /// is spawned to then replicate the local index back to the main storage location.
+    /// directory, then creates a lucene Directory based on that replicated index.
     /// </summary>
     /// <remarks>
+    /// A replication thread is spawned to then replicate the local index back to the main storage location.
     /// By default, Examine configures the local directory to be the %temp% folder.
+    /// This also checks if the main/local storage indexes are healthy and syncs/removes accordingly.
     /// </remarks>
     public class SyncedFileSystemDirectoryFactory : FileSystemDirectoryFactory
     {
