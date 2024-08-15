@@ -18,7 +18,7 @@ namespace Examine.Test
         [SetUp]
         public virtual void Setup()
         {
-            LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            LoggerFactory = CreateLoggerFactory();
             LoggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
         }
 
@@ -42,5 +42,8 @@ namespace Examine.Test
                 LoggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions()),
                 writer);
+
+        protected virtual ILoggerFactory CreateLoggerFactory()
+            => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
     }
 }

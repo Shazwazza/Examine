@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
 namespace Examine.Test.Examine.Lucene.Search
@@ -15,11 +16,16 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class ConcurrencyTests : ExamineBaseTest
     {
+        protected override ILoggerFactory CreateLoggerFactory()
+            => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
+
         [TestCase(1)]
         [TestCase(10)]
         [TestCase(25)]
+        [TestCase(100)]
         public async Task BenchmarkConcurrentSearching(int threads)
         {
+            var logger = LoggerFactory.CreateLogger<ConcurrencyTests>();
             var tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
 
             try
@@ -34,14 +40,20 @@ namespace Examine.Test.Examine.Lucene.Search
                     luceneDir,
                     analyzer))
                 {
-                    indexer.IndexItems(new[] {
-                        ValueSet.FromObject(1.ToString(), "content",
-                            new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
-                        ValueSet.FromObject(2.ToString(), "content",
-                            new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
-                        ValueSet.FromObject(3.ToString(), "content",
-                            new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia"})
-                    });
+                    var random = new Random();
+                    var valueSets = new List<ValueSet>();
+
+                    for (var i = 0; i < 1000; i++)
+                    {
+                        valueSets.Add(ValueSet.FromObject(Guid.NewGuid().ToString(), "content",
+                            new
+                            {
+                                nodeName = "location " + i,
+                                bodyText = Enumerable.Range(0, random.Next(10, 100)).Select(x => Guid.NewGuid().ToString())
+                            }));
+                    }
+
+                    indexer.IndexItems(valueSets);
 
                     var tasks = new List<Task>();
 
@@ -56,7 +68,8 @@ namespace Examine.Test.Examine.Lucene.Search
                             var results = query.Execute();
 
                             // enumerate (forces the result to execute)
-                            Console.WriteLine("ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray()));
+                            var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
+                            logger.LogDebug(logOutput);
                         }));
                     }
 
@@ -75,7 +88,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     finally
                     {
                         stopwatch.Stop();
-                        Console.WriteLine("Completed in ms: " + stopwatch.ElapsedMilliseconds);
+                        logger.LogInformation("Completed in ms: " + stopwatch.ElapsedMilliseconds);
                     }
                 }
             }
