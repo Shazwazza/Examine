@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -34,6 +34,7 @@ namespace Examine
         }
 
         public string Id { get;  }
+
         public float Score { get; }
 
         /// <summary>

@@ -176,7 +176,7 @@ namespace Examine.Lucene.Search
             return scoreDocAfter;
         }
 
-        private static SearchAfterOptions GetSearchAfterOptions(TopDocs topDocs)
+        internal static SearchAfterOptions GetSearchAfterOptions(TopDocs topDocs)
         {
             if (topDocs.TotalHits > 0)
             {
@@ -226,7 +226,7 @@ namespace Examine.Lucene.Search
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
-        private LuceneSearchResult CreateSearchResult(Document doc, float score, int shardIndex)
+        internal static LuceneSearchResult CreateSearchResult(Document doc, float score, int shardIndex)
         {
             var id = doc.Get("id");
 
