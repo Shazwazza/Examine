@@ -33,6 +33,18 @@ internal class MyDefaultConfig : ManualConfig
 
 namespace Examine.Test.Examine.Lucene.Search
 {
+
+    /*
+| Method          | ThreadCount | Mean       | Error       | StdDev     | Completed Work Items | Lock Contentions | Gen0      | Gen1      | Gen2      | Allocated |
+|---------------- |------------ |-----------:|------------:|-----------:|---------------------:|-----------------:|----------:|----------:|----------:|----------:|
+|---------------- |------------ |-----------:|------------:|-----------:|---------------------:|-----------------:|----------:|----------:|----------:|----------:|
+| ExamineStandard | 1           |   8.712 ms |   0.6798 ms |  0.0373 ms |               1.0000 |                - |  234.3750 |  140.6250 |         - |   2.86 MB |
+| LuceneSimple    | 1           |   9.723 ms |   0.4864 ms |  0.0267 ms |               1.0000 |           0.0469 |  250.0000 |  234.3750 |         - |   3.01 MB |
+| ExamineStandard | 5           | 154.451 ms |  39.5553 ms |  2.1682 ms |               5.0000 |                - | 1000.0000 |  750.0000 |         - |   14.3 MB |
+| LuceneSimple    | 5           |  16.953 ms |   6.1768 ms |  0.3386 ms |               5.0000 |                - | 1250.0000 | 1000.0000 |   93.7500 |  15.06 MB |
+| ExamineStandard | 15          | 657.503 ms | 195.5415 ms | 10.7183 ms |              15.0000 |                - | 3000.0000 | 1000.0000 |         - |  42.92 MB |
+| LuceneSimple    | 15          |  60.278 ms | 100.6474 ms |  5.5168 ms |              15.0000 |                - | 4333.3333 | 2666.6667 | 1000.0000 |   45.2 MB |
+     */
     [ShortRunJob]
     [ThreadingDiagnoser]
     [MemoryDiagnoser]
