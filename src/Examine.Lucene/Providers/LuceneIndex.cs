@@ -45,6 +45,8 @@ namespace Examine.Lucene.Providers
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
 
+            _relevanceScorerDefinitionCollection = new Lazy<RelevanceScorerDefinitionCollection>(() => _options.RelevanceScorerDefinitions);
+
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
@@ -62,13 +64,13 @@ namespace Examine.Lucene.Providers
            : this(loggerFactory, name, (IOptionsMonitor<LuceneIndexOptions>)indexOptions)
         {
             LuceneDirectoryIndexOptions directoryOptions = indexOptions.GetNamedOptions(name);
-            
+
             if (directoryOptions.DirectoryFactory == null)
             {
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
 
-            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));            
+            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -139,6 +141,8 @@ namespace Examine.Lucene.Providers
 
         private readonly Lazy<FieldValueTypeCollection> _fieldValueTypeCollection;
 
+        private readonly Lazy<RelevanceScorerDefinitionCollection> _relevanceScorerDefinitionCollection;
+
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
 
@@ -148,6 +152,8 @@ namespace Examine.Lucene.Providers
         /// Returns the <see cref="FieldValueTypeCollection"/> configured for this index
         /// </summary>
         public FieldValueTypeCollection FieldValueTypeCollection => _fieldValueTypeCollection.Value;
+
+        public RelevanceScorerDefinitionCollection RelevanceScorerDefinitionCollection => _relevanceScorerDefinitionCollection.Value;
 
         /// <summary>
         /// The default analyzer to use when indexing content, by default, this is set to StandardAnalyzer
@@ -315,7 +321,7 @@ namespace Examine.Lucene.Providers
             var indexExists = IndexExists();
             if (!indexExists || forceOverwrite)
             {
-                //if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this 
+                //if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this
                 // logic to actually execute multiple times
                 if (Monitor.TryEnter(_writerLocker))
                 {
@@ -346,12 +352,12 @@ namespace Examine.Lucene.Providers
                                 //This will happen if the writer hasn't been created/initialized yet which
                                 // might occur if a rebuild is triggered before any indexing has been triggered.
                                 //In this case we need to initialize a writer and continue as normal.
-                                //Since we are already inside the writer lock and it is null, we are allowed to 
+                                //Since we are already inside the writer lock and it is null, we are allowed to
                                 // make this call with out using GetIndexWriter() to do the initialization.
                                 _writer = CreateIndexWriterInternal();
                             }
 
-                            //We're forcing an overwrite, 
+                            //We're forcing an overwrite,
                             // this means that we need to cancel all operations currently in place,
                             // clear the queue and delete all of the data in the index.
 
@@ -446,10 +452,10 @@ namespace Examine.Lucene.Providers
         }
 
         /// <summary>
-        /// Deletes a node from the index.                
+        /// Deletes a node from the index.
         /// </summary>
         /// <remarks>
-        /// When a content node is deleted, we also need to delete it's children from the index so we need to perform a 
+        /// When a content node is deleted, we also need to delete it's children from the index so we need to perform a
         /// custom Lucene search to find all decendents and create Delete item queues for them too.
         /// </remarks>
         /// <param name="itemIds">ID of the node to delete</param>
@@ -680,7 +686,7 @@ namespace Examine.Lucene.Providers
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
@@ -830,7 +836,7 @@ namespace Examine.Lucene.Providers
                             // and less than the delay
                             DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(WaitMilliseconds))
                         {
-                            //Delay  
+                            //Delay
                             _timer.Change(WaitMilliseconds, 0);
                         }
                         else
@@ -910,7 +916,7 @@ namespace Examine.Lucene.Providers
         {
             Directory dir = GetLuceneDirectory();
 
-            // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
+            // Unfortunatley if the appdomain is taken down this will remain locked, so we can
             // ensure that it's unlocked here in that case.
             try
             {
@@ -965,8 +971,8 @@ namespace Examine.Lucene.Providers
                 {
                     System.IO.Directory.CreateDirectory(LuceneIndexFolder.FullName);
                     _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), FileMode.Append);
-           
-            
+
+
                 }
                 catch (Exception ex)
                 {
@@ -1054,7 +1060,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection);
+            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, RelevanceScorerDefinitionCollection);
         }
 
         /// <summary>

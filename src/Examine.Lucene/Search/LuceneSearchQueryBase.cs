@@ -19,6 +19,8 @@ namespace Examine.Lucene.Search
 
         public IList<SortField> SortFields { get; } = new List<SortField>();
 
+        public IList<RelevanceScorerDefinition> RelevanceScores { get; } = new List<RelevanceScorerDefinition>();
+
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
 
@@ -72,7 +74,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <summary>
-        /// Adds a true Lucene Query 
+        /// Adds a true Lucene Query
         /// </summary>
         /// <param name="query"></param>
         /// <param name="op"></param>
@@ -230,12 +232,12 @@ namespace Examine.Lucene.Search
             //(!field1:query !field2:query !field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            // NOTE: This is important because we cannot prefix a + to a group of NOT's, that doesn't work. 
-            // for example, it cannot be:  +(-id:1 -id:2 -id:3) 
+            // NOTE: This is important because we cannot prefix a + to a group of NOT's, that doesn't work.
+            // for example, it cannot be:  +(-id:1 -id:2 -id:3)
             // and it cannot be:            (-id:1 -id:2 -id:3) - this will be an optional list of must not's so really nothing is filtered
             // It needs to be:              -id:1 -id:2 -id:3
 
-            // So we get all clauses 
+            // So we get all clauses
             var subQueries = GetMultiFieldQuery(fields, fieldVals, Occur.MUST_NOT, true);
 
             // then add each individual one directly to the query
@@ -337,7 +339,7 @@ namespace Examine.Lucene.Search
                     {
                         queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
                         if (queryToAdd != null)
-                        { 
+                        {
                             queryToAdd.Boost = fieldValue.Level;
                         }
                     }
@@ -349,7 +351,7 @@ namespace Examine.Lucene.Search
                     }
                     break;
                 case Examineness.Proximity:
-                    int proximity = Convert.ToInt32(fieldValue.Level);                    
+                    int proximity = Convert.ToInt32(fieldValue.Level);
                     if (useQueryParser)
                     {
                         queryToAdd = _queryParser.GetProximityQueryInternal(fieldName, fieldValue.Value, proximity);
@@ -380,7 +382,7 @@ namespace Examine.Lucene.Search
                     }
                     else
                     {
-                        //standard query 
+                        //standard query
                         var proxQuery = fieldName + ":" + fieldValue.Value;
                         queryToAdd = ParseRawQuery(proxQuery);
                     }
@@ -411,7 +413,7 @@ namespace Examine.Lucene.Search
         /// <returns></returns>
         /// <remarks>
         /// The result of this seems to be better than the above since it does not include results that contain part of the phrase.
-        /// For example, 'codegarden 090' would be matched against the search term 'codegarden 09' with the above, whereas when using the 
+        /// For example, 'codegarden 090' would be matched against the search term 'codegarden 09' with the above, whereas when using the
         /// PhraseQuery this is not the case
         /// </remarks>
         private static Query CreatePhraseQuery(string field, string txt)
@@ -435,32 +437,32 @@ namespace Examine.Lucene.Search
         /// <remarks>
         ///
         /// docs about this are here: https://github.com/Shazwazza/Examine/wiki/Grouped-Operations
-        /// 
+        ///
         /// if matchAllCombinations == false then...
         /// this will create a query that matches the field index to the value index if the value length is >= to the field length
         /// otherwise we will have to match all combinations.
-        /// 
+        ///
         /// For example if we have these fields:
         /// bodyText, pageTitle
         /// and these values:
         /// "hello", "world"
-        /// 
+        ///
         /// then the query output will be:
-        /// 
+        ///
         /// bodyText: "hello" pageTitle: "world"
-        /// 
+        ///
         /// if matchAllCombinations == true then...
-        /// This will create a query for all combinations of fields and values. 
+        /// This will create a query for all combinations of fields and values.
         /// For example if we have these fields:
         /// bodyText, pageTitle
         /// and these values:
         /// "hello", "world"
-        /// 
+        ///
         /// then the query output will be:
-        /// 
+        ///
         /// bodyText: "hello" bodyText: "world" pageTitle: "hello" pageTitle: "world"
-        /// 
-        /// </remarks>   
+        ///
+        /// </remarks>
         private BooleanQuery GetMultiFieldQuery(
             IReadOnlyList<string> fields,
             IReadOnlyList<IExamineValue> fieldVals,
@@ -489,7 +491,7 @@ namespace Examine.Lucene.Search
                 return qry;
             }
 
-            //This will align the key value pairs:            
+            //This will align the key value pairs:
             for (int i = 0; i < fields.Count; i++)
             {
                 var queryVal = fieldVals[i];

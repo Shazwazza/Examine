@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Examine.Lucene.Indexing;
+using Examine.Lucene.Scoring;
 using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Search;
@@ -22,7 +23,7 @@ namespace Examine.Lucene.Search
             ISearchContext searchContext,
             string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance)
             : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
-        {   
+        {
             _searchContext = searchContext;
         }
 
@@ -81,6 +82,8 @@ namespace Examine.Lucene.Search
 
         public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
+        public virtual IScoreQuery ScoreWith(params string[] scorers) => ScoreWithInternal(scorers);
+
         public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
 
@@ -108,7 +111,7 @@ namespace Examine.Lucene.Search
 
                 var types = fields.Select(f => _searchContext.GetFieldValueType(f)).Where(t => t != null);
 
-                //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
+                //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect
                 //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
                 //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
                 //so it might be the ToString() that is the issue.
@@ -139,7 +142,7 @@ namespace Examine.Lucene.Search
         {
             Query.Add(new LateBoundQuery(() =>
             {
-                //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
+                //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect
                 //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
                 //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
                 //so it might be the ToString() that is the issue.
@@ -227,12 +230,25 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad);
+            Query scoredQuery = query;
+
+            foreach(var scorerDefinition in RelevanceScores)
+            {
+                foreach(var scoreFunction in scorerDefinition.FunctionScorerDefintions)
+                {
+                    if(scoreFunction is ILuceneRelevanceScorerFunctionDefintion luceneScoreFunction)
+                    {
+                        scoredQuery = luceneScoreFunction.GetScoreQuery(scoredQuery);
+                    }
+                }
+            }
+
+            var executor = new LuceneSearchExecutor(options, scoredQuery, SortFields, _searchContext, _fieldsToLoad);
 
             var pagesResults = executor.Execute();
 
             return pagesResults;
-        }        
+        }
 
         /// <summary>
         /// Internal operation for adding the ordered results
@@ -272,7 +288,7 @@ namespace Examine.Lucene.Search
                         break;
                     case SortType.Double:
                         defaultSort = SortFieldType.DOUBLE;
-                        break;                   
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -284,6 +300,18 @@ namespace Examine.Lucene.Search
                     fieldName = valType.SortableFieldName;
 
                 SortFields.Add(new SortField(fieldName, defaultSort, descending));
+            }
+
+            return CreateOp();
+        }
+
+        internal LuceneBooleanOperationBase ScoreWithInternal(params string[] scorers)
+        {
+            foreach(var scorer in scorers)
+            {
+                var scorerDefinition = _searchContext.GetRelevanceScorer(scorer);
+
+                RelevanceScores.Add(scorerDefinition);
             }
 
             return CreateOp();
