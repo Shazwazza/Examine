@@ -29,7 +29,8 @@ namespace Examine.Lucene.Directories
                 IndexWriter.Unlock(dir);
             }
 
-            return dir;
+            // TODO: Put this behind IOptions for NRT stuff, but I think this is going to be better
+            return new NRTCachingDirectory(dir, 5.0, 60.0);
         }
     }
 }

@@ -8,6 +8,7 @@ namespace Examine.Lucene.Search
         ISearcherReference GetSearcher();
 
         string[] SearchableFields { get; }
+
         IIndexFieldValueType GetFieldValueType(string fieldName);
     }
 }

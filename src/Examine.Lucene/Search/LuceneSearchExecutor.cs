@@ -36,14 +36,16 @@ namespace Examine.Lucene.Search
         {
             get
             {
-                if (_maxDoc == null)
-                {
-                    using (ISearcherReference searcher = _searchContext.GetSearcher())
-                    {
-                        _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
-                    }
-                }
-                return _maxDoc.Value;
+                return 100;
+                ////if (_maxDoc == null)
+                ////{
+                ////    using (ISearcherReference searcher = _searchContext.GetSearcher())
+                ////    {
+                ////        // TODO: Getting the IndexSearcher here will call .Acquire() on the SearcherManager again
+                ////        _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
+                ////    }
+                ////}
+                ////return _maxDoc.Value;
             }
         }
 

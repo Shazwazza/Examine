@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
 
 namespace Examine.Lucene
@@ -10,6 +7,11 @@ namespace Examine.Lucene
 
     public class LuceneIndexOptions : IndexOptions
     {
+        public bool NrtEnabled { get; set; } = true;
+
+        public double NrtTargetMaxStaleSec { get; set; } = 5.0;
+
+        public double NrtTargetMinStaleSec { get; set; } = 1.0;
 
         public IndexDeletionPolicy IndexDeletionPolicy { get; set; }
 

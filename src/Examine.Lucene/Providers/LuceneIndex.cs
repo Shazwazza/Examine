@@ -19,6 +19,8 @@ using Lucene.Net.Analysis.Standard;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Directories;
 using static Lucene.Net.Queries.Function.ValueSources.MultiFunction;
+using Lucene.Net.Search.Join;
+using Lucene.Net.Index.Extensions;
 
 namespace Examine.Lucene.Providers
 {
@@ -154,8 +156,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public Analyzer DefaultAnalyzer { get; }
 
-        public PerFieldAnalyzerWrapper FieldAnalyzer => _fieldAnalyzer
-            ?? (_fieldAnalyzer =
+        public PerFieldAnalyzerWrapper FieldAnalyzer => (PerFieldAnalyzerWrapper)(_fieldAnalyzer ??=
                 (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
                     ? pfa
                     : _fieldValueTypeCollection.Value.Analyzer);
@@ -416,6 +417,11 @@ namespace Examine.Lucene.Providers
                     MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
                         (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
                 };
+
+                // TODO: With NRT, we should apparently use this but there is no real implementation of it!?
+                // https://stackoverflow.com/questions/12271614/lucene-net-indexwriter-setmergedsegmentwarmer
+                //writerConfig.SetMergedSegmentWarmer(new SimpleMergedSegmentWarmer())
+
                 writer = new IndexWriter(dir, writerConfig);
 
             }
@@ -1035,21 +1041,43 @@ namespace Examine.Lucene.Providers
             {
                 //trim the "Indexer" / "Index" suffix if it exists
                 if (!name.EndsWith(suffix))
+                {
                     continue;
+                }
+
                 name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
             }
 
             TrackingIndexWriter writer = IndexWriter;
-            var searcherManager = new SearcherManager(writer.IndexWriter, true, new SearcherFactory());
+
+            // Create an IndexSearcher ReferenceManager to safely share IndexSearcher instances across
+            // multiple threads
+            var searcherManager = new SearcherManager(
+                writer.IndexWriter,
+                false, // TODO: Apply All Deletes? Will be faster if this is false, https://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
+                new SearcherFactory());
+
             searcherManager.AddListener(this);
 
-            _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(writer, searcherManager, 5.0, 1.0)
+            if (_options.NrtEnabled)
             {
-                Name = $"{Name} NRT Reopen Thread",
-                IsBackground = true
-            };
+                // Create the ControlledRealTimeReopenThread that reopens the index periodically having into 
+                // account the changes made to the index and tracked by the TrackingIndexWriter instance
+                // The index is refreshed every XX sec when nobody is waiting 
+                // and every XX sec whenever is someone waiting (see search method)
+                // (see http://lucene.apache.org/core/4_3_0/core/org/apache/lucene/search/NRTManagerReopenThread.html)
+                _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(
+                    writer,
+                    searcherManager,
+                    _options.NrtTargetMaxStaleSec,    // when there is nobody waiting
+                    _options.NrtTargetMinStaleSec)    // when there is someone waiting
+                {
+                    Name = $"{Name} NRT Reopen Thread",
+                    IsBackground = true
+                };
 
-            _nrtReopenThread.Start();
+                _nrtReopenThread.Start();
+            }
 
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
@@ -1186,10 +1214,17 @@ namespace Examine.Lucene.Providers
         {
             if (_latestGen.HasValue && !_disposedValue && !_cancellationToken.IsCancellationRequested)
             {
-                var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000);
-                if (_logger.IsEnabled(LogLevel.Debug))
+                if (_options.NrtEnabled)
                 {
-                    _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
+                    var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000);
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
+                    }
+                }
+                else
+                {
+                    // TODO: MaybeRefresh
                 }
             }
         }
@@ -1307,13 +1342,17 @@ namespace Examine.Lucene.Providers
                         {
                             OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index", "-1", e));
                         }
-
-
                     }
 
                     _cancellationTokenSource.Dispose();
 
                     _logOutput?.Close();
+
+                    _fieldAnalyzer?.Dispose();
+                    if (!object.ReferenceEquals(_fieldAnalyzer, DefaultAnalyzer))
+                    {
+                        DefaultAnalyzer?.Dispose();
+                    }
                 }
                 _disposedValue = true;
             }

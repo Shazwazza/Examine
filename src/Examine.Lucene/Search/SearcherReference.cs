@@ -3,49 +3,43 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
-    public class SearcherReference : ISearcherReference
+    // TODO: struct
+    public readonly struct SearcherReference : ISearcherReference
     {
-        private bool _disposedValue;
+        //private bool _disposedValue;
         private readonly SearcherManager _searcherManager;
-        private IndexSearcher _searcher;
+        private readonly IndexSearcher _searcher;
 
         public SearcherReference(SearcherManager searcherManager)
         {
             _searcherManager = searcherManager;
+            _searcher = _searcherManager.Acquire();
         }
 
         public IndexSearcher IndexSearcher
         {
             get
             {
-                if (_disposedValue)
-                {
-                    throw new ObjectDisposedException($"{nameof(SearcherReference)} is disposed");
-                }
-                return _searcher ?? (_searcher = _searcherManager.Acquire());
-            }
-        }
+                //if (_disposedValue)
+                //{
+                //    throw new ObjectDisposedException($"{nameof(SearcherReference)} is disposed");
+                //}
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    if (_searcher != null)
-                    {
-                        _searcherManager.Release(_searcher);
-                    } 
-                }
-
-                _disposedValue = true;
+                //return _searcher ??= _searcherManager.Acquire();
+                return _searcher;
             }
         }
 
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
+            //if (!_disposedValue)
+            //{
+                //if (_searcher != null)
+                //{
+                _searcherManager.Release(_searcher);
+                //}
+            //    _disposedValue = true;
+            //}
         }
     }
 }

@@ -12,9 +12,11 @@ namespace Examine.Lucene.Providers
     ///</summary>
     public class LuceneSearcher : BaseLuceneSearcher, IDisposable
     {
+        private readonly object _locker = new object();
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private bool _disposedValue;
+        private volatile ISearchContext _searchContext;
 
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
@@ -31,7 +33,17 @@ namespace Examine.Lucene.Providers
         }
 
         public override ISearchContext GetSearchContext()
-            => new SearchContext(_searcherManager, _fieldValueTypeCollection);
+        {
+            var isCurrent = _searcherManager.IsSearcherCurrent();
+            if (_searchContext is null || !isCurrent)
+            {
+                _searchContext = new SearchContext(_searcherManager, _fieldValueTypeCollection);
+            }
+
+            return _searchContext;
+
+            //return new SearchContext(_searcherManager, _fieldValueTypeCollection);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
