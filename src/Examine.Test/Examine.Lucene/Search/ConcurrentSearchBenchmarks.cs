@@ -116,6 +116,17 @@ Using struct (doesn't change anything)
 | ExamineStandard | 5           |  26.521 ms |  1.837 ms | 0.1007 ms | 312.5000 |               5.0000 |           4.0000 | 156.2500 |  3808.24 KB |
 | ExamineStandard | 15          | 102.785 ms | 80.640 ms | 4.4202 ms | 833.3333 |              15.0000 |          14.0000 | 500.0000 | 10935.97 KB |
 
+With Latest changes:
+
+| Method          | ThreadCount | Mean       | Error       | StdDev     | Completed Work Items | Lock Contentions | Gen0      | Gen1      | Allocated   |
+|---------------- |------------ |-----------:|------------:|-----------:|---------------------:|-----------------:|----------:|----------:|------------:|
+| ExamineStandard | 1           |   5.157 ms |   1.0374 ms |  0.0569 ms |               1.0000 |           0.0156 |   78.1250 |   39.0625 |    963.3 KB |
+| LuceneSimple    | 1           |  11.338 ms |   0.8416 ms |  0.0461 ms |               1.0000 |           0.0156 |  265.6250 |  187.5000 |  3269.09 KB |
+| ExamineStandard | 5           |  27.038 ms |   7.2847 ms |  0.3993 ms |               5.0000 |           4.0000 |  312.5000 |  187.5000 |   3812.7 KB |
+| LuceneSimple    | 5           | 144.196 ms | 185.2203 ms | 10.1526 ms |               5.0000 |                - | 1000.0000 |  750.0000 | 15047.06 KB |
+| ExamineStandard | 15          |  95.799 ms |  64.1371 ms |  3.5156 ms |              15.0000 |          14.0000 |  833.3333 |  500.0000 | 10940.31 KB |
+| LuceneSimple    | 15          | 566.652 ms | 275.2278 ms | 15.0862 ms |              15.0000 |                - | 3000.0000 | 1000.0000 |  44485.6 KB |
+
      */
     [ShortRunJob]
     [ThreadingDiagnoser]
@@ -215,10 +226,15 @@ Using struct (doesn't change anything)
             await Task.WhenAll(tasks);
         }
 
-        //[Benchmark]]
+        [Benchmark]
         public async Task LuceneSimple()
         {
             var tasks = new List<Task>();
+
+            using var dirReader = DirectoryReader.Open(_luceneDir);
+            using var writer = new IndexWriter(dirReader.Directory, new IndexWriterConfig(LuceneVersion.LUCENE_48, _analyzer));
+            var trackingWriter = new TrackingIndexWriter(writer);
+            using var searcherManager = new SearcherManager(trackingWriter.IndexWriter, applyAllDeletes: false, new SearcherFactory());
 
             for (var i = 0; i < ThreadCount; i++)
             {
@@ -227,8 +243,11 @@ Using struct (doesn't change anything)
                     var parser = new QueryParser(LuceneVersion.LUCENE_48, ExamineFieldNames.ItemIdFieldName, new StandardAnalyzer(LuceneVersion.LUCENE_48));
                     var query = parser.Parse($"{ExamineFieldNames.CategoryFieldName}:content AND nodeName:location*");
 
-                    using var reader = DirectoryReader.Open(_luceneDir);
-                    var searcher = new IndexSearcher(reader);
+                    // this is like doing Acquire
+                    using var context = searcherManager.GetContext();
+
+                    var searcher = context.Reference;
+
                     var maxDoc = searcher.IndexReader.MaxDoc;
                     var topDocsCollector = TopScoreDocCollector.Create(maxDoc, null, true);
 
