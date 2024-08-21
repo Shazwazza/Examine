@@ -31,8 +31,8 @@ namespace Examine.Test
             FieldDefinitionCollection fieldDefinitions = null,
             IndexDeletionPolicy indexDeletionPolicy = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
-            double nrtTargetMaxStaleSec = 5.0,
-            double nrtTargetMinStaleSec = 1.0,
+            double nrtTargetMaxStaleSec = 60,
+            double nrtTargetMinStaleSec = 1,
             bool nrtEnabled = true)
             => new TestIndex(
                 LoggerFactory,

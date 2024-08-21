@@ -32,23 +32,6 @@ namespace Examine.Lucene.Search
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
         }
 
-        private int MaxDoc
-        {
-            get
-            {
-                return 100;
-                ////if (_maxDoc == null)
-                ////{
-                ////    using (ISearcherReference searcher = _searchContext.GetSearcher())
-                ////    {
-                ////        // TODO: Getting the IndexSearcher here will call .Acquire() on the SearcherManager again
-                ////        _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
-                ////    }
-                ////}
-                ////return _maxDoc.Value;
-            }
-        }
-
         public ISearchResults Execute()
         {
             var extractTermsSupported = CheckQueryForExtractTerms(_luceneQuery);
@@ -80,17 +63,17 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var maxResults = Math.Min((_options.Skip + 1) * _options.Take, MaxDoc);
-            maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
-            int numHits = maxResults;
-
-            SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
+            var sortFields = _sortField as SortField[] ?? _sortField.ToArray();
             Sort sort = null;
             FieldDoc scoreDocAfter = null;
             Filter filter = null;
 
-            using (ISearcherReference searcher = _searchContext.GetSearcher())
+            using (var searcher = _searchContext.GetSearcher())
             {
+                var maxResults = (_options.Skip + 1) * _options.Take;
+                maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
+                int numHits = maxResults;
+
                 if (sortFields.Length > 0)
                 {
                     sort = new Sort(sortFields);

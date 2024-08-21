@@ -9,7 +9,7 @@ namespace Examine.Lucene
     {
         public bool NrtEnabled { get; set; } = true;
 
-        public double NrtTargetMaxStaleSec { get; set; } = 5.0;
+        public double NrtTargetMaxStaleSec { get; set; } = 60.0;
 
         public double NrtTargetMinStaleSec { get; set; } = 1.0;
 
