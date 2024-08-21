@@ -12,7 +12,6 @@ namespace Examine.Lucene.Providers
     ///</summary>
     public class LuceneSearcher : BaseLuceneSearcher, IDisposable
     {
-        private readonly object _locker = new object();
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private bool _disposedValue;
@@ -34,6 +33,7 @@ namespace Examine.Lucene.Providers
 
         public override ISearchContext GetSearchContext()
         {
+            // Don't create a new search context unless something has changed
             var isCurrent = _searcherManager.IsSearcherCurrent();
             if (_searchContext is null || !isCurrent)
             {
@@ -41,8 +41,6 @@ namespace Examine.Lucene.Providers
             }
 
             return _searchContext;
-
-            //return new SearchContext(_searcherManager, _fieldValueTypeCollection);
         }
 
         protected virtual void Dispose(bool disposing)

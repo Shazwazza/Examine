@@ -1,11 +1,14 @@
-﻿using Lucene.Net.Index;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
     public class MultiSearchSearcherReference : ISearcherReference
     {
-        public MultiSearchSearcherReference(ISearcherReference[] inner) => _inner = inner;
+        public MultiSearchSearcherReference(ISearcherReference[] inner)
+        {
+            _inner = inner;
+        }
 
         private bool _disposedValue;
         private IndexSearcher _searcher;
@@ -35,7 +38,7 @@ namespace Examine.Lucene.Search
             {
                 if (disposing)
                 {
-                    foreach(ISearcherReference i in _inner)
+                    foreach (var i in _inner)
                     {
                         i.Dispose();
                     }

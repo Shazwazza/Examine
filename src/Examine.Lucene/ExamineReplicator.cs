@@ -149,7 +149,6 @@ namespace Examine.Lucene
                 {
                     _sourceIndex.IndexCommitted -= SourceIndex_IndexCommitted;
                     _localReplicationClient.Dispose();
-                    _destinationDirectory.Dispose();
                 }
 
                 _disposedValue = true;

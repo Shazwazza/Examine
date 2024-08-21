@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Microsoft.Extensions.Options;
 
 namespace Examine.Lucene.Directories
 {
@@ -14,8 +15,9 @@ namespace Examine.Lucene.Directories
     {
         public TempEnvFileSystemDirectoryFactory(
             IApplicationIdentifier applicationIdentifier,
-            ILockFactory lockFactory)
-            : base(new DirectoryInfo(GetTempPath(applicationIdentifier)), lockFactory)
+            ILockFactory lockFactory,
+            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
+            : base(new DirectoryInfo(GetTempPath(applicationIdentifier)), lockFactory, indexOptions)
         {
         }
 

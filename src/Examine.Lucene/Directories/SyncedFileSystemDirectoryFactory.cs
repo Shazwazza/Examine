@@ -28,13 +28,15 @@ namespace Examine.Lucene.Directories
         private readonly bool _tryFixMainIndexIfCorrupt;
         private readonly ILogger<SyncedFileSystemDirectoryFactory> _logger;
         private ExamineReplicator _replicator;
+        private Directory _mainLuceneDir;
 
         public SyncedFileSystemDirectoryFactory(
             DirectoryInfo localDir,
             DirectoryInfo mainDir,
             ILockFactory lockFactory,
-            ILoggerFactory loggerFactory)
-            : this(localDir, mainDir, lockFactory, loggerFactory, false)
+            ILoggerFactory loggerFactory,
+            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
+            : this(localDir, mainDir, lockFactory, loggerFactory, indexOptions, false)
         {
         }
 
@@ -43,8 +45,9 @@ namespace Examine.Lucene.Directories
             DirectoryInfo mainDir,
             ILockFactory lockFactory,
             ILoggerFactory loggerFactory,
+            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions,
             bool tryFixMainIndexIfCorrupt)
-            : base(mainDir, lockFactory)
+            : base(mainDir, lockFactory, indexOptions)
         {
             _localDir = localDir;
             _mainDir = mainDir;
@@ -64,19 +67,19 @@ namespace Examine.Lucene.Directories
             // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
             var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
 
-            var mainLuceneDir = base.CreateDirectory(luceneIndex, forceUnlock);
+            _mainLuceneDir = base.CreateDirectory(luceneIndex, forceUnlock);
             var localLuceneDir = FSDirectory.Open(
                 localLuceneIndexFolder,
                 LockFactory.GetLockFactory(localLuceneIndexFolder));
 
-            var mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
+            var mainIndexExists = DirectoryReader.IndexExists(_mainLuceneDir);
             var localIndexExists = DirectoryReader.IndexExists(localLuceneDir);
 
             var mainResult = CreateResult.Init;
 
             if (mainIndexExists)
             {
-                mainResult = CheckIndexHealthAndFix(mainLuceneDir, luceneIndex.Name, _tryFixMainIndexIfCorrupt);
+                mainResult = CheckIndexHealthAndFix(_mainLuceneDir, luceneIndex.Name, _tryFixMainIndexIfCorrupt);
             }
 
             // the main index is/was unhealthy or missing, lets check the local index if it exists
@@ -108,7 +111,7 @@ namespace Examine.Lucene.Directories
                             ? OpenMode.APPEND
                             : OpenMode.CREATE;
 
-                mainResult |= TryGetIndexWriter(openMode, mainLuceneDir, true, luceneIndex.Name, out var indexWriter);
+                mainResult |= TryGetIndexWriter(openMode, _mainLuceneDir, true, luceneIndex.Name, out var indexWriter);
                 using (indexWriter)
                 {
                     if (!mainResult.HasFlag(CreateResult.SyncedFromLocal))
@@ -119,7 +122,7 @@ namespace Examine.Lucene.Directories
             }
 
             // now create the replicator that will copy from local to main on schedule
-            _replicator = new ExamineReplicator(_loggerFactory, luceneIndex, mainLuceneDir, tempDir);
+            _replicator = new ExamineReplicator(_loggerFactory, luceneIndex, _mainLuceneDir, tempDir);
 
             if (forceUnlock)
             {
@@ -161,6 +164,7 @@ namespace Examine.Lucene.Directories
             if (disposing)
             {
                 _replicator?.Dispose();
+                _mainLuceneDir?.Dispose();
             }
         }
 

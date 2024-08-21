@@ -42,6 +42,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
                     LoggerFactory,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()), 
                     true);
 
                 using var index = new LuceneIndex(
@@ -82,6 +83,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
                     LoggerFactory,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
                     true))
                 {
                     using var index = new LuceneIndex(

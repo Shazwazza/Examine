@@ -5,6 +5,7 @@ using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Util;
 
 namespace Examine.Lucene.Search
 {
@@ -70,7 +71,7 @@ namespace Examine.Lucene.Search
 
             using (var searcher = _searchContext.GetSearcher())
             {
-                var maxResults = (_options.Skip + 1) * _options.Take;
+                var maxResults = Math.Min((_options.Skip + 1) * _options.Take, QueryOptions.AbsoluteMaxResults);
                 maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
                 int numHits = maxResults;
 

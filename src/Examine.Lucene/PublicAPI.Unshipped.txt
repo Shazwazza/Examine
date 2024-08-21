@@ -1,8 +1,11 @@
+Examine.Lucene.Directories.FileSystemDirectoryFactory.FileSystemDirectoryFactory(System.IO.DirectoryInfo baseDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions> indexOptions) -> void
 Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo localDir, System.IO.DirectoryInfo mainDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, bool tryFixMainIndexIfCorrupt) -> void
+Examine.Lucene.Directories.TempEnvFileSystemDirectoryFactory.TempEnvFileSystemDirectoryFactory(Examine.Lucene.Directories.IApplicationIdentifier applicationIdentifier, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions> indexOptions) -> void
 Examine.Lucene.LuceneIndexOptions.NrtEnabled.get -> bool
 Examine.Lucene.LuceneIndexOptions.NrtEnabled.set -> void
 Examine.Lucene.LuceneIndexOptions.NrtTargetMaxStaleSec.get -> double
 Examine.Lucene.LuceneIndexOptions.NrtTargetMaxStaleSec.set -> void
 Examine.Lucene.LuceneIndexOptions.NrtTargetMinStaleSec.get -> double
 Examine.Lucene.LuceneIndexOptions.NrtTargetMinStaleSec.set -> void
+Examine.Lucene.Search.SearcherReference.SearcherReference() -> void
 virtual Examine.Lucene.Providers.LuceneIndex.UpdateLuceneDocument(Lucene.Net.Index.Term term, Lucene.Net.Documents.Document doc) -> long?

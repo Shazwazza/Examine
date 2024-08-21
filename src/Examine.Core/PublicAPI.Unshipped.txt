@@ -1,1 +1,2 @@
+const Examine.Search.QueryOptions.AbsoluteMaxResults = 10000 -> int
 static Examine.SearchExtensions.Escape(this string s, float boost) -> Examine.Search.IExamineValue
