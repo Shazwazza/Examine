@@ -40,10 +40,9 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: | 
-          5.0.x
+        dotnet-version: |
           6.0.x
-          7.0.x
+          8.0.x
 
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.9
@@ -60,7 +59,7 @@ jobs:
       run: dotnet build ${{ env.Solution_File }} --configuration ${{ env.Configuration }} --no-restore
     
     - name: Test
-      run: dotnet test "${{ env.Test_Proj }}" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx"
+      run: dotnet test "${{ env.Test_Proj }}" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx" -filter Name\!~Benchmarks
 
     - name: Upload test results
       uses: actions/upload-artifact@v2  # upload test results

@@ -2,19 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using Examine.Lucene.Search;
 using Examine.Search;
-using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
-using Lucene.Net.QueryParsers.Flexible.Standard;
-using Lucene.Net.QueryParsers.Flexible.Standard.Config;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
@@ -247,12 +243,12 @@ namespace Examine.Test.Examine.Lucene.Search
                     var topDocsCollector = TopScoreDocCollector.Create(MaxResults, null, true);
 
                     searcher.Search(query, topDocsCollector);
-                    var topDocs = ((TopScoreDocCollector)topDocsCollector).GetTopDocs(0, MaxResults);
+                    var topDocs = topDocsCollector.GetTopDocs(0, MaxResults);
 
                     var totalItemCount = topDocs.TotalHits;
 
                     var results = new List<ISearchResult>(topDocs.ScoreDocs.Length);
-                    for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
+                    for (var i = 0; i < topDocs.ScoreDocs.Length; i++)
                     {
                         var scoreDoc = topDocs.ScoreDocs[i];
                         var docId = scoreDoc.Doc;
@@ -263,7 +259,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         results.Add(result);
                     }
                     var searchAfterOptions = LuceneSearchExecutor.GetSearchAfterOptions(topDocs);
-                    float maxScore = topDocs.MaxScore;
+                    var maxScore = topDocs.MaxScore;
 
                     // enumerate (forces the result to execute)
                     var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
