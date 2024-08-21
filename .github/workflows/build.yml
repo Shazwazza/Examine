@@ -59,7 +59,7 @@ jobs:
       run: dotnet build ${{ env.Solution_File }} --configuration ${{ env.Configuration }} --no-restore
     
     - name: Test
-      run: dotnet test "${{ env.Test_Proj }}" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx" -filter Name!~Benchmarks
+      run: dotnet test "${{ env.Test_Proj }}" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx" -filter "Name!~Benchmarks"
 
     - name: Upload test results
       uses: actions/upload-artifact@v2  # upload test results
