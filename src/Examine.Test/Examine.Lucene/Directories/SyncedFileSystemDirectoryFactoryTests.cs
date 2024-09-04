@@ -50,7 +50,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     TestIndex.TestIndexName,
                     Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                     {
-                        DirectoryFactory = syncedDirFactory,,
+                        DirectoryFactory = syncedDirFactory,
                         NrtEnabled = false
                     }));
 
