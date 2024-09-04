@@ -7,23 +7,37 @@ using Lucene.Net.Search;
 namespace Examine.Lucene.Search
 {
 
-    public class SearchContext : ISearchContext
+    public sealed class SearchContext : ISearchContext
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly bool _isNrt;
         private string[] _searchableFields;
 
+        [Obsolete("Use ctor with all dependencies")]
         public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
         }
 
+        public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, bool isNrt)
+        {
+            _searcherManager = searcherManager;
+            _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
+            _isNrt = isNrt;
+        }
+
         // TODO: Do we want to create a new searcher every time? I think so, but we shouldn't allocate so much
-        public ISearcherReference GetSearcher() =>
-            // TODO: Only if NRT is disabled?
-            //_searcherManager.MaybeRefresh();
-            new SearcherReference(_searcherManager);
+        public ISearcherReference GetSearcher()
+        {
+            if (!_isNrt)
+            {
+                _searcherManager.MaybeRefresh();
+            }
+
+            return new SearcherReference(_searcherManager);
+        }
 
         public string[] SearchableFields
         {

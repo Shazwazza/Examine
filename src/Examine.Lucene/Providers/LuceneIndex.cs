@@ -1084,7 +1084,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection);
+            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.NrtEnabled);
         }
 
         /// <summary>
@@ -1226,7 +1226,7 @@ namespace Examine.Lucene.Providers
                 }
                 else
                 {
-                    // TODO: MaybeRefresh
+                    _searcher.Value.MaybeRefreshBlocking();
                 }
             }
         }

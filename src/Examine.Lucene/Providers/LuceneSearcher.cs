@@ -3,7 +3,6 @@ using Examine.Lucene.Search;
 using Lucene.Net.Search;
 using Lucene.Net.Analysis;
 
-
 namespace Examine.Lucene.Providers
 {
 
@@ -14,21 +13,24 @@ namespace Examine.Lucene.Providers
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly bool _isNrt;
         private bool _disposedValue;
         private volatile ISearchContext _searchContext;
 
-        /// <summary>
-        /// Constructor allowing for creating a NRT instance based on a given writer
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="writer"></param>
-        /// <param name="analyzer"></param>
-        /// <param name="fieldValueTypeCollection"></param>
+        [Obsolete("Use ctor with all dependencies")]
         public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
+        }
+
+        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, bool isNrt)
+            : base(name, analyzer)
+        {
+            _searcherManager = searcherManager;
+            _fieldValueTypeCollection = fieldValueTypeCollection;
+            _isNrt = isNrt;
         }
 
         public override ISearchContext GetSearchContext()
@@ -37,11 +39,15 @@ namespace Examine.Lucene.Providers
             var isCurrent = _searcherManager.IsSearcherCurrent();
             if (_searchContext is null || !isCurrent)
             {
-                _searchContext = new SearchContext(_searcherManager, _fieldValueTypeCollection);
+                _searchContext = new SearchContext(_searcherManager, _fieldValueTypeCollection, _isNrt);
             }
 
             return _searchContext;
         }
+
+        public bool MaybeRefresh() => _searcherManager.MaybeRefresh();
+
+        public void MaybeRefreshBlocking() => _searcherManager.MaybeRefreshBlocking();
 
         protected virtual void Dispose(bool disposing)
         {
