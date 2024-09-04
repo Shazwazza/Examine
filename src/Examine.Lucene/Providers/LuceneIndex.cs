@@ -997,9 +997,6 @@ namespace Examine.Lucene.Providers
         /// See example: http://www.lucenetutorial.com/lucene-nrt-hello-world.html
         /// http://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
         /// https://stackoverflow.com/questions/17993960/lucene-4-4-0-new-controlledrealtimereopenthread-sample-usage
-        /// TODO: Do we need/want to use the ControlledRealTimeReopenThread? Else according to mikecandles above in comments
-        /// we can probably just get away with using MaybeReopen each time we search. Though there are comments in the lucene
-        /// code to avoid that and do that on a background thread, which is exactly what ControlledRealTimeReopenThread already does.
         /// </remarks>
         public TrackingIndexWriter IndexWriter
         {
@@ -1055,7 +1052,7 @@ namespace Examine.Lucene.Providers
                 // "yet during searching you have some way to ignore the old versions"
                 // Without fulfilling that requirement our Index_Read_And_Write_Ensure_No_Errors_In_Async tests fail when using
                 // non in-memory directories because it will return more results than what is actually in the index.
-                false,
+                true,
 
                 new SearcherFactory());
 
