@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Examine.Lucene.Providers;
 using Lucene.Net.Index;
@@ -10,6 +11,14 @@ namespace Examine.Lucene.Directories
     public class FileSystemDirectoryFactory : DirectoryFactoryBase
     {
         private readonly DirectoryInfo _baseDir;
+
+        [Obsolete("Use ctor with all dependencies")]
+        public FileSystemDirectoryFactory(
+            DirectoryInfo baseDir,
+            ILockFactory lockFactory)
+            : this (baseDir, lockFactory, new FakeLuceneDirectoryIndexOptionsOptionsMonitor())
+        {
+        }
 
         public FileSystemDirectoryFactory(
             DirectoryInfo baseDir,

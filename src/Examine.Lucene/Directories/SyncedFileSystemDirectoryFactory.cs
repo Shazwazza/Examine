@@ -13,7 +13,7 @@ namespace Examine.Lucene.Directories
 {
     /// <summary>
     /// A directory factory that replicates the index from main storage on initialization to another
-    /// directory, then creates a lucene Directory based on that replicated index.
+    /// directory, then creates a Lucene Directory based on that replicated index.
     /// </summary>
     /// <remarks>
     /// A replication thread is spawned to then replicate the local index back to the main storage location.
@@ -29,6 +29,27 @@ namespace Examine.Lucene.Directories
         private readonly ILogger<SyncedFileSystemDirectoryFactory> _logger;
         private ExamineReplicator _replicator;
         private Directory _mainLuceneDir;
+
+        [Obsolete("Use ctor with all dependencies")]
+        public SyncedFileSystemDirectoryFactory(
+           DirectoryInfo localDir,
+           DirectoryInfo mainDir,
+           ILockFactory lockFactory,
+           ILoggerFactory loggerFactory)
+           : this(localDir, mainDir, lockFactory, loggerFactory, new FakeLuceneDirectoryIndexOptionsOptionsMonitor(), false)
+        {
+        }
+
+        [Obsolete("Use ctor with all dependencies")]
+        public SyncedFileSystemDirectoryFactory(
+            DirectoryInfo localDir,
+            DirectoryInfo mainDir,
+            ILockFactory lockFactory,
+            ILoggerFactory loggerFactory,
+            bool tryFixMainIndexIfCorrupt)
+            : base(mainDir, lockFactory, new FakeLuceneDirectoryIndexOptionsOptionsMonitor())
+        {
+        }
 
         public SyncedFileSystemDirectoryFactory(
             DirectoryInfo localDir,

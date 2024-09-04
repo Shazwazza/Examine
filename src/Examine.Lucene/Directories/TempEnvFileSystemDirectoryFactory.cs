@@ -13,6 +13,14 @@ namespace Examine.Lucene.Directories
     /// </remarks>
     public class TempEnvFileSystemDirectoryFactory : FileSystemDirectoryFactory
     {
+        [Obsolete("Use ctor with all dependencies")]
+        public TempEnvFileSystemDirectoryFactory(
+            IApplicationIdentifier applicationIdentifier,
+            ILockFactory lockFactory)
+            : this(applicationIdentifier, lockFactory, new FakeLuceneDirectoryIndexOptionsOptionsMonitor())
+        {
+        }
+
         public TempEnvFileSystemDirectoryFactory(
             IApplicationIdentifier applicationIdentifier,
             ILockFactory lockFactory,
