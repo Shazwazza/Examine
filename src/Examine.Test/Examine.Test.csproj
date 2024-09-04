@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <SccProjectName>
@@ -53,17 +53,14 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-    <PackageReference Include="BenchmarkDotNet.TestAdapter" Version="0.14.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />    
     <PackageReference Include="Lucene.Net.Spatial">
       <Version>4.8.0-beta00016</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
-    <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="17.12.35209.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />    
     <PackageReference Include="Moq" Version="4.20.70" />
     <PackageReference Include="NUnit">
       <Version>3.13.3</Version>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Examine.Core\Examine.Core.csproj" />
+    <ProjectReference Include="..\Examine.Host\Examine.csproj" />
+    <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj" />
+    <ProjectReference Include="..\Examine.Test\Examine.Test.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="BenchmarkDotNet.TestAdapter" Version="0.14.0" />
+    <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="17.12.35209.2" />
+  </ItemGroup>
+
+</Project>
