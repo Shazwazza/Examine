@@ -16,6 +16,7 @@ using Lucene.Net.Store;
 using Lucene.Net.Util;
 using Microsoft.Extensions.Logging;
 using Microsoft.VSDiagnostics;
+using NUnit.Framework;
 
 [assembly: Config(typeof(MyDefaultConfig))]
 
@@ -128,6 +129,8 @@ namespace Examine.Test.Examine.Lucene.Search
     [MemoryDiagnoser]
     [DotNetCountersDiagnoser]
     [CPUUsageDiagnoser]
+    [Category("Benchmarks")]
+    [Ignore("These are benchmarks are are run differently from unit tests")]
     public class ConcurrentSearchBenchmarks : ExamineBaseTest
     {
         private readonly StandardAnalyzer _analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
