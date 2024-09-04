@@ -42,7 +42,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
                     LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()), 
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions { NrtEnabled = false }), 
                     true);
 
                 using var index = new LuceneIndex(
@@ -50,7 +50,8 @@ namespace Examine.Test.Examine.Lucene.Directories
                     TestIndex.TestIndexName,
                     Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                     {
-                        DirectoryFactory = syncedDirFactory,
+                        DirectoryFactory = syncedDirFactory,,
+                        NrtEnabled = false
                     }));
 
                 var result = syncedDirFactory.TryCreateDirectory(index, false, out var dir);
@@ -83,7 +84,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
                     LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions { NrtEnabled = false }),
                     true))
                 {
                     using var index = new LuceneIndex(
@@ -92,6 +93,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                         Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                         {
                             DirectoryFactory = syncedDirFactory,
+                            NrtEnabled = false
                         }));
 
                     var result = syncedDirFactory.TryCreateDirectory(index, false, out var dir);
