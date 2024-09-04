@@ -132,8 +132,15 @@ namespace Examine.Lucene.Directories
             // Start replicating back to main
             _replicator.StartIndexReplicationOnSchedule(1000);
 
-            // TODO: Put this behind IOptions for NRT stuff, but I think this is going to be better
-            directory = new NRTCachingDirectory(localLuceneDir, 5.0, 60.0);
+            var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
+            if (options.NrtEnabled)
+            {
+                directory = new NRTCachingDirectory(localLuceneDir, options.NrtCacheMaxMergeSizeMB, options.NrtCacheMaxCachedMB);
+            }
+            else
+            {
+                directory = localLuceneDir;
+            }
 
             return mainResult;
         }

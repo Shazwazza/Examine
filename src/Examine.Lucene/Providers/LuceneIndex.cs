@@ -6,21 +6,18 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Examine.Lucene.Directories;
+using Examine.Lucene.Indexing;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
+using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
-using Directory = Lucene.Net.Store.Directory;
-using static Lucene.Net.Index.IndexWriter;
 using Microsoft.Extensions.Options;
-using Lucene.Net.Analysis.Standard;
-using Examine.Lucene.Indexing;
-using Examine.Lucene.Directories;
-using static Lucene.Net.Queries.Function.ValueSources.MultiFunction;
-using Lucene.Net.Search.Join;
-using Lucene.Net.Index.Extensions;
+using static Lucene.Net.Index.IndexWriter;
+using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Providers
 {
@@ -63,14 +60,14 @@ namespace Examine.Lucene.Providers
             IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
            : this(loggerFactory, name, (IOptionsMonitor<LuceneIndexOptions>)indexOptions)
         {
-            LuceneDirectoryIndexOptions directoryOptions = indexOptions.GetNamedOptions(name);
-            
+            var directoryOptions = indexOptions.GetNamedOptions(name);
+
             if (directoryOptions.DirectoryFactory == null)
             {
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
 
-            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));            
+            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -342,15 +339,12 @@ namespace Examine.Lucene.Providers
                                 _logger.LogDebug("Clearing existing index {IndexName}", Name);
                             }
 
-                            if (_writer == null)
-                            {
-                                //This will happen if the writer hasn't been created/initialized yet which
-                                // might occur if a rebuild is triggered before any indexing has been triggered.
-                                //In this case we need to initialize a writer and continue as normal.
-                                //Since we are already inside the writer lock and it is null, we are allowed to 
-                                // make this call with out using GetIndexWriter() to do the initialization.
-                                _writer = CreateIndexWriterInternal();
-                            }
+                            //This will happen if the writer hasn't been created/initialized yet which
+                            // might occur if a rebuild is triggered before any indexing has been triggered.
+                            //In this case we need to initialize a writer and continue as normal.
+                            //Since we are already inside the writer lock and it is null, we are allowed to 
+                            // make this call with out using GetIndexWriter() to do the initialization.
+                            _writer ??= CreateIndexWriterInternal();
 
                             //We're forcing an overwrite, 
                             // this means that we need to cancel all operations currently in place,
@@ -505,7 +499,9 @@ namespace Examine.Lucene.Providers
                 foreach (var id in itemIds)
                 {
                     if (cancellationToken.IsCancellationRequested)
+                    {
                         break;
+                    }
 
                     var op = new IndexOperation(new ValueSet(id), IndexOperationType.Delete);
                     if (ProcessQueueItem(op))
@@ -635,7 +631,9 @@ namespace Examine.Lucene.Providers
         {
             //if it's been set and it's true, return true
             if (_exists.HasValue && _exists.Value)
+            {
                 return true;
+            }
 
             //if it's not been set or it just doesn't exist, re-read the lucene files
             if (!_exists.HasValue || !_exists.Value)
@@ -686,7 +684,7 @@ namespace Examine.Lucene.Providers
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
@@ -705,23 +703,23 @@ namespace Examine.Lucene.Providers
             }
 
             //add node id
-            IIndexFieldValueType nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
+            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
             nodeIdValueType.AddValue(doc, valueSet.Id);
 
             //add the category
-            IIndexFieldValueType categoryValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+            var categoryValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             categoryValueType.AddValue(doc, valueSet.Category);
 
             //add the item type
-            IIndexFieldValueType indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
-            foreach (KeyValuePair<string, IReadOnlyList<object>> field in valueSet.Values)
+            foreach (var field in valueSet.Values)
             {
                 //check if we have a defined one
-                if (FieldDefinitions.TryGetValue(field.Key, out FieldDefinition definedFieldDefinition))
+                if (FieldDefinitions.TryGetValue(field.Key, out var definedFieldDefinition))
                 {
-                    IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(
+                    var valueType = FieldValueTypeCollection.GetValueType(
                         definedFieldDefinition.Name,
                         FieldValueTypeCollection.ValueTypeFactories.TryGetFactory(definedFieldDefinition.Type, out var valTypeFactory)
                             ? valTypeFactory
@@ -736,7 +734,7 @@ namespace Examine.Lucene.Providers
                 {
                     //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
 
-                    IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+                    var valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(doc, o);
@@ -746,7 +744,7 @@ namespace Examine.Lucene.Providers
                 {
                     // wasn't specifically defined, use FullText as the default
 
-                    IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(
+                    var valueType = FieldValueTypeCollection.GetValueType(
                         field.Key,
                         FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
 
@@ -914,7 +912,7 @@ namespace Examine.Lucene.Providers
         /// <returns></returns>
         private TrackingIndexWriter CreateIndexWriterInternal()
         {
-            Directory dir = GetLuceneDirectory();
+            var dir = GetLuceneDirectory();
 
             // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
             // ensure that it's unlocked here in that case.
@@ -936,7 +934,7 @@ namespace Examine.Lucene.Providers
                 return null;
             }
 
-            IndexWriter writer = CreateIndexWriter(dir);
+            var writer = CreateIndexWriter(dir);
 
             var trackingIndexWriter = new TrackingIndexWriter(writer);
 
@@ -1014,10 +1012,7 @@ namespace Examine.Lucene.Providers
                     Monitor.Enter(_writerLocker);
                     try
                     {
-                        if (_writer == null)
-                        {
-                            _writer = CreateIndexWriterInternal();
-                        }
+                        _writer ??= CreateIndexWriterInternal();
                     }
                     finally
                     {
@@ -1045,16 +1040,23 @@ namespace Examine.Lucene.Providers
                     continue;
                 }
 
-                name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
+                name = name[..name.LastIndexOf(suffix, StringComparison.Ordinal)];
             }
 
-            TrackingIndexWriter writer = IndexWriter;
+            var writer = IndexWriter;
 
             // Create an IndexSearcher ReferenceManager to safely share IndexSearcher instances across
             // multiple threads
             var searcherManager = new SearcherManager(
                 writer.IndexWriter,
-                false, // TODO: Apply All Deletes? Will be faster if this is false, https://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
+
+                // TODO: Apply All Deletes? Will be faster if this is false, https://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
+                // BUT ... to do that we would need to fulfill this requirement:
+                // "yet during searching you have some way to ignore the old versions"
+                // Without fulfilling that requirement our Index_Read_And_Write_Ensure_No_Errors_In_Async tests fail when using
+                // non in-memory directories because it will return more results than what is actually in the index.
+                false,
+
                 new SearcherFactory());
 
             searcherManager.AddListener(this);
@@ -1151,7 +1153,7 @@ namespace Examine.Lucene.Providers
 
                         // The task is initialized to completed so just continue with
                         // and return the new task so that any new appended tasks are the current
-                        Task t = _asyncTask.ContinueWith(
+                        var t = _asyncTask.ContinueWith(
                             x =>
                             {
                                 var indexedCount = 0;
@@ -1260,9 +1262,9 @@ namespace Examine.Lucene.Providers
         public IEnumerable<string> GetFieldNames()
         {
             var writer = IndexWriter;
-            using (DirectoryReader reader = writer.IndexWriter.GetReader(false))
+            using (var reader = writer.IndexWriter.GetReader(false))
             {
-                IEnumerable<string> fieldInfos = MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name);
+                var fieldInfos = MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name);
                 return fieldInfos;
             }
         }

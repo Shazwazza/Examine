@@ -48,10 +48,17 @@ namespace Examine.Test
                     NrtEnabled = nrtEnabled
                 }));
 
-        public TestIndex GetTestIndex(IndexWriter writer)
+        public TestIndex GetTestIndex(
+            IndexWriter writer,
+            double nrtTargetMaxStaleSec = 60,
+            double nrtTargetMinStaleSec = 1)
             => new TestIndex(
                 LoggerFactory,
-                Mock.Of<IOptionsMonitor<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions()),
+                Mock.Of<IOptionsMonitor<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions
+                {
+                    NrtTargetMaxStaleSec = nrtTargetMaxStaleSec,
+                    NrtTargetMinStaleSec = nrtTargetMinStaleSec
+                }),
                 writer);
 
         protected virtual ILoggerFactory CreateLoggerFactory()

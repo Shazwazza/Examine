@@ -10,7 +10,6 @@ namespace Examine.Lucene.Directories
     public class FileSystemDirectoryFactory : DirectoryFactoryBase
     {
         private readonly DirectoryInfo _baseDir;
-        private readonly IOptionsMonitor<LuceneDirectoryIndexOptions> _indexOptions;
 
         public FileSystemDirectoryFactory(
             DirectoryInfo baseDir,
@@ -19,10 +18,12 @@ namespace Examine.Lucene.Directories
         {
             _baseDir = baseDir;
             LockFactory = lockFactory;
-            _indexOptions = indexOptions;
+            IndexOptions = indexOptions;
         }
 
         public ILockFactory LockFactory { get; }
+
+        protected IOptionsMonitor<LuceneDirectoryIndexOptions> IndexOptions { get; }
 
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
@@ -35,10 +36,10 @@ namespace Examine.Lucene.Directories
                 IndexWriter.Unlock(dir);
             }
 
-            var options = _indexOptions.GetNamedOptions(luceneIndex.Name);
+            var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
             if (options.NrtEnabled)
             {
-                return new NRTCachingDirectory(dir, 5.0, 60.0);
+                return new NRTCachingDirectory(dir, options.NrtCacheMaxMergeSizeMB, options.NrtCacheMaxCachedMB);
             }
             else
             {

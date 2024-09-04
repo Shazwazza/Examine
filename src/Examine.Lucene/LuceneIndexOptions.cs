@@ -13,6 +13,10 @@ namespace Examine.Lucene
 
         public double NrtTargetMinStaleSec { get; set; } = 1.0;
 
+        public double NrtCacheMaxMergeSizeMB { get; set; } = 5.0;
+
+        public double NrtCacheMaxCachedMB { get; set; } = 60.0;
+
         public IndexDeletionPolicy IndexDeletionPolicy { get; set; }
 
         public Analyzer Analyzer { get; set; }
