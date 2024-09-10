@@ -10,6 +10,7 @@ using BenchmarkDotNet.Configs;
 using Examine.Lucene.Search;
 using Examine.Search;
 using Examine.Test;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
@@ -18,6 +19,7 @@ using Lucene.Net.Store;
 using Lucene.Net.Util;
 using Microsoft.Extensions.Logging;
 using Microsoft.VSDiagnostics;
+using Directory = Lucene.Net.Store.Directory;
 
 [assembly: Config(typeof(MyDefaultConfig))]
 
@@ -124,6 +126,30 @@ namespace Examine.Benchmarks
     | ExamineStandard | 15          | 1000       | 1,278.769 ms |   826.1505 ms |  45.2841 ms |              15.0000 |          14.0000 | 7000.0000 | 4000.0000 | 1000.0000 |  84.55 MB |
     | LuceneSimple    | 15          | 1000       | 1,248.199 ms | 1,921.5844 ms | 105.3285 ms |              15.0000 |                - | 7000.0000 | 4000.0000 | 1000.0000 |  84.08 MB |
 
+    After changing to use singleton indexers/managers
+
+    | Method          | ThreadCount | MaxResults | Mean           | Error         | StdDev       | Completed Work Items | Lock Contentions | Gen0       | Gen1       | Gen2      | Allocated    |
+    |---------------- |------------ |----------- |---------------:|--------------:|-------------:|---------------------:|-----------------:|-----------:|-----------:|----------:|-------------:|
+    | ExamineStandard | 1           | 10         |       101.9 μs |       9.70 μs |      0.53 μs |               1.0000 |           0.0029 |    12.6953 |     0.9766 |         - |    157.77 KB |
+    | LuceneSimple    | 1           | 10         |       120.7 us |       9.33 us |      0.51 us |               1.0000 |           0.0022 |    11.4746 |     1.2207 |         - |    141.66 KB |
+    | ExamineStandard | 1           | 100        |     1,555.0 us |     407.07 us |     22.31 us |               1.0000 |           0.0078 |    54.6875 |    15.6250 |         - |    681.92 KB |
+    | LuceneSimple    | 1           | 100        |     1,598.8 μs |     233.79 μs |     12.81 μs |               1.0000 |           0.0078 |    52.7344 |    17.5781 |         - |    664.64 KB |
+    | ExamineStandard | 1           | 1000       |    17,449.3 μs |   1,472.32 μs |     80.70 μs |               1.0000 |                - |   437.5000 |   312.5000 |   31.2500 |   5723.12 KB |
+    | LuceneSimple    | 1           | 1000       |    17,739.7 μs |   3,797.03 μs |    208.13 μs |               1.0000 |           0.0313 |   437.5000 |   312.5000 |   31.2500 |   5698.42 KB |
+    | ExamineStandard | 15          | 10         |     1,630.6 μs |   2,436.46 μs |    133.55 μs |              15.0000 |           0.0430 |   195.3125 |    15.6250 |         - |   2362.51 KB |
+    | LuceneSimple    | 15          | 10         |     1,742.6 μs |     214.81 μs |     11.77 μs |              15.0000 |           0.0820 |   179.6875 |    27.3438 |         - |   2118.47 KB |
+    | ExamineStandard | 15          | 100        |   105,817.2 μs |  28,398.55 μs |  1,556.62 μs |              15.0000 |                - |   833.3333 |   666.6667 |         - |  10225.39 KB |
+    | LuceneSimple    | 15          | 100        |    95,732.1 μs |  57,903.39 μs |  3,173.88 μs |              15.0000 |                - |   666.6667 |   500.0000 |         - |    9967.2 KB |
+    | ExamineStandard | 15          | 1000       | 1,125,955.0 μs | 822,782.38 μs | 45,099.48 μs |              15.0000 |                - |  7000.0000 |  4000.0000 | 1000.0000 |   85877.8 KB |
+    | LuceneSimple    | 15          | 1000       | 1,446,507.5 μs | 855,107.53 μs | 46,871.33 μs |              15.0000 |                - |  7000.0000 |  4000.0000 | 1000.0000 |  85509.77 KB |
+    | ExamineStandard | 30          | 10         |     4,261.3 μs |   1,676.61 μs |     91.90 μs |              30.0000 |           0.3047 |   390.6250 |    70.3125 |         - |   4724.59 KB |
+    | LuceneSimple    | 30          | 10         |     3,895.8 μs |   1,768.88 μs |     96.96 μs |              30.0000 |           0.1250 |   359.3750 |    46.8750 |         - |   4237.24 KB |
+    | ExamineStandard | 30          | 100        |   232,909.0 μs |  30,215.14 μs |  1,656.19 μs |              30.0000 |                - |  1500.0000 |  1000.0000 |         - |  20455.26 KB |
+    | LuceneSimple    | 30          | 100        |   259,557.3 μs |  40,643.51 μs |  2,227.81 μs |              30.0000 |                - |  1500.0000 |  1000.0000 |         - |  19940.39 KB |
+    | ExamineStandard | 30          | 1000       | 2,886,589.2 μs | 328,362.02 μs | 17,998.63 μs |              30.0000 |           1.0000 | 16000.0000 | 11000.0000 | 3000.0000 | 171858.03 KB |
+    | LuceneSimple    | 30          | 1000       | 2,662,715.9 μs | 898,686.63 μs | 49,260.05 μs |              30.0000 |                - | 16000.0000 | 11000.0000 | 3000.0000 | 171094.02 KB |
+
+
     */
     [ShortRunJob]
     [ThreadingDiagnoser]
@@ -135,7 +161,10 @@ namespace Examine.Benchmarks
         private readonly StandardAnalyzer _analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
         private ILogger<ConcurrentSearchBenchmarks> _logger;
         private string _tempBasePath;
-        private FSDirectory _luceneDir;
+        private TestIndex _indexer;
+        private FSDirectory _indexDir;
+        private IndexWriter _writer;
+        private SearcherManager _searcherManager;
 
         [GlobalSetup]
         public override void Setup()
@@ -145,40 +174,32 @@ namespace Examine.Benchmarks
             _logger = LoggerFactory.CreateLogger<ConcurrentSearchBenchmarks>();
             _tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
 
-            var tempPath = Path.Combine(_tempBasePath, Guid.NewGuid().ToString());
-            System.IO.Directory.CreateDirectory(tempPath);
-            var temp = new DirectoryInfo(tempPath);
-            _luceneDir = FSDirectory.Open(temp);
-            using var indexer = GetTestIndex(_luceneDir, _analyzer);
+            // indexer for examine
+            _indexer = InitializeAndIndexItems(_tempBasePath, _analyzer, out _);
 
-            var random = new Random();
-            var valueSets = new List<ValueSet>();
-
-            for (var i = 0; i < 1000; i++)
-            {
-                valueSets.Add(ValueSet.FromObject(Guid.NewGuid().ToString(), "content",
-                    new
-                    {
-                        nodeName = "location " + i,
-                        bodyText = Enumerable.Range(0, random.Next(10, 100)).Select(x => Guid.NewGuid().ToString())
-                    }));
-            }
-
-            indexer.IndexItems(valueSets);
+            // indexer for lucene
+            var tempIndexer = InitializeAndIndexItems(_tempBasePath, _analyzer, out var indexDir);
+            tempIndexer.Dispose();
+            _indexDir = FSDirectory.Open(indexDir);
+            _writer = new IndexWriter(_indexDir, new IndexWriterConfig(LuceneVersion.LUCENE_48, _analyzer));
+            var trackingWriter = new TrackingIndexWriter(_writer);
+            _searcherManager = new SearcherManager(trackingWriter.IndexWriter, applyAllDeletes: false, new SearcherFactory());
         }
 
         [GlobalCleanup]
         public override void TearDown()
         {
-            _luceneDir.Dispose();
-            _analyzer.Dispose();
+            _indexer.Dispose();
+            _searcherManager.Dispose();
+            _writer.Dispose();
+            _indexDir.Dispose();
 
             base.TearDown();
 
             System.IO.Directory.Delete(_tempBasePath, true);
         }
 
-        [Params(15)]
+        [Params(1, 15, 30)]
         public int ThreadCount { get; set; }
 
         [Params(10, 100, 1000)]
@@ -187,11 +208,6 @@ namespace Examine.Benchmarks
         [Benchmark]
         public async Task ExamineStandard()
         {
-            using var indexer = GetTestIndex(
-                _luceneDir,
-                _analyzer,
-                nrtEnabled: false);
-
             var tasks = new List<Task>();
 
             for (var i = 0; i < ThreadCount; i++)
@@ -199,7 +215,7 @@ namespace Examine.Benchmarks
                 tasks.Add(new Task(() =>
                 {
                     // always resolve the searcher from the indexer
-                    var searcher = indexer.Searcher;
+                    var searcher = _indexer.Searcher;
 
                     var query = searcher.CreateQuery("content").Field("nodeName", "location".MultipleCharacterWildcard());
                     var results = query.Execute(QueryOptions.SkipTake(0, MaxResults));
@@ -223,11 +239,6 @@ namespace Examine.Benchmarks
         {
             var tasks = new List<Task>();
 
-            using var dirReader = DirectoryReader.Open(_luceneDir);
-            using var writer = new IndexWriter(dirReader.Directory, new IndexWriterConfig(LuceneVersion.LUCENE_48, _analyzer));
-            var trackingWriter = new TrackingIndexWriter(writer);
-            using var searcherManager = new SearcherManager(trackingWriter.IndexWriter, applyAllDeletes: false, new SearcherFactory());
-
             for (var i = 0; i < ThreadCount; i++)
             {
                 tasks.Add(new Task(() =>
@@ -236,7 +247,7 @@ namespace Examine.Benchmarks
                     var query = parser.Parse($"{ExamineFieldNames.CategoryFieldName}:content AND nodeName:location*");
 
                     // this is like doing Acquire, does it perform the same (it will allocate more)
-                    using var context = searcherManager.GetContext();
+                    using var context = _searcherManager.GetContext();
 
                     var searcher = context.Reference;
 
@@ -279,5 +290,34 @@ namespace Examine.Benchmarks
 
         protected override ILoggerFactory CreateLoggerFactory()
             => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
+
+        private TestIndex InitializeAndIndexItems(
+            string tempBasePath,
+            Analyzer analyzer,
+            out DirectoryInfo indexDir)
+        {
+            var tempPath = Path.Combine(tempBasePath, Guid.NewGuid().ToString());
+            System.IO.Directory.CreateDirectory(tempPath);
+            indexDir = new DirectoryInfo(tempPath);
+            var luceneDirectory = FSDirectory.Open(indexDir);
+            var indexer = GetTestIndex(luceneDirectory, analyzer);
+
+            var random = new Random();
+            var valueSets = new List<ValueSet>();
+
+            for (var i = 0; i < 1000; i++)
+            {
+                valueSets.Add(ValueSet.FromObject(Guid.NewGuid().ToString(), "content",
+                    new
+                    {
+                        nodeName = "location " + i,
+                        bodyText = Enumerable.Range(0, random.Next(10, 100)).Select(x => Guid.NewGuid().ToString())
+                    }));
+            }
+
+            indexer.IndexItems(valueSets);
+
+            return indexer;
+        }
     }
 }
