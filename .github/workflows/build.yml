@@ -62,7 +62,7 @@ jobs:
       run: dotnet test "${{ env.Test_Proj }}" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx" --filter "TestCategory!~Benchmarks"
 
     - name: Upload test results
-      uses: actions/upload-artifact@v2  # upload test results
+      uses: actions/upload-artifact@v4  # upload test results
       if: success() || failure()        # run this step even if previous step failed
       with:
         name: examine-test-results
