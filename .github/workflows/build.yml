@@ -84,7 +84,7 @@ jobs:
           --output=${{ github.workspace }}/_NugetOutput
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2  # upload nuget
+      uses: actions/upload-artifact@v4  # upload nuget
       if: success()
       with:
         name: examine-nuget-${{ env.GitVersion_SemVer }}
