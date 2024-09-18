@@ -126,13 +126,17 @@ namespace Examine.Lucene.Search
 
                 var totalItemCount = topDocs.TotalHits;
 
-                var results = new List<ISearchResult>(topDocs.ScoreDocs.Length);
-                for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
+                var results = new List<LuceneSearchResult>(topDocs.ScoreDocs.Length);
+
+                // Order by Doc Id for improved perf!
+                // See https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
+                foreach (var scoreDoc in topDocs.ScoreDocs.OrderBy(x => x.Doc))
                 {
-                    var result = GetSearchResult(i, topDocs, searcher.IndexSearcher);
+                    var result = GetSearchResult(scoreDoc, topDocs, searcher.IndexSearcher);
                     results.Add(result);
                 }
-                var searchAfterOptions = GetSearchAfterOptions(topDocs);
+
+                var searchAfterOptions = scoreDocAfter != null ? GetSearchAfterOptions(topDocs) : null;
                 float maxScore = topDocs.MaxScore;
 
                 return new LuceneSearchResults(results, totalItemCount, maxScore, searchAfterOptions);
@@ -174,21 +178,12 @@ namespace Examine.Lucene.Search
                     return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, new object[0], scoreDoc.ShardIndex);
                 }
             }
+
             return null;
         }
 
-        private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
+        private LuceneSearchResult GetSearchResult(ScoreDoc scoreDoc, TopDocs topDocs, IndexSearcher luceneSearcher)
         {
-            // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
-            // and from that one place "i" is always less than the size of this collection. 
-            // but we'll error check here anyways
-            if (topDocs?.ScoreDocs.Length < index)
-            {
-                return null;
-            }
-
-            var scoreDoc = topDocs.ScoreDocs[index];
-
             var docId = scoreDoc.Doc;
             Document doc;
             if (_fieldsToLoad != null)
@@ -199,6 +194,7 @@ namespace Examine.Lucene.Search
             {
                 doc = luceneSearcher.Doc(docId);
             }
+
             var score = scoreDoc.Score;
             var shardIndex = scoreDoc.ShardIndex;
             var result = CreateSearchResult(doc, score, shardIndex);
@@ -222,12 +218,12 @@ namespace Examine.Lucene.Search
 
             var searchResult = new LuceneSearchResult(id, score, () =>
             {
-                //we can use lucene to find out the fields which have been stored for this particular document
+                //we can use Lucene to find out the fields which have been stored for this particular document
                 var fields = doc.Fields;
 
                 var resultVals = new Dictionary<string, List<string>>();
 
-                foreach (var field in fields.Cast<Field>())
+                foreach (var field in fields)
                 {
                     var fieldName = field.Name;
                     var values = doc.GetValues(fieldName);

@@ -3,22 +3,25 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
 using Examine.Lucene.Search;
 using Examine.Search;
 using Examine.Test;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Codecs.Lucene46;
 using Lucene.Net.Index;
+using Lucene.Net.Index.Extensions;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
 using Microsoft.Extensions.Logging;
-using Microsoft.VSDiagnostics;
 using Directory = Lucene.Net.Store.Directory;
 
 [assembly: Config(typeof(MyDefaultConfig))]
@@ -151,11 +154,11 @@ namespace Examine.Benchmarks
 
 
     */
-    [ShortRunJob]
+    [MediumRunJob(RuntimeMoniker.Net80)]
     [ThreadingDiagnoser]
     [MemoryDiagnoser]
-    [DotNetCountersDiagnoser]
-    [CPUUsageDiagnoser]
+    //[DotNetCountersDiagnoser]
+    //[CPUUsageDiagnoser]
     public class ConcurrentSearchBenchmarks : ExamineBaseTest
     {
         private readonly StandardAnalyzer _analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
@@ -181,9 +184,15 @@ namespace Examine.Benchmarks
             var tempIndexer = InitializeAndIndexItems(_tempBasePath, _analyzer, out var indexDir);
             tempIndexer.Dispose();
             _indexDir = FSDirectory.Open(indexDir);
-            _writer = new IndexWriter(_indexDir, new IndexWriterConfig(LuceneVersion.LUCENE_48, _analyzer));
+            var writerConfig = new IndexWriterConfig(LuceneVersion.LUCENE_48, _analyzer);
+            //writerConfig.SetMaxBufferedDocs(1000);
+            //writerConfig.SetReaderTermsIndexDivisor(4);
+            //writerConfig.SetOpenMode(OpenMode.APPEND);
+            //writerConfig.SetReaderPooling(true);
+            //writerConfig.SetCodec(new Lucene46Codec());
+            _writer = new IndexWriter(_indexDir, writerConfig);
             var trackingWriter = new TrackingIndexWriter(_writer);
-            _searcherManager = new SearcherManager(trackingWriter.IndexWriter, applyAllDeletes: false, new SearcherFactory());
+            _searcherManager = new SearcherManager(trackingWriter.IndexWriter, applyAllDeletes: true, new SearcherFactory());
         }
 
         [GlobalCleanup]
@@ -199,13 +208,13 @@ namespace Examine.Benchmarks
             System.IO.Directory.Delete(_tempBasePath, true);
         }
 
-        [Params(1, 15, 30)]
+        [Params(/*1, 15, */30)]
         public int ThreadCount { get; set; }
 
-        [Params(10, 100, 1000)]
+        [Params(10/*, 100, 1000*/)]
         public int MaxResults { get; set; }
 
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public async Task ExamineStandard()
         {
             var tasks = new List<Task>();
@@ -235,7 +244,7 @@ namespace Examine.Benchmarks
         }
 
         [Benchmark]
-        public async Task LuceneSimple()
+        public async Task LuceneAcquireAlways()
         {
             var tasks = new List<Task>();
 
@@ -256,22 +265,23 @@ namespace Examine.Benchmarks
                     var topDocsCollector = TopScoreDocCollector.Create(MaxResults, null, true);
 
                     searcher.Search(query, topDocsCollector);
+
                     var topDocs = topDocsCollector.GetTopDocs(0, MaxResults);
 
                     var totalItemCount = topDocs.TotalHits;
 
-                    var results = new List<ISearchResult>(topDocs.ScoreDocs.Length);
-                    for (var i = 0; i < topDocs.ScoreDocs.Length; i++)
+                    var results = new List<LuceneSearchResult>(topDocs.ScoreDocs.Length);
+
+                    foreach (var scoreDoc in topDocs.ScoreDocs)
                     {
-                        var scoreDoc = topDocs.ScoreDocs[i];
-                        var docId = scoreDoc.Doc;
-                        var doc = searcher.Doc(docId);
+                        var docId = scoreDoc.Doc;                        
                         var score = scoreDoc.Score;
                         var shardIndex = scoreDoc.ShardIndex;
+                        var doc = searcher.Doc(docId);
                         var result = LuceneSearchExecutor.CreateSearchResult(doc, score, shardIndex);
                         results.Add(result);
                     }
-                    var searchAfterOptions = LuceneSearchExecutor.GetSearchAfterOptions(topDocs);
+
                     var maxScore = topDocs.MaxScore;
 
                     // enumerate (forces the result to execute)
@@ -288,9 +298,182 @@ namespace Examine.Benchmarks
             await Task.WhenAll(tasks);
         }
 
+        [Benchmark]
+        public async Task LuceneAcquireAlwaysWithLock()
+        {
+            var tasks = new List<Task>();
+            var myLock = new object();
+
+            for (var i = 0; i < ThreadCount; i++)
+            {
+                tasks.Add(new Task(() =>
+                {
+                    lock (myLock)
+                    {
+                        var parser = new QueryParser(LuceneVersion.LUCENE_48, ExamineFieldNames.ItemIdFieldName, new StandardAnalyzer(LuceneVersion.LUCENE_48));
+                        var query = parser.Parse($"{ExamineFieldNames.CategoryFieldName}:content AND nodeName:location*");
+
+                        // this is like doing Acquire, does it perform the same (it will allocate more)
+                        using var context = _searcherManager.GetContext();
+
+                        var searcher = context.Reference;
+
+                        // Don't use this, increasing the max docs substantially decreases performance
+                        //var maxDoc = searcher.IndexReader.MaxDoc;
+                        var topDocsCollector = TopScoreDocCollector.Create(MaxResults, null, true);
+
+                        searcher.Search(query, topDocsCollector);
+
+                        var topDocs = topDocsCollector.GetTopDocs(0, MaxResults);
+
+                        var totalItemCount = topDocs.TotalHits;
+
+                        var results = new List<LuceneSearchResult>(topDocs.ScoreDocs.Length);
+
+                        foreach (var scoreDoc in topDocs.ScoreDocs)
+                        {
+                            var docId = scoreDoc.Doc;
+                            var score = scoreDoc.Score;
+                            var shardIndex = scoreDoc.ShardIndex;
+                            var doc = searcher.Doc(docId);
+                            var result = LuceneSearchExecutor.CreateSearchResult(doc, score, shardIndex);
+                            results.Add(result);
+                        }
+
+                        var maxScore = topDocs.MaxScore;
+
+                        // enumerate (forces the result to execute)
+                        var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
+                        _logger.LogDebug(logOutput);
+                    }
+                }));
+            }
+
+            foreach (var task in tasks)
+            {
+                task.Start();
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        [Benchmark]
+        public async Task LuceneAcquireOnce()
+        {
+            var tasks = new List<Task>();
+
+            var searcher = _searcherManager.Acquire();
+
+            try
+            {
+                for (var i = 0; i < ThreadCount; i++)
+                {
+                    tasks.Add(new Task(() =>
+                    {
+                        var parser = new QueryParser(LuceneVersion.LUCENE_48, ExamineFieldNames.ItemIdFieldName, new StandardAnalyzer(LuceneVersion.LUCENE_48));
+                        var query = parser.Parse($"{ExamineFieldNames.CategoryFieldName}:content AND nodeName:location*");
+
+                        // Don't use this, increasing the max docs substantially decreases performance
+                        //var maxDoc = searcher.IndexReader.MaxDoc;
+                        var topDocsCollector = TopScoreDocCollector.Create(MaxResults, null, true);
+
+                        searcher.Search(query, topDocsCollector);
+                        var topDocs = topDocsCollector.GetTopDocs(0, MaxResults);
+
+                        var totalItemCount = topDocs.TotalHits;
+
+                        var results = new List<LuceneSearchResult>(topDocs.ScoreDocs.Length);
+                        for (var i = 0; i < topDocs.ScoreDocs.Length; i++)
+                        {
+                            var scoreDoc = topDocs.ScoreDocs[i];
+                            var docId = scoreDoc.Doc;
+                            var doc = searcher.Doc(docId);
+                            var score = scoreDoc.Score;
+                            var shardIndex = scoreDoc.ShardIndex;
+                            var result = LuceneSearchExecutor.CreateSearchResult(doc, score, shardIndex);
+                            results.Add(result);
+                        }
+
+                        var maxScore = topDocs.MaxScore;
+
+                        // enumerate (forces the result to execute)
+                        var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
+                        _logger.LogDebug(logOutput);
+                    }));
+                }
+
+                foreach (var task in tasks)
+                {
+                    task.Start();
+                }
+
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                _searcherManager.Release(searcher);
+            }
+        }
+
+        [Benchmark]
+        public async Task LuceneSortedDocIds()
+        {
+            var tasks = new List<Task>();
+
+            for (var i = 0; i < ThreadCount; i++)
+            {
+                tasks.Add(new Task(() =>
+                {
+                    var parser = new QueryParser(LuceneVersion.LUCENE_48, ExamineFieldNames.ItemIdFieldName, new StandardAnalyzer(LuceneVersion.LUCENE_48));
+                    var query = parser.Parse($"{ExamineFieldNames.CategoryFieldName}:content AND nodeName:location*");
+
+                    // this is like doing Acquire, does it perform the same (it will allocate more)
+                    using var context = _searcherManager.GetContext();
+
+                    var searcher = context.Reference;
+
+                    // Don't use this, increasing the max docs substantially decreases performance
+                    //var maxDoc = searcher.IndexReader.MaxDoc;
+                    var topDocsCollector = TopScoreDocCollector.Create(MaxResults, null, true);
+
+                    searcher.Search(query, topDocsCollector);
+
+                    var topDocs = topDocsCollector.GetTopDocs(0, MaxResults);
+
+                    var totalItemCount = topDocs.TotalHits;
+
+                    var results = new List<LuceneSearchResult>(topDocs.ScoreDocs.Length);
+
+                    foreach (var scoreDoc in topDocs.ScoreDocs.OrderBy(x => x.Doc))
+                    {
+                        var docId = scoreDoc.Doc;
+                        var score = scoreDoc.Score;
+                        var shardIndex = scoreDoc.ShardIndex;
+                        var doc = searcher.Doc(docId);
+                        var result = LuceneSearchExecutor.CreateSearchResult(doc, score, shardIndex);
+                        results.Add(result);
+                    }
+
+                    var maxScore = topDocs.MaxScore;
+
+                    // enumerate (forces the result to execute)
+                    var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
+                    _logger.LogDebug(logOutput);
+                }));
+            }
+
+            foreach (var task in tasks)
+            {
+                task.Start();
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+#if RELEASE
         protected override ILoggerFactory CreateLoggerFactory()
             => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-
+#endif
         private TestIndex InitializeAndIndexItems(
             string tempBasePath,
             Analyzer analyzer,

@@ -7,9 +7,12 @@ namespace Examine.Lucene.Indexing
 {
     public class Int32Type : IndexFieldRangeValueType<int>
     {
+        private readonly string _docValuesFieldName;
+
         public Int32Type(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
         {
+            _docValuesFieldName = "dv_" + fieldName;
         }
 
         /// <summary>
@@ -22,7 +25,14 @@ namespace Examine.Lucene.Indexing
             if (!TryConvert(value, out int parsedVal))
                 return;
 
-            doc.Add(new Int32Field(FieldName,parsedVal, Store ? Field.Store.YES : Field.Store.NO));;
+            // TODO: We can use this for better scoring/sorting performance
+            // https://stackoverflow.com/a/44953624/694494
+            // https://lucene.apache.org/core/7_4_0/core/org/apache/lucene/document/NumericDocValuesField.html
+            //var dvField = new NumericDocValuesField(_docValuesFieldName, 0);
+            //dvField.SetInt32Value(parsedVal);
+            //doc.Add(dvField);
+
+            doc.Add(new Int32Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
         }
 
         public override Query GetQuery(string query)

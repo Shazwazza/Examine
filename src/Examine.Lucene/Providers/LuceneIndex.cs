@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Threading;
 using System.Threading.Tasks;
 using Examine.Lucene.Directories;
@@ -17,6 +18,7 @@ using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Lucene.Net.Index.IndexWriter;
+using static Lucene.Net.Store.Lock;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Providers
@@ -1115,6 +1117,13 @@ namespace Examine.Lucene.Providers
             {
                 return false;
             }
+
+            // TODO: We can re-use the same document object to save a lot of GC!
+            // https://cwiki.apache.org/confluence/display/lucene/ImproveIndexingSpeed
+            // Re-use Document and Field instances
+            // As of Lucene 2.3 there are new setValue(...) methods that allow you to change the value of a Field.This allows you to re - use a single Field instance across many added documents, which can save substantial GC cost.
+            // It's best to create a single Document instance, then add multiple Field instances to it, but hold onto these Field instances and re-use them by changing their values for each added document. For example you might have an idField, bodyField, nameField, storedField1, etc. After the document is added, you then directly change the Field values (idField.setValue(...), etc), and then re-add your Document instance.
+            // Note that you cannot re - use a single Field instance within a Document, and, you should not change a Field's value until the Document containing that Field has been added to the index. See Field for details.
 
             var d = new Document();
             AddDocument(d, indexingNodeDataArgs.ValueSet);
