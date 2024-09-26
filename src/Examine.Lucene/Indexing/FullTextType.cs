@@ -51,16 +51,30 @@ namespace Examine.Lucene.Indexing
         {
             if (TryConvert<string>(value, out var str))
             {
-                doc.Add(new TextField(FieldName, str, Field.Store.YES));
-
-                if (_sortable)
+                if (doc.GetField(FieldName) is TextField existing)
                 {
-                    //to be sortable it cannot be analyzed so we have to make a different field
-                    // TODO: Investigate https://lucene.apache.org/core/4_3_0/core/org/apache/lucene/document/SortedDocValuesField.html
-                    doc.Add(new StringField(
-                        ExamineFieldNames.SortedFieldNamePrefix + FieldName,
-                        str,
-                        Field.Store.YES));
+                    existing.SetStringValue(str);
+                }
+                else
+                {
+                    doc.Add(new TextField(FieldName, str, Field.Store.YES));
+                }
+
+                if (SortableFieldName != null)
+                {
+                    if (doc.GetField(FieldName) is StringField existingSortField)
+                    {
+                        existingSortField.SetStringValue(str);
+                    }
+                    else
+                    {
+                        //to be sortable it cannot be analyzed so we have to make a different field
+                        // TODO: Investigate https://lucene.apache.org/core/4_3_0/core/org/apache/lucene/document/SortedDocValuesField.html
+                        doc.Add(new StringField(
+                            SortableFieldName,
+                            str,
+                            Field.Store.YES));
+                    }
                 }
             }
         }

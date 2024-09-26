@@ -259,6 +259,7 @@ namespace Examine.Lucene.Providers
 
             try
             {
+                var doc = _options.ReuseDocumentForIndexing ? new Document() : null;
                 foreach (var valueSet in valueSets)
                 {
                     if (cancellationToken.IsCancellationRequested)
@@ -267,7 +268,7 @@ namespace Examine.Lucene.Providers
                     }
 
                     var op = new IndexOperation(valueSet, IndexOperationType.Add);
-                    if (ProcessQueueItem(op))
+                    if (ProcessQueueItem(op, doc))
                     {
                         indexedNodes++;
                     }
@@ -886,13 +887,13 @@ namespace Examine.Lucene.Providers
         }
 
 
-        private bool ProcessQueueItem(IndexOperation item)
+        private bool ProcessQueueItem(IndexOperation item, Document doc = null)
         {
             switch (item.Operation)
             {
                 case IndexOperationType.Add:
 
-                    var added = ProcessIndexQueueItem(item);
+                    var added = ProcessIndexQueueItem(item, doc);
                     return added;
                 case IndexOperationType.Delete:
                     ProcessDeleteQueueItem(item, false);
@@ -1112,9 +1113,9 @@ namespace Examine.Lucene.Providers
         }
 
 
-        private bool ProcessIndexQueueItem(IndexOperation op)
+        private bool ProcessIndexQueueItem(IndexOperation op, Document doc = null)
         {
-
+            // TODO: Don't allocate if there isn't any handlers.
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.ValueSet);
             OnTransformingIndexValues(indexingNodeDataArgs);
@@ -1130,7 +1131,7 @@ namespace Examine.Lucene.Providers
             // It's best to create a single Document instance, then add multiple Field instances to it, but hold onto these Field instances and re-use them by changing their values for each added document. For example you might have an idField, bodyField, nameField, storedField1, etc. After the document is added, you then directly change the Field values (idField.setValue(...), etc), and then re-add your Document instance.
             // Note that you cannot re - use a single Field instance within a Document, and, you should not change a Field's value until the Document containing that Field has been added to the index. See Field for details.
 
-            var d = new Document();
+            var d = doc ?? new Document();
             AddDocument(d, indexingNodeDataArgs.ValueSet);
 
             return true;

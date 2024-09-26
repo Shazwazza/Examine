@@ -33,7 +33,8 @@ namespace Examine.Test
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
             double nrtTargetMaxStaleSec = 60,
             double nrtTargetMinStaleSec = 1,
-            bool nrtEnabled = true)
+            bool nrtEnabled = true,
+            bool reuseDocument = true)
             => new TestIndex(
                 LoggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
@@ -45,7 +46,8 @@ namespace Examine.Test
                     IndexValueTypesFactory = indexValueTypesFactory,
                     NrtTargetMaxStaleSec = nrtTargetMaxStaleSec,
                     NrtTargetMinStaleSec = nrtTargetMinStaleSec,
-                    NrtEnabled = nrtEnabled
+                    NrtEnabled = nrtEnabled,
+                    ReuseDocumentForIndexing = reuseDocument
                 }));
 
         public TestIndex GetTestIndex(

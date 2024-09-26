@@ -7,6 +7,8 @@ namespace Examine.Lucene
 
     public class LuceneIndexOptions : IndexOptions
     {
+        public bool ReuseDocumentForIndexing { get; set; } = true;
+
         public bool NrtEnabled { get; set; } = true;
 
         public double NrtTargetMaxStaleSec { get; set; } = 60.0;
