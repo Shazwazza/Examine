@@ -128,9 +128,12 @@ namespace Examine.Lucene.Search
 
                 var results = new List<LuceneSearchResult>(topDocs.ScoreDocs.Length);
 
-                // Order by Doc Id for improved perf!
+                // TODO: Order by Doc Id for improved perf??
+                // Our benchmarks show this is isn't a significant performance improvement,
+                // but they could be wrong. Sorting by DocId here could only be done if there
+                // are no sort options.
                 // See https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
-                foreach (var scoreDoc in topDocs.ScoreDocs/*.OrderBy(x => x.Doc)*/)
+                foreach (var scoreDoc in topDocs.ScoreDocs)
                 {
                     var result = GetSearchResult(scoreDoc, topDocs, searcher.IndexSearcher);
                     results.Add(result);
