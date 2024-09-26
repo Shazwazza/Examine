@@ -214,13 +214,15 @@ namespace Examine.Lucene.Search
                     return EmptySearchResults.Instance;
                 }
 
+                // TODO: Use a Filter for category, not a query
+                // https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
                 query = new BooleanQuery
                 {
                     // prefix the category field query as a must
                     { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), true), Occur.MUST }
                 };
 
-                // add the ones that we're already existing
+                // add the ones that were already existing
                 foreach (var c in existingClauses)
                 {
                     query.Add(c);

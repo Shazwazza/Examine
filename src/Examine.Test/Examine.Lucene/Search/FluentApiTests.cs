@@ -21,6 +21,32 @@ namespace Examine.Test.Examine.Lucene.Search
     public class FluentApiTests : ExamineBaseTest
     {
         [Test]
+        public void Multiple_Searches()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+
+            using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer, nrtEnabled: false))
+            {
+                indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
+
+                var searcher = indexer1.Searcher;
+
+                var result = searcher.Search("darkness");
+                foreach (var r in result)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                }
+
+                result = searcher.Search("total darkness");
+                foreach (var r in result)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                }
+            }
+        }
+
+        [Test]
         public void Allow_Leading_Wildcards()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);

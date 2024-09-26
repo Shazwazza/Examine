@@ -17,6 +17,7 @@ Examine.Lucene.LuceneIndexOptions.NrtTargetMinStaleSec.set -> void
 Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string name, Lucene.Net.Search.SearcherManager searcherManager, Lucene.Net.Analysis.Analyzer analyzer, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection, bool isNrt) -> void
 Examine.Lucene.Providers.LuceneSearcher.MaybeRefresh() -> bool
 Examine.Lucene.Providers.LuceneSearcher.MaybeRefreshBlocking() -> void
+Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult> results, int totalItemCount, float maxScore, Examine.Lucene.Search.SearchAfterOptions searchAfterOptions) -> void
 Examine.Lucene.Search.SearchContext.SearchContext(Lucene.Net.Search.SearcherManager searcherManager, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection, bool isNrt) -> void
 Examine.Lucene.Search.SearcherReference.SearcherReference() -> void
 virtual Examine.Lucene.Providers.LuceneIndex.UpdateLuceneDocument(Lucene.Net.Index.Term term, Lucene.Net.Documents.Document doc) -> long?

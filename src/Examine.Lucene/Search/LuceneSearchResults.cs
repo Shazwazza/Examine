@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace Examine.Lucene.Search
 {
     public class LuceneSearchResults : ILuceneSearchResults
@@ -16,7 +14,7 @@ namespace Examine.Lucene.Search
             IReadOnlyCollection<ISearchResult> results,
             int totalItemCount,
             float maxScore,
-            SearchAfterOptions? searchAfterOptions)
+            SearchAfterOptions searchAfterOptions)
         {
             _results = results;
             TotalItemCount = totalItemCount;
@@ -32,7 +30,7 @@ namespace Examine.Lucene.Search
         /// </summary>
         public float MaxScore { get; }
 
-        public SearchAfterOptions? SearchAfter { get; }
+        public SearchAfterOptions SearchAfter { get; }
 
         public IEnumerator<ISearchResult> GetEnumerator() => _results.GetEnumerator();
 

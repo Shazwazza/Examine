@@ -1078,10 +1078,15 @@ namespace Examine.Lucene.Providers
                 };
 
                 _nrtReopenThread.Start();
-            }
 
-            // wait for most recent changes when first creating the searcher
-            WaitForChanges();
+                // wait for most recent changes when first creating the searcher
+                _nrtReopenThread.WaitForGeneration(_latestGen.Value, 5000);
+            }
+            else
+            {
+                // wait for most recent changes when first creating the searcher
+                searcherManager.MaybeRefreshBlocking();
+            }
 
             return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.NrtEnabled);
         }
@@ -1229,10 +1234,6 @@ namespace Examine.Lucene.Providers
                     {
                         _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
                     }
-                }
-                else
-                {
-                    _searcher.Value.MaybeRefreshBlocking();
                 }
             }
         }

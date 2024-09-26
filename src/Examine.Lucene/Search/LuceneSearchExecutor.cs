@@ -130,13 +130,13 @@ namespace Examine.Lucene.Search
 
                 // Order by Doc Id for improved perf!
                 // See https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
-                foreach (var scoreDoc in topDocs.ScoreDocs.OrderBy(x => x.Doc))
+                foreach (var scoreDoc in topDocs.ScoreDocs/*.OrderBy(x => x.Doc)*/)
                 {
                     var result = GetSearchResult(scoreDoc, topDocs, searcher.IndexSearcher);
                     results.Add(result);
                 }
 
-                var searchAfterOptions = scoreDocAfter != null ? GetSearchAfterOptions(topDocs) : null;
+                var searchAfterOptions = GetSearchAfterOptions(topDocs);
                 float maxScore = topDocs.MaxScore;
 
                 return new LuceneSearchResults(results, totalItemCount, maxScore, searchAfterOptions);

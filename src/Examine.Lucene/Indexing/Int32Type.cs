@@ -7,12 +7,9 @@ namespace Examine.Lucene.Indexing
 {
     public class Int32Type : IndexFieldRangeValueType<int>
     {
-        private readonly string _docValuesFieldName;
-
         public Int32Type(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
         {
-            _docValuesFieldName = "dv_" + fieldName;
         }
 
         /// <summary>
