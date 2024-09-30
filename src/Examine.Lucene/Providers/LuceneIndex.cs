@@ -1080,7 +1080,7 @@ namespace Examine.Lucene.Providers
                 _nrtReopenThread.Start();
 
                 // wait for most recent changes when first creating the searcher
-                _nrtReopenThread.WaitForGeneration(_latestGen.Value, 5000);
+                WaitForChanges();
             }
             else
             {
