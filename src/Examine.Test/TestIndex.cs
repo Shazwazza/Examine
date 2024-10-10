@@ -23,7 +23,7 @@ namespace Examine.Test
             RunAsync = false;
         }
 
-        public IEnumerable<ValueSet> AllData()
+        public static IEnumerable<ValueSet> AllData()
         {
             var data = new List<ValueSet>();
             for (int i = 0; i < 100; i++)

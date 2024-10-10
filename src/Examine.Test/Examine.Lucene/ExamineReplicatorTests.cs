@@ -28,7 +28,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             {
                 mainIndex.CreateIndex();
 
-                mainIndex.IndexItems(mainIndex.AllData());
+                mainIndex.IndexItems(TestIndex.AllData());
 
                 DirectoryReader mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
                 Assert.AreEqual(100, mainReader.NumDocs);
@@ -72,7 +72,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                                 {"item2", new List<object>(new[] {"value2"})}
                             }));
 
-                mainIndex.IndexItems(mainIndex.AllData());
+                mainIndex.IndexItems(TestIndex.AllData());
 
                 Assert.Throws<InvalidOperationException>(() => replicator.ReplicateIndex());
             }
@@ -91,7 +91,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                 using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
-                    mainIndex.IndexItems(mainIndex.AllData());
+                    mainIndex.IndexItems(TestIndex.AllData());
                     replicator.ReplicateIndex();
                 }
 
@@ -133,7 +133,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                 using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
-                    mainIndex.IndexItems(mainIndex.AllData());
+                    mainIndex.IndexItems(TestIndex.AllData());
                     replicator.ReplicateIndex();
                 }
 

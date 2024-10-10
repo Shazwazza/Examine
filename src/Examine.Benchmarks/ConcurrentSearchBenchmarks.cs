@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Runtime.Versioning;
-using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
@@ -14,25 +6,22 @@ using Examine.Search;
 using Examine.Test;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Codecs.Lucene46;
 using Lucene.Net.Index;
-using Lucene.Net.Index.Extensions;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
 using Microsoft.Extensions.Logging;
-using Directory = Lucene.Net.Store.Directory;
 
-[assembly: Config(typeof(MyDefaultConfig))]
+//[assembly: Config(typeof(MyDefaultConfig))]
 
-internal class MyDefaultConfig : ManualConfig
-{
-    public MyDefaultConfig()
-    {
-        WithOptions(ConfigOptions.DisableOptimizationsValidator);
-    }
-}
+//internal class MyDefaultConfig : ManualConfig
+//{
+//    public MyDefaultConfig()
+//    {
+//        WithOptions(ConfigOptions.DisableOptimizationsValidator);
+//    }
+//}
 
 namespace Examine.Benchmarks
 {
@@ -67,6 +56,7 @@ namespace Examine.Benchmarks
     | ExamineStandard | 15          | 101.483 ms | 65.690 ms | 3.6007 ms | 800.0000 |              15.0000 |          14.0000 | 400.0000 | 10989.05 KB |
 
     Without apply deletes (should be faster, we'll keep it)
+    UPDATE: We cannot, that is specialized and we cannot support it.
 
     | Method          | ThreadCount | Mean       | Error     | StdDev    | Gen0     | Completed Work Items | Lock Contentions | Gen1     | Allocated   |
     |---------------- |------------ |-----------:|----------:|----------:|---------:|---------------------:|-----------------:|---------:|------------:|
@@ -154,7 +144,7 @@ namespace Examine.Benchmarks
 
 
     */
-    [MediumRunJob(RuntimeMoniker.Net80)]
+    [LongRunJob(RuntimeMoniker.Net80)]
     [ThreadingDiagnoser]
     [MemoryDiagnoser]
     //[DotNetCountersDiagnoser]
@@ -162,12 +152,12 @@ namespace Examine.Benchmarks
     public class ConcurrentSearchBenchmarks : ExamineBaseTest
     {
         private readonly StandardAnalyzer _analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        private ILogger<ConcurrentSearchBenchmarks> _logger;
-        private string _tempBasePath;
-        private TestIndex _indexer;
-        private FSDirectory _indexDir;
-        private IndexWriter _writer;
-        private SearcherManager _searcherManager;
+        private ILogger<ConcurrentSearchBenchmarks>? _logger;
+        private string? _tempBasePath;
+        private TestIndex? _indexer;
+        private FSDirectory? _indexDir;
+        private IndexWriter? _writer;
+        private SearcherManager? _searcherManager;
 
         [GlobalSetup]
         public override void Setup()
@@ -208,7 +198,7 @@ namespace Examine.Benchmarks
             System.IO.Directory.Delete(_tempBasePath, true);
         }
 
-        [Params(/*1, 15, */30)]
+        [Params(1, 50, 100)]
         public int ThreadCount { get; set; }
 
         [Params(10/*, 100, 1000*/)]
@@ -232,6 +222,63 @@ namespace Examine.Benchmarks
                     // enumerate (forces the result to execute)
                     var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
                     _logger.LogDebug(logOutput);
+                }));
+            }
+
+            foreach (var task in tasks)
+            {
+                task.Start();
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        [Benchmark]
+        public async Task SimpleMultiThreadLoop()
+        {
+            var tasks = new List<Task>();
+
+            for (var i = 0; i < ThreadCount; i++)
+            {
+                tasks.Add(new Task(() =>
+                {
+                }));
+            }
+
+            foreach (var task in tasks)
+            {
+                task.Start();
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        public async Task TestAcquireThreadContention()
+        {
+            var tasks = new List<Task>();
+
+            for (var i = 0; i < ThreadCount; i++)
+            {
+                tasks.Add(new Task(() =>
+                {
+                    var parser = new QueryParser(LuceneVersion.LUCENE_48, ExamineFieldNames.ItemIdFieldName, new StandardAnalyzer(LuceneVersion.LUCENE_48));
+                    var query = parser.Parse($"{ExamineFieldNames.CategoryFieldName}:content AND nodeName:location*");
+
+                    // this is like doing Acquire, does it perform the same (it will allocate more)
+                    using var context = _searcherManager.GetContext();
+
+                    var searcher = context.Reference;
+
+                    // Don't use this, increasing the max docs substantially decreases performance
+                    //var maxDoc = searcher.IndexReader.MaxDoc;
+                    var topDocsCollector = TopScoreDocCollector.Create(MaxResults, null, true);
+
+                    searcher.Search(query, topDocsCollector);
+
+                    var topDocs = topDocsCollector.GetTopDocs(0, MaxResults);
+
+                    var totalItemCount = topDocs.TotalHits;
+                    var maxScore = topDocs.MaxScore;
                 }));
             }
 
@@ -274,7 +321,7 @@ namespace Examine.Benchmarks
 
                     foreach (var scoreDoc in topDocs.ScoreDocs)
                     {
-                        var docId = scoreDoc.Doc;                        
+                        var docId = scoreDoc.Doc;
                         var score = scoreDoc.Score;
                         var shardIndex = scoreDoc.ShardIndex;
                         var doc = searcher.Doc(docId);

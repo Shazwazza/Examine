@@ -120,7 +120,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
                 {
                     indexer.CreateIndex();
-                    indexer.IndexItems(indexer.AllData());
+                    indexer.IndexItems(TestIndex.AllData());
 
                     Assert.IsTrue(IndexWriter.IsLocked(luceneDir));
                 }
@@ -137,7 +137,7 @@ namespace Examine.Test.Examine.Lucene.Index
             using (var indexer = GetTestIndex(d, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 indexer.CreateIndex();
-                indexer.IndexItems(indexer.AllData());
+                indexer.IndexItems(TestIndex.AllData());
 
                 var indexWriter = indexer.IndexWriter;
                 var reader = indexWriter.IndexWriter.GetReader(true);
