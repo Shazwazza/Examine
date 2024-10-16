@@ -1,9 +1,7 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using Examine.Lucene.Search;
 using Examine.Search;
-using Examine.Test;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
