@@ -30,7 +30,7 @@ namespace Examine.Benchmarks
 
 #endif
             // Call your function here. 
-        }
+        } 
 
 #if LocalBuild
         private static async Task Threads100(ConcurrentSearchBenchmarks bench)
@@ -51,7 +51,7 @@ namespace Examine.Benchmarks
 
             for (var i = 0; i < 100; i++)
             {
-                await bench.DefaultSearch();
+                await bench.ConcurrentSearch();
             }
         } 
 #endif

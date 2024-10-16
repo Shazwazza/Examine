@@ -29,7 +29,7 @@ namespace Examine.Benchmarks
                 valueSets.Add(ValueSet.FromObject(Guid.NewGuid().ToString(), "content",
                     new
                     {
-                        nodeName = "location " + i,
+                        nodeName = "location " + (i % 2 == 0 ? "1" : "2"),
                         bodyText = Enumerable.Range(0, random.Next(10, 100)).Select(x => Guid.NewGuid().ToString())
                     }));
             }

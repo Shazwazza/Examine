@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Examine.Benchmarks
 {
     [Config(typeof(NugetConfig))]
-    [HideColumns("Arguments", "Job", "Method")]
+    [HideColumns("Arguments", "StdDev", "Error", "NuGetReferences")]
     [MemoryDiagnoser]
     public class SearchVersionComparison : ExamineBaseTest
     {
@@ -39,7 +39,7 @@ namespace Examine.Benchmarks
         public int ThreadCount { get; set; }
 
         [Benchmark]
-        public async Task DefaultSearch()
+        public async Task ConcurrentSearch()
         {
             var tasks = new List<Task>();
 
@@ -50,7 +50,7 @@ namespace Examine.Benchmarks
                     // always resolve the searcher from the indexer
                     var searcher = _indexer!.Searcher;
 
-                    var query = searcher.CreateQuery("content").Field("nodeName", "location".MultipleCharacterWildcard());
+                    var query = searcher.CreateQuery().Field("nodeName", "location1");
                     var results = query.Execute();
 
                     // enumerate (forces the result to execute)
