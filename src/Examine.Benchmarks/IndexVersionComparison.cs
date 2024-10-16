@@ -1,6 +1,5 @@
 using BenchmarkDotNet.Attributes;
 using Examine.Lucene.Providers;
-using Examine.Test;
 using Lucene.Net.Analysis.Standard;
 using Microsoft.Extensions.Logging;
 

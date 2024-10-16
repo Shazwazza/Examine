@@ -1,17 +1,16 @@
 using BenchmarkDotNet.Attributes;
 using Examine.Lucene.Providers;
-using Examine.Test;
 using Lucene.Net.Analysis.Standard;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Benchmarks
 {
     [Config(typeof(NugetConfig))]
-    [ThreadingDiagnoser]
+    [HideColumns("Arguments", "Job", "Method")]
     [MemoryDiagnoser]
     public class SearchVersionComparison : ExamineBaseTest
     {
-        private readonly List<ValueSet> _valueSets = InitTools.CreateValueSet(1000);
+        private readonly List<ValueSet> _valueSets = InitTools.CreateValueSet(10000);
         private readonly StandardAnalyzer _analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
         private ILogger<SearchVersionComparison>? _logger;
         private string? _tempBasePath;
@@ -25,6 +24,7 @@ namespace Examine.Benchmarks
             _logger = LoggerFactory.CreateLogger<SearchVersionComparison>();
             _tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
             _indexer = InitTools.InitializeIndex(this, _tempBasePath, _analyzer, out _);
+            _indexer!.IndexItems(_valueSets);
         }
 
         [GlobalCleanup]
@@ -32,8 +32,7 @@ namespace Examine.Benchmarks
         {
             _indexer!.Dispose();
             base.TearDown();
-            System.IO.Directory.Delete(_tempBasePath!, true);
-            _indexer!.IndexItems(_valueSets);
+            Directory.Delete(_tempBasePath!, true);
         }
 
         [Params(1, 5, 15)]
@@ -49,7 +48,7 @@ namespace Examine.Benchmarks
                 tasks.Add(new Task(() =>
                 {
                     // always resolve the searcher from the indexer
-                    var searcher = _indexer.Searcher;
+                    var searcher = _indexer!.Searcher;
 
                     var query = searcher.CreateQuery("content").Field("nodeName", "location".MultipleCharacterWildcard());
                     var results = query.Execute();

@@ -1,4 +1,3 @@
-using Examine.Test;
 using Lucene.Net.Analysis;
 using Lucene.Net.Store;
 

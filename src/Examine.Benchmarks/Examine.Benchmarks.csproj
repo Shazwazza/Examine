@@ -7,17 +7,21 @@
     <IsPackable>false</IsPackable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <OutputType>Exe</OutputType>
+    <!-- Used to test Nuget targeted benchmarks -->
+    <LocalBuild>true</LocalBuild>
+    <DefineConstants Condition="$(LocalBuild) != 'false'">$(DefineConstants);LocalBuild</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Examine.Core\Examine.Core.csproj" />
+  <ItemGroup Condition="$(LocalBuild) != 'false'">
     <ProjectReference Include="..\Examine.Host\Examine.csproj" />
-    <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj" />
-    <ProjectReference Include="..\Examine.Test\Examine.Test.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="Moq" Version="4.20.70" />
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <!-- Will be imported when running different Nuget targeted benchmarks -->
+    <PackageReference Condition="$(LocalBuild) != 'true'" Include="Examine" Version="3.0.1" />
   </ItemGroup>
 
 </Project>
