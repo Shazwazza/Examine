@@ -29,8 +29,10 @@ namespace Examine.Benchmarks
                 valueSets.Add(ValueSet.FromObject(Guid.NewGuid().ToString(), "content",
                     new
                     {
-                        nodeName = "location " + (i % 2 == 0 ? "1" : "2"),
-                        bodyText = Enumerable.Range(0, random.Next(10, 100)).Select(x => Guid.NewGuid().ToString())
+                        nodeName = "location" + (i % 2 == 0 ? "1" : "2"),
+                        bodyText = Enumerable.Range(0, random.Next(10, 100)).Select(x => Guid.NewGuid().ToString()),
+                        number = random.Next(0, 1000),
+                        date = DateTime.Now.AddMinutes(random.Next(-1000, 1000))
                     }));
             }
 

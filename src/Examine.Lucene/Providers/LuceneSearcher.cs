@@ -45,10 +45,6 @@ namespace Examine.Lucene.Providers
             return _searchContext;
         }
 
-        public bool MaybeRefresh() => _searcherManager.MaybeRefresh();
-
-        public void MaybeRefreshBlocking() => _searcherManager.MaybeRefreshBlocking();
-
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)

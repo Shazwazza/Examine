@@ -25,6 +25,8 @@ namespace Examine.Benchmarks
             _tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
             _indexer = InitTools.InitializeIndex(this, _tempBasePath, _analyzer, out _);
             _indexer!.IndexItems(_valueSets);
+
+            _logger.LogInformation("Indexed {DocumentCount} documents", _valueSets.Count);
         }
 
         [GlobalCleanup]
@@ -35,7 +37,7 @@ namespace Examine.Benchmarks
             Directory.Delete(_tempBasePath!, true);
         }
 
-        [Params(1, 5, 15)]
+        [Params(1, 25, 100)]
         public int ThreadCount { get; set; }
 
         [Benchmark]
@@ -56,6 +58,8 @@ namespace Examine.Benchmarks
                     // enumerate (forces the result to execute)
                     var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
                     _logger!.LogDebug(logOutput);
+
+                    //_logger!.LogInformation("Results: {Results}", results.TotalItemCount);
                 }));
             }
 

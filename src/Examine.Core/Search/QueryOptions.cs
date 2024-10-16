@@ -6,7 +6,7 @@ namespace Examine.Search
     {
         public const int AbsoluteMaxResults = 10000;
 
-        public const int DefaultMaxResults = 500;
+        public const int DefaultMaxResults = 100;
 
         public static QueryOptions SkipTake(int skip, int? take = null) => new QueryOptions(skip, take ?? DefaultMaxResults);
 
