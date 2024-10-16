@@ -16,11 +16,11 @@ namespace Examine.Benchmarks
             // Benchmark your function here. 
             BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 #else
-            var bench = new ConcurrentSearchBenchmarks();
+            var bench = new SearchVersionComparison();
             try
             {
                 bench.Setup();
-                await Threads100(bench);
+                //await Threads100(bench);
                 await Threads1(bench);
             }
             finally
@@ -32,10 +32,11 @@ namespace Examine.Benchmarks
             // Call your function here. 
         }
 
+#if LocalBuild
         private static async Task Threads100(ConcurrentSearchBenchmarks bench)
         {
             bench.ThreadCount = 50;
-            bench.MaxResults = 10;
+            //bench.MaxResults = 10;
 
             for (var i = 0; i < 100; i++)
             {
@@ -43,15 +44,16 @@ namespace Examine.Benchmarks
             }
         }
 
-        private static async Task Threads1(ConcurrentSearchBenchmarks bench)
+        private static async Task Threads1(SearchVersionComparison bench)
         {
             bench.ThreadCount = 1;
-            bench.MaxResults = 10;
+            //bench.MaxResults = 10;
 
             for (var i = 0; i < 100; i++)
             {
-                await bench.ExamineStandard();
+                await bench.DefaultSearch();
             }
-        }
+        } 
+#endif
     }
 }

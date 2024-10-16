@@ -1,3 +1,4 @@
+#if LocalBuild
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using Examine.Lucene.Search;
@@ -549,3 +550,5 @@ namespace Examine.Benchmarks
         }
     }
 }
+
+#endif
