@@ -192,6 +192,10 @@ namespace Examine.Test.Examine.Lucene.Directories
 
                 // Now delete some items
                 indexer.DeleteFromIndex(new[] { "1", "2" });
+
+                // double ensure we commit here
+                indexer.IndexWriter.IndexWriter.Commit();
+                indexer.IndexWriter.IndexWriter.WaitForMerges();
             }
 
 
