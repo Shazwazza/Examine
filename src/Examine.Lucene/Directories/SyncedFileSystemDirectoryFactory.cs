@@ -213,6 +213,11 @@ namespace Examine.Lucene.Directories
                 }
                 else
                 {
+                    // Required to remove old index files which can be problematic
+                    // if they remain in the index folder when replication is attempted.
+                    indexWriter.Commit();
+                    indexWriter.WaitForMerges();
+
                     return CreateResult.CorruptCreatedNew;
                 }
             }
@@ -220,7 +225,7 @@ namespace Examine.Lucene.Directories
             {
                 if (createNewIfCorrupt)
                 {
-                    // Index is corrupted, typically this will be FileNotFoundException
+                    // Index is corrupted, typically this will be FileNotFoundException or CorruptIndexException
                     _logger.LogError(ex, "{IndexName} index is corrupt, a new one will be created", indexName);
 
                     indexWriter = GetIndexWriter(luceneDirectory, OpenMode.CREATE);
@@ -285,11 +290,13 @@ namespace Examine.Lucene.Directories
             }
             else if (!status.Clean)
             {
-                _logger.LogWarning("Checked main index and it is not clean, attempting to fix {IndexName}. {DocumentsLost} documents will be lost.", indexName, status.TotLoseDocCount);
+                _logger.LogWarning("Checked main index {IndexName} and it is not clean.", indexName);
                 result = CreateResult.NotClean;
 
                 if (doFix)
                 {
+                    _logger.LogWarning("Attempting to fix {IndexName}. {DocumentsLost} documents will be lost.", indexName, status.TotLoseDocCount);
+
                     try
                     {
                         checker.FixIndex(status);

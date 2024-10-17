@@ -406,6 +406,7 @@ namespace Examine.Lucene.Providers
                     //unlock it!
                     Unlock(dir);
                 }
+
                 //create the writer (this will overwrite old index files)
                 var writerConfig = new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
                 {
@@ -419,6 +420,11 @@ namespace Examine.Lucene.Providers
                 //writerConfig.SetMergedSegmentWarmer(new SimpleMergedSegmentWarmer())
 
                 writer = new IndexWriter(dir, writerConfig);
+
+                // Required to remove old index files which can be problematic
+                // if they remain in the index folder when replication is attempted.
+                writer.Commit();
+                writer.WaitForMerges();
 
             }
             catch (Exception ex)

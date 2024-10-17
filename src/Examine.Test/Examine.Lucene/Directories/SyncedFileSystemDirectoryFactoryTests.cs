@@ -21,13 +21,17 @@ namespace Examine.Test.Examine.Lucene.Directories
     [NonParallelizable]
     public class SyncedFileSystemDirectoryFactoryTests : ExamineBaseTest
     {
-        [TestCase(true, false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
-        [TestCase(true, true, SyncedFileSystemDirectoryFactory.CreateResult.MissingSegments | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew)]
-        [TestCase(false, false, SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
+        private const int ItemCount = 100;
+
+        [TestCase(true, false, true, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
+        [TestCase(true, false, false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew)]
+        [TestCase(true, true, false, SyncedFileSystemDirectoryFactory.CreateResult.MissingSegments | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew)]
+        [TestCase(false, false, false, SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
         [Test]
         public void Given_ExistingCorruptIndex_When_CreatingDirectory_Then_IndexCreatedOrOpened(
             bool corruptIndex,
             bool removeSegments,
+            bool fixIndex,
             Enum expected)
         {
             var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -42,16 +46,15 @@ namespace Examine.Test.Examine.Lucene.Directories
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
                     LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions { NrtEnabled = false }), 
-                    true);
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
+                    fixIndex);
 
                 using var index = new LuceneIndex(
                     LoggerFactory,
                     TestIndex.TestIndexName,
                     Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                     {
-                        DirectoryFactory = syncedDirFactory,
-                        NrtEnabled = false
+                        DirectoryFactory = syncedDirFactory
                     }));
 
                 var result = syncedDirFactory.TryCreateDirectory(index, false, out var dir);
@@ -84,16 +87,15 @@ namespace Examine.Test.Examine.Lucene.Directories
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
                     LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions { NrtEnabled = false }),
-                    true))
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
+                    false))
                 {
                     using var index = new LuceneIndex(
                         LoggerFactory,
                         TestIndex.TestIndexName,
                         Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                         {
-                            DirectoryFactory = syncedDirFactory,
-                            NrtEnabled = false
+                            DirectoryFactory = syncedDirFactory
                         }));
 
                     var result = syncedDirFactory.TryCreateDirectory(index, false, out var dir);
@@ -111,7 +113,48 @@ namespace Examine.Test.Examine.Lucene.Directories
                     }));
 
                 var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
-                Assert.AreEqual(2, searchResults.TotalItemCount);
+                Assert.AreEqual(ItemCount - 2, searchResults.TotalItemCount);
+            }
+            finally
+            {
+                System.IO.Directory.Delete(mainPath, true);
+                System.IO.Directory.Delete(tempPath, true);
+            }
+        }
+
+        [Test]
+        public void Given_CorruptMainIndex_And_CorruptLocalIndex_When_CreatingDirectory_Then_NewIndexesCreatedAndUsable()
+        {
+            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            try
+            {
+                // create unhealthy index
+                CreateIndex(mainPath, true, false);
+
+                // create unhealthy index
+                CreateIndex(tempPath, true, false);
+
+                using var syncedFactory = new SyncedFileSystemDirectoryFactory(
+                    new DirectoryInfo(tempPath),
+                    new DirectoryInfo(mainPath),
+                    new DefaultLockFactory(),
+                    LoggerFactory,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
+                    false);
+
+                // Ensure the docs are there in main
+                using var mainIndex = new LuceneIndex(
+                    LoggerFactory,
+                    TestIndex.TestIndexName,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        DirectoryFactory = syncedFactory,
+                    }));
+
+                var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(0, searchResults.TotalItemCount);
             }
             finally
             {
@@ -133,22 +176,24 @@ namespace Examine.Test.Examine.Lucene.Directories
             using (var indexer = GetTestIndex(writer))
             using (indexer.WithThreadingMode(IndexThreadingMode.Synchronous))
             {
-                indexer.IndexItems(new[]
+                var valueSets = new List<ValueSet>();
+                for (int i = 0; i < ItemCount; i++)
                 {
-                        new ValueSet(1.ToString(), "content",
+                    valueSets.Add(
+                        new ValueSet(i.ToString(), "content",
                             new Dictionary<string, IEnumerable<object>>
                             {
                                 {"item1", new List<object>(new[] {"value1"})},
                                 {"item2", new List<object>(new[] {"value2"})}
-                            }),
-                        new ValueSet(2.ToString(), "content",
-                            new Dictionary<string, IEnumerable<object>>
-                            {
-                                {"item1", new List<object>(new[] {"value3"})},
-                                {"item2", new List<object>(new[] {"value4"})}
-                            }),
-                    });
+                            }));
+                }
+
+                indexer.IndexItems(valueSets);
+
+                // Now delete some items
+                indexer.DeleteFromIndex(new[] { "1", "2" });
             }
+
 
             logger.LogInformation("Created index at " + luceneDir.Directory);
             Assert.IsTrue(DirectoryReader.IndexExists(luceneDir));
