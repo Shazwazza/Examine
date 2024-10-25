@@ -19,14 +19,3 @@ ignore:
   sha: []
   commits-before: 2021-01-01T00:00:00
 merge-message-formats: {}
-branches:
-  main:
-    regex: ^master(\-0\.x)?$|^main(\-0\.x)?$
-    source-branches: []
-  develop:
-    regex: ^dev(elop)?(ment)?(\-0\.x)?$
-    source-branches:
-    - main
-  release:
-    mode: ContinuousDeployment
-    source-branches: ['develop']
