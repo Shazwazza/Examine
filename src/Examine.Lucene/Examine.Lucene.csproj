@@ -21,9 +21,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lucene.Net.QueryParser">
-      <Version>4.8.0-beta00016</Version>
+      <Version>4.8.0-beta00017</Version>
     </PackageReference>
-    <PackageReference Include="Lucene.Net.Replicator" Version="4.8.0-beta00016" />
+    <PackageReference Include="Lucene.Net.Replicator" Version="4.8.0-beta00017" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
