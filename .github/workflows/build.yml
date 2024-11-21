@@ -49,12 +49,12 @@ jobs:
           8.0.x
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.9
+      uses: gittools/actions/gitversion/setup@v3.0.3
       with:
-        versionSpec: '5.x'
+        versionSpec: '6.x'
 
     - name: Determine Version
-      uses: gittools/actions/gitversion/execute@v0.9.9
+      uses: gittools/actions/gitversion/execute@v3.0.3
     
     - name: Install dependencies
       run: dotnet restore ${{ env.Solution_File }}

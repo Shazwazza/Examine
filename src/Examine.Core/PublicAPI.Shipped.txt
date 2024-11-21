@@ -26,7 +26,6 @@ const Examine.FieldDefinitionTypes.Integer = "int" -> string
 const Examine.FieldDefinitionTypes.InvariantCultureIgnoreCase = "invariantcultureignorecase" -> string
 const Examine.FieldDefinitionTypes.Long = "long" -> string
 const Examine.FieldDefinitionTypes.Raw = "raw" -> string
-const Examine.Search.QueryOptions.DefaultMaxResults = 500 -> int
 Examine.BaseIndexProvider
 Examine.BaseIndexProvider.BaseIndexProvider(Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, string name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.IndexOptions> indexOptions) -> void
 Examine.BaseIndexProvider.DeleteFromIndex(System.Collections.Generic.IEnumerable<string> itemIds) -> void

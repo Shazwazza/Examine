@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using Lucene.Net.Analysis;
@@ -46,13 +47,13 @@ namespace Examine.Benchmarks
         [GlobalCleanup]
         public override void TearDown()
         {
-            _searcherManager.Dispose();
-            _writer.Dispose();
-            _indexDir.Dispose();
+            _searcherManager?.Dispose();
+            _writer?.Dispose();
+            _indexDir?.Dispose();
 
             base.TearDown();
 
-            System.IO.Directory.Delete(_tempBasePath, true);
+            System.IO.Directory.Delete(_tempBasePath!, true);
         }
 
         [Params(1, 15, 30, 100)]
@@ -65,10 +66,7 @@ namespace Examine.Benchmarks
 
             for (var i = 0; i < ThreadCount; i++)
             {
-                tasks.Add(new Task(() =>
-                {
-                    var i = 0;
-                }));
+                tasks.Add(new Task(() => Debug.Write(i)));
             }
 
             foreach (var task in tasks)
@@ -88,7 +86,7 @@ namespace Examine.Benchmarks
             {
                 tasks.Add(new Task(() =>
                 {
-                    var searcher = _searcherManager.Acquire();
+                    var searcher = _searcherManager!.Acquire();
                     try
                     {
                         if (searcher.IndexReader.RefCount > (ThreadCount + 1))

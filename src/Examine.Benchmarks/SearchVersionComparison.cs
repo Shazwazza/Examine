@@ -21,7 +21,7 @@ namespace Examine.Benchmarks
         {
             base.Setup();
 
-            _logger = LoggerFactory.CreateLogger<SearchVersionComparison>();
+            _logger = LoggerFactory!.CreateLogger<SearchVersionComparison>();
             _tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
             _indexer = InitTools.InitializeIndex(this, _tempBasePath, _analyzer, out _);
             _indexer!.IndexItems(_valueSets);

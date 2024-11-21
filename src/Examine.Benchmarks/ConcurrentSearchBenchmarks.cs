@@ -163,7 +163,7 @@ namespace Examine.Benchmarks
         {
             base.Setup();
 
-            _logger = LoggerFactory.CreateLogger<ConcurrentSearchBenchmarks>();
+            _logger = LoggerFactory!.CreateLogger<ConcurrentSearchBenchmarks>();
             _tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
 
             // indexer for examine
@@ -187,14 +187,14 @@ namespace Examine.Benchmarks
         [GlobalCleanup]
         public override void TearDown()
         {
-            _indexer.Dispose();
-            _searcherManager.Dispose();
-            _writer.Dispose();
-            _indexDir.Dispose();
+            _indexer?.Dispose();
+            _searcherManager?.Dispose();
+            _writer?.Dispose();
+            _indexDir?.Dispose();
 
             base.TearDown();
 
-            System.IO.Directory.Delete(_tempBasePath, true);
+            System.IO.Directory.Delete(_tempBasePath!, true);
         }
 
         [Params(1, 50, 100)]
@@ -213,14 +213,14 @@ namespace Examine.Benchmarks
                 tasks.Add(new Task(() =>
                 {
                     // always resolve the searcher from the indexer
-                    var searcher = _indexer.Searcher;
+                    var searcher = _indexer!.Searcher;
 
                     var query = searcher.CreateQuery("content").Field("nodeName", "location".MultipleCharacterWildcard());
                     var results = query.Execute(QueryOptions.SkipTake(0, MaxResults));
 
                     // enumerate (forces the result to execute)
                     var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
-                    _logger.LogDebug(logOutput);
+                    _logger!.LogDebug(logOutput);
                 }));
             }
 
@@ -332,7 +332,7 @@ namespace Examine.Benchmarks
 
                     // enumerate (forces the result to execute)
                     var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
-                    _logger.LogDebug(logOutput);
+                    _logger!.LogDebug(logOutput);
                 }));
             }
 
@@ -390,7 +390,7 @@ namespace Examine.Benchmarks
 
                         // enumerate (forces the result to execute)
                         var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
-                        _logger.LogDebug(logOutput);
+                        _logger!.LogDebug(logOutput);
                     }
                 }));
             }
@@ -408,7 +408,7 @@ namespace Examine.Benchmarks
         {
             var tasks = new List<Task>();
 
-            var searcher = _searcherManager.Acquire();
+            var searcher = _searcherManager!.Acquire();
 
             try
             {
@@ -444,7 +444,7 @@ namespace Examine.Benchmarks
 
                         // enumerate (forces the result to execute)
                         var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
-                        _logger.LogDebug(logOutput);
+                        _logger!.LogDebug(logOutput);
                     }));
                 }
 
@@ -504,7 +504,7 @@ namespace Examine.Benchmarks
 
                     // enumerate (forces the result to execute)
                     var logOutput = "ThreadID: " + Thread.CurrentThread.ManagedThreadId + ", Results: " + string.Join(',', results.Select(x => $"{x.Id}-{x.Values.Count}-{x.Score}").ToArray());
-                    _logger.LogDebug(logOutput);
+                    _logger!.LogDebug(logOutput);
                 }));
             }
 

@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Examine.Lucene;
 using Examine.Lucene.Analyzers;
-using Examine.Lucene.Directories;
 using Examine.Lucene.Indexing;
-using Lucene.Net.Index;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Examine.Web.Demo
@@ -19,9 +13,11 @@ namespace Examine.Web.Demo
         private readonly ILoggerFactory _loggerFactory;
 
         public ConfigureIndexOptions(ILoggerFactory loggerFactory)
-            => _loggerFactory = loggerFactory;
+        {
+            _loggerFactory = loggerFactory;
+        }
 
-        public void Configure(string name, LuceneDirectoryIndexOptions options)
+        public void Configure(string? name, LuceneDirectoryIndexOptions options)
         {
             switch (name)
             {

@@ -19,7 +19,7 @@ namespace Examine.Benchmarks
             LoggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
         }
 
-        public virtual void TearDown() => LoggerFactory.Dispose();
+        public virtual void TearDown() => LoggerFactory!.Dispose();
 
         public TestIndex GetTestIndex(
             Directory d,
@@ -31,7 +31,7 @@ namespace Examine.Benchmarks
             double nrtTargetMinStaleSec = 1,
             bool nrtEnabled = true)
             => new TestIndex(
-            LoggerFactory,
+            LoggerFactory!,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,

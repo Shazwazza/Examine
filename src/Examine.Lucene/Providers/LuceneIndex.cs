@@ -96,7 +96,9 @@ namespace Examine.Lucene.Providers
         private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
         private readonly Lazy<Directory> _directory;
+#if FULLDEBUG
         private readonly FileStream _logOutput;
+#endif
         private bool _disposedValue;
         private readonly IndexCommiter _committer;
 
@@ -1360,9 +1362,9 @@ namespace Examine.Lucene.Providers
                     }
 
                     _cancellationTokenSource.Dispose();
-
+#if FULLDEBUG
                     _logOutput?.Close();
-
+#endif
                     _fieldAnalyzer?.Dispose();
                     if (!object.ReferenceEquals(_fieldAnalyzer, DefaultAnalyzer))
                     {
