@@ -10,12 +10,12 @@ namespace Examine.Benchmarks
 {
     public class Program
     {
-        public static async Task Main(string[] args)
-        {
 #if RELEASE
-            // Benchmark your function here. 
+        public static void Main(string[] args) =>
             BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 #else
+        public static async Task Main(string[] args)
+        {
             var bench = new SearchVersionComparison();
             try
             {
@@ -27,10 +27,9 @@ namespace Examine.Benchmarks
             {
                 bench.TearDown();
             }
-
+        }
 #endif
-            // Call your function here. 
-        } 
+        // Call your function here. 
 
 #if LocalBuild
         private static async Task Threads100(ConcurrentSearchBenchmarks bench)
