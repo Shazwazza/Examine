@@ -12,15 +12,26 @@ namespace Examine.Lucene.Search
         /// </summary>
         /// <param name="skip">Number of result documents to skip.</param>
         /// <param name="take">Optional number of result documents to take.</param>
-        /// <param name="searchAfter">Optionally skip to results after the results from the previous search execution. Used for efficent deep paging.</param>
-        /// <param name="trackDocumentMaxScore">Whether to track the maximum document score. For best performance, if not needed, leave false.</param>
+        /// <param name="searchAfter">Optionally skip to results after the results from the previous search execution. Used for efficient deep paging.</param>
         /// <param name="trackDocumentScores">Whether to Track Document Scores. For best performance, if not needed, leave false.</param>
-        public LuceneQueryOptions(int skip, int? take = null, SearchAfterOptions searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false)
+        /// <param name="trackDocumentMaxScore">Whether to track the maximum document score. For best performance, if not needed, leave false.</param>
+        /// <param name="skipTakeMaxResults">When using Skip/Take (not SearchAfter) this will be the maximum data set size that can be paged.</param>
+        /// <param name="autoCalculateSkipTakeMaxResults">If enabled, this will pre-calculate the document count in the index to use for <see cref="SkipTakeMaxResults"/>.</param>
+        public LuceneQueryOptions(
+            int skip,
+            int? take = null,
+            SearchAfterOptions searchAfter = null,
+            bool trackDocumentScores = false,
+            bool trackDocumentMaxScore = false,
+            int skipTakeMaxResults = AbsoluteMaxResults,
+            bool autoCalculateSkipTakeMaxResults = false)
             : base(skip, take)
         {
+            SearchAfter = searchAfter;
             TrackDocumentScores = trackDocumentScores;
             TrackDocumentMaxScore = trackDocumentMaxScore;
-            SearchAfter = searchAfter;
+            SkipTakeMaxResults = skipTakeMaxResults;
+            AutoCalculateSkipTakeMaxResults = autoCalculateSkipTakeMaxResults;
         }
 
         /// <summary>
@@ -34,8 +45,26 @@ namespace Examine.Lucene.Search
         public bool TrackDocumentMaxScore { get; }
 
         /// <summary>
-        /// Options for Searching After. Used for efficent deep paging.
+        /// Options for Searching After. Used for efficient deep paging.
         /// </summary>
-        public SearchAfterOptions SearchAfter { get; }
+        public SearchAfterOptions SearchAfter { get; } = null;
+
+        /// <summary>
+        /// When using Skip/Take (not SearchAfter) this will be the maximum data set size that can be paged.
+        /// </summary>
+        /// <remarks>
+        /// For performance reasons, this should be low.
+        /// The default is 10k and if larger datasets are required to be paged,
+        /// this value can be increased but it is recommended to use the SearchAfter feature instead.
+        /// </remarks>
+        public int SkipTakeMaxResults { get; }
+
+        /// <summary>
+        /// If enabled, this will pre-calculate the document count in the index to use for <see cref="SkipTakeMaxResults"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will incur a performance hit on each search execution since there will be a query to get the total document count.
+        /// </remarks>
+        public bool AutoCalculateSkipTakeMaxResults { get; }
     }
 }

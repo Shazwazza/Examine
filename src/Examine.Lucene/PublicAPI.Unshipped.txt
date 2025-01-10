@@ -15,6 +15,13 @@ Examine.Lucene.LuceneIndexOptions.NrtTargetMaxStaleSec.set -> void
 Examine.Lucene.LuceneIndexOptions.NrtTargetMinStaleSec.get -> double
 Examine.Lucene.LuceneIndexOptions.NrtTargetMinStaleSec.set -> void
 Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string name, Lucene.Net.Search.SearcherManager searcherManager, Lucene.Net.Analysis.Analyzer analyzer, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection, bool isNrt) -> void
+Examine.Lucene.Search.LuceneQueryOptions
+Examine.Lucene.Search.LuceneQueryOptions.AutoCalculateSkipTakeMaxResults.get -> bool
+Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int? take = null, Examine.Lucene.Search.SearchAfterOptions searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false) -> void
+Examine.Lucene.Search.LuceneQueryOptions.SearchAfter.get -> Examine.Lucene.Search.SearchAfterOptions
+Examine.Lucene.Search.LuceneQueryOptions.SkipTakeMaxResults.get -> int
+Examine.Lucene.Search.LuceneQueryOptions.TrackDocumentMaxScore.get -> bool
+Examine.Lucene.Search.LuceneQueryOptions.TrackDocumentScores.get -> bool
 Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult> results, int totalItemCount, float maxScore, Examine.Lucene.Search.SearchAfterOptions searchAfterOptions) -> void
 Examine.Lucene.Search.LuceneSearchResults.MaxScore.get -> float
 Examine.Lucene.Search.LuceneSearchResults.SearchAfter.get -> Examine.Lucene.Search.SearchAfterOptions

@@ -2582,16 +2582,12 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer.IndexItems(valueSets);
 
                 var searcher = indexer.Searcher;
-
-                //Arrange
-
                 var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+
+                // Search with normal Skip/Take:
                 int pageIndex = 0;
                 int pageSize = 100;
                 int pagedCount = 0;
-
-                //Act
-
                 while (true)
                 {
                     var results = sc
@@ -2609,6 +2605,50 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 // This will not proceed further than 100 paged count because the limit for paged data sets is 10K.
                 Assert.AreEqual(100, pagedCount);
+
+                // Search with increased max skiptake data set size:
+                pageIndex = 0;
+                pageSize = 100;
+                pagedCount = 0;
+                while (true)
+                {
+                    var results = sc
+                        .Execute(new LuceneQueryOptions(pageIndex * pageSize, pageSize, skipTakeMaxResults: 15000))
+                        .ToList();
+
+                    if (results.Count == 0)
+                    {
+                        break;
+                    }
+                    Assert.AreEqual(pageSize, results.Count);
+                    pageIndex++;
+                    pagedCount++;
+                }
+
+                // This will succeed because we've increased the limit of max skiptake dataset size.
+                Assert.AreEqual(150, pagedCount);
+
+                // Search with auto calculated maxdoc:
+                pageIndex = 0;
+                pageSize = 100;
+                pagedCount = 0;
+                while (true)
+                {
+                    var results = sc
+                        .Execute(new LuceneQueryOptions(pageIndex * pageSize, pageSize, autoCalculateSkipTakeMaxResults: true))
+                        .ToList();
+
+                    if (results.Count == 0)
+                    {
+                        break;
+                    }
+                    Assert.AreEqual(pageSize, results.Count);
+                    pageIndex++;
+                    pagedCount++;
+                }
+
+                // This will succeed because we've auto calculated the limit of max skiptake dataset size.
+                Assert.AreEqual(150, pagedCount);
 
                 // Now, page with SearchAfter:
                 pageIndex = 0;

@@ -224,11 +224,6 @@ Examine.Lucene.Search.LuceneQuery.LuceneQuery(Examine.Lucene.Search.LuceneSearch
 Examine.Lucene.Search.LuceneQuery.ManagedQuery(string query, string[] fields = null) -> Examine.Search.IBooleanOperation
 Examine.Lucene.Search.LuceneQuery.NativeQuery(string query) -> Examine.Search.IBooleanOperation
 Examine.Lucene.Search.LuceneQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) -> Examine.Search.IBooleanOperation
-Examine.Lucene.Search.LuceneQueryOptions
-Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int? take = null, Examine.Lucene.Search.SearchAfterOptions searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false) -> void
-Examine.Lucene.Search.LuceneQueryOptions.SearchAfter.get -> Examine.Lucene.Search.SearchAfterOptions
-Examine.Lucene.Search.LuceneQueryOptions.TrackDocumentMaxScore.get -> bool
-Examine.Lucene.Search.LuceneQueryOptions.TrackDocumentScores.get -> bool
 Examine.Lucene.Search.LuceneSearchExecutor
 Examine.Lucene.Search.LuceneSearchExecutor.Execute() -> Examine.ISearchResults
 Examine.Lucene.Search.LuceneSearchExtensions
