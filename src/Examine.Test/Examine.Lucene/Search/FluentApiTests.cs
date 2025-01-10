@@ -12,6 +12,7 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 
 
@@ -1499,7 +1500,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     var next = results.ElementAtOrDefault(i + 1);
 
                     if (next == null)
+                    {
                         break;
+                    }
 
                     Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
                 }
@@ -2253,7 +2256,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(1, results.TotalItemCount);
             }
         }
-        
+
         [Ignore("This test needs to be updated to ensure that searching calls GetFieldInternalQuery with useQueryParser = false, see https://github.com/Shazwazza/Examine/issues/335#issuecomment-1834677581")]
         [Test]
         public void Query_With_Category_Multi_Threaded()
@@ -2568,20 +2571,15 @@ namespace Examine.Test.Examine.Lucene.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
-                indexer.IndexItems(new[] {
-                    ValueSet.FromObject(1.ToString(), "content",
-                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
-                    ValueSet.FromObject(2.ToString(), "content",
-                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
-                    ValueSet.FromObject(3.ToString(), "content",
-                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
-                    ValueSet.FromObject(4.ToString(), "content",
-                        new { nodeName = "hello", headerText = "world", writerName = "blah" }),
-                    ValueSet.FromObject(5.ToString(), "content",
-                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
-                    ValueSet.FromObject(6.ToString(), "content",
-                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" })
-                    });
+                var valueSets = new List<ValueSet>();
+                for (var i = 0; i < 15000; i++)
+                {
+                    valueSets.Add(
+                        ValueSet.FromObject(i.ToString(), "content",
+                            new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }));
+                }
+
+                indexer.IndexItems(valueSets);
 
                 var searcher = indexer.Searcher;
 
@@ -2589,35 +2587,61 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
                 int pageIndex = 0;
-                int pageSize = 2;
+                int pageSize = 100;
+                int pagedCount = 0;
 
                 //Act
 
-                var results = sc
-                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
-                    .ToList();
-                Assert.AreEqual(2, results.Count);
+                while (true)
+                {
+                    var results = sc
+                        .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
+                        .ToList();
 
-                pageIndex++;
+                    if (results.Count == 0)
+                    {
+                        break;
+                    }
+                    Assert.AreEqual(pageSize, results.Count);
+                    pageIndex++;
+                    pagedCount++;
+                }
 
-                results = sc
-                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
-                    .ToList();
-                Assert.AreEqual(2, results.Count);
+                // This will not proceed further than 100 paged count because the limit for paged data sets is 10K.
+                Assert.AreEqual(100, pagedCount);
 
-                pageIndex++;
+                // Now, page with SearchAfter:
+                pageIndex = 0;
+                pageSize = 100;
+                pagedCount = 0;
+                SearchAfterOptions searchAfter = null;
+                while (true)
+                {
+                    var luceneResults = sc.ExecuteWithLucene(
+                        new LuceneQueryOptions(pageIndex * pageSize, pageSize, searchAfter));
 
-                results = sc
-                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
-                    .ToList();
-                Assert.AreEqual(1, results.Count);
+                    if (luceneResults.SearchAfter is not null)
+                    {
+                        searchAfter = new SearchAfterOptions(
+                            luceneResults.SearchAfter.DocumentId,
+                            luceneResults.SearchAfter.DocumentScore,
+                            luceneResults.SearchAfter.Fields,
+                            luceneResults.SearchAfter.ShardIndex.Value);
+                    }
 
-                pageIndex++;
+                    var results = luceneResults.ToList();
 
-                results = sc
-                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
-                    .ToList();
-                Assert.AreEqual(0, results.Count);
+                    if (results.Count == 0)
+                    {
+                        break;
+                    }
+
+                    Assert.AreEqual(pageSize, results.Count);
+                    pageIndex++;
+                    pagedCount++;
+                }
+
+                Assert.AreEqual(150, pagedCount);
             }
         }
 

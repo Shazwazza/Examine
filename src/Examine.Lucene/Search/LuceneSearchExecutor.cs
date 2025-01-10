@@ -135,7 +135,7 @@ namespace Examine.Lucene.Search
                 // See https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
                 foreach (var scoreDoc in topDocs.ScoreDocs)
                 {
-                    var result = GetSearchResult(scoreDoc, topDocs, searcher.IndexSearcher);
+                    var result = GetSearchResult(scoreDoc, searcher.IndexSearcher);
                     results.Add(result);
                 }
 
@@ -185,7 +185,7 @@ namespace Examine.Lucene.Search
             return null;
         }
 
-        private LuceneSearchResult GetSearchResult(ScoreDoc scoreDoc, TopDocs topDocs, IndexSearcher luceneSearcher)
+        private LuceneSearchResult GetSearchResult(ScoreDoc scoreDoc, IndexSearcher luceneSearcher)
         {
             var docId = scoreDoc.Doc;
             Document doc;
@@ -257,7 +257,7 @@ namespace Examine.Lucene.Search
         {
             if (query is BooleanQuery bq)
             {
-                foreach (BooleanClause clause in bq.Clauses)
+                foreach (var clause in bq.Clauses)
                 {
                     //recurse
                     var check = CheckQueryForExtractTerms(clause.Query);
@@ -273,7 +273,7 @@ namespace Examine.Lucene.Search
                 return CheckQueryForExtractTerms(lbq.Wrapped);
             }
 
-            Type queryType = query.GetType();
+            var queryType = query.GetType();
 
             if (typeof(TermRangeQuery).IsAssignableFrom(queryType)
                 || typeof(WildcardQuery).IsAssignableFrom(queryType)
