@@ -80,8 +80,16 @@ namespace Examine.Lucene.Indexing
                 return;
             }
 
-            doc.Add(new Int32Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
+            // TODO: We can use this for better scoring/sorting performance
+            // https://stackoverflow.com/a/44953624/694494
+            // https://lucene.apache.org/core/7_4_0/core/org/apache/lucene/document/NumericDocValuesField.html
+            //var dvField = new NumericDocValuesField(_docValuesFieldName, 0);
+            //dvField.SetInt32Value(parsedVal);
+            //doc.Add(dvField);
+
+            doc.Add(new Int32Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+             
             if (_isFacetable && _taxonomyIndex)
             {
                 doc.Add(new FacetField(FieldName, parsedVal.ToString()));
@@ -93,9 +101,11 @@ namespace Examine.Lucene.Indexing
                 doc.Add(new NumericDocValuesField(FieldName, parsedVal));
             }
         }
-
         /// <inheritdoc/>
-        public override Query? GetQuery(string query) => !TryConvert(query, out int parsedVal) ? null : GetQuery(parsedVal, parsedVal);
+        public override Query GetQuery(string query)
+        {
+            return !TryConvert(query, out int parsedVal) ? null : GetQuery(parsedVal, parsedVal);
+        }
 
         /// <inheritdoc/>
         public override Query GetQuery(int? lower, int? upper, bool lowerInclusive = true, bool upperInclusive = true)

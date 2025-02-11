@@ -13,7 +13,7 @@ namespace Examine.Test.Examine.Lucene.Sync
     public class ExamineTaxonomyReplicatorTests : ExamineBaseTest
     {
         private ILoggerFactory GetLoggerFactory()
-            => LoggerFactory.Create(x => x.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            => this.CreateLoggerFactory();
 
         [Test]
         public void GivenAMainIndex_WhenReplicatedLocally_TheLocalIndexIsPopulated()
@@ -30,7 +30,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             {
                 mainIndex.CreateIndex();
 
-                mainIndex.IndexItems(mainIndex.AllData());
+                mainIndex.IndexItems(TestIndex.AllData());
 
                 DirectoryReader mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
                 Assert.AreEqual(100, mainReader.NumDocs);
@@ -76,7 +76,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                                 {"item2", new List<object>(new[] {"value2"})}
                             }));
 
-                mainIndex.IndexItems(mainIndex.AllData());
+                mainIndex.IndexItems(TestIndex.AllData());
 
                 Assert.Throws<InvalidOperationException>(() => replicator.ReplicateIndex());
             }
@@ -97,7 +97,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                 using (var replicator = new ExamineTaxonomyReplicator(GetLoggerFactory(), mainIndex, localDir, localTaxonomyDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
-                    mainIndex.IndexItems(mainIndex.AllData());
+                    mainIndex.IndexItems(TestIndex.AllData());
                     replicator.ReplicateIndex();
                 }
 
@@ -141,7 +141,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                 using (var replicator = new ExamineTaxonomyReplicator(GetLoggerFactory(), mainIndex, localDir, localTaxonomyDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
-                    mainIndex.IndexItems(mainIndex.AllData());
+                    mainIndex.IndexItems(TestIndex.AllData());
                     replicator.ReplicateIndex();
                 }
 

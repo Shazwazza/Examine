@@ -120,7 +120,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
                 {
                     indexer.CreateIndex();
-                    indexer.IndexItems(indexer.AllData());
+                    indexer.IndexItems(TestIndex.AllData());
 
                     Assert.IsTrue(IndexWriter.IsLocked(luceneDir));
                 }
@@ -137,7 +137,7 @@ namespace Examine.Test.Examine.Lucene.Index
             using (var indexer = GetTestIndex(d, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 indexer.CreateIndex();
-                indexer.IndexItems(indexer.AllData());
+                indexer.IndexItems(TestIndex.AllData());
 
                 var indexWriter = indexer.IndexWriter;
                 var reader = indexWriter.IndexWriter.GetReader(true);
@@ -331,7 +331,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                 updatedValues[key] = new List<object>() { value };
 
-                e.SetValues(updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
+                e.SetValues(updatedValues.ToDictionary(x => x.Key, x => (IEnumerable<object>)x.Value));
             }
 
             void RemoveData(object sender, IndexingItemEventArgs e, string key)
@@ -340,7 +340,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                 updatedValues.Remove(key);
 
-                e.SetValues(updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
+                e.SetValues(updatedValues.ToDictionary(x => x.Key, x => (IEnumerable<object>)x.Value));
             }
 
             using (var luceneDir = new RandomIdRAMDirectory())
@@ -695,6 +695,18 @@ namespace Examine.Test.Examine.Lucene.Index
             // TODO: In this test can we ensure all readers are tracked and closed?
             // TODO: In the search part, we should be searching in various ways and also with skip
 
+            // capture the original console out
+            var consoleOut = TestContext.Out;
+
+            void WriteLog(string msg)
+            {
+                // reset console out to the orig, this is required because we suppress
+                // ExecutionContext which is how this is flowed in Nunit so needed when logging
+                // in OperationComplete
+                Console.SetOut(consoleOut);
+                Console.WriteLine(msg);
+            }
+
             DirectoryInfo temp = null;
             global::Lucene.Net.Store.Directory directory;
             if (inMemory)
@@ -719,19 +731,28 @@ namespace Examine.Test.Examine.Lucene.Index
                 var tempPath = Path.Combine(tempBasePath, Guid.NewGuid().ToString());
                 System.IO.Directory.CreateDirectory(tempPath);
                 temp = new DirectoryInfo(tempPath);
-                directory = new SimpleFSDirectory(temp);
+                directory = FSDirectory.Open(temp);
             }
             try
             {
                 using (var d = directory)
                 using (var writer = new IndexWriter(d,
                     new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-                using (var customIndexer = GetTestIndex(writer))
+                using (var customIndexer = GetTestIndex(writer, nrtTargetMaxStaleSec: 1.0, nrtTargetMinStaleSec: 0.1))
                 using (var customSearcher = (LuceneSearcher)customIndexer.Searcher)
                 using (customIndexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
                 {
+                    customIndexer.IndexCommitted += (sender, e) =>
+                    {
+                        WriteLog("index committed!!!!!!!!!!!!!");
+                    };
+
                     var waitHandle = new ManualResetEvent(false);
 
+                    // TODO: This seems broken - we wan see many operations complete while we are indexing/searching
+                    // but currently it seems like we are doing all indexing in a single Task which means we only end up
+                    // committing once and then Boom, all searches are available, we want to be able to see search results
+                    // more immediately.
                     void OperationComplete(object sender, IndexOperationEventArgs e)
                     {
                         //signal that we are done
@@ -782,14 +803,14 @@ namespace Examine.Test.Examine.Lucene.Index
                                 {
                                     idQueue.Enqueue(docId);
                                     var r = s.CreateQuery().Id(docId.ToString()).Execute();
-                                    Console.WriteLine("searching thread: {0}, id: {1}, found: {2}", Thread.CurrentThread.ManagedThreadId, docId, r.Count());
+                                    WriteLog(string.Format("searching thread: {0}, id: {1}, found: {2}", Thread.CurrentThread.ManagedThreadId, docId, r.Count()));
                                     Thread.Sleep(searchThreadWait);
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("Search ERROR!! {0}", ex);
+                            WriteLog($"Search ERROR!! {ex}");
                             throw;
                         }
                     }
@@ -808,7 +829,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                                     var node = getNode(docId - 1);
                                     node.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
-                                    Console.WriteLine("Indexing {0}", docId);
+                                    WriteLog(string.Format("Indexing {0}", docId));
                                     ind.IndexItems(new[] { node.ConvertToValueSet(IndexTypes.Content) });
                                     Thread.Sleep(indexThreadWait);
                                 }
@@ -816,7 +837,7 @@ namespace Examine.Test.Examine.Lucene.Index
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("Index ERROR!! {0}", ex);
+                            WriteLog(string.Format("Index ERROR!! {0}", ex));
                             throw;
                         }
                     }
@@ -856,7 +877,7 @@ namespace Examine.Test.Examine.Lucene.Index
                     customIndexer.WaitForChanges();
 
                     var results = customSearcher.CreateQuery().All().Execute();
-                    Assert.AreEqual(20, results.Count());
+                    Assert.AreEqual(20, results.Count(), string.Join(", ", results.Select(x => x.Id)));
 
                     //wait until we are done
                     waitHandle.WaitOne();

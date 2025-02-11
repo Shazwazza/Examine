@@ -35,6 +35,12 @@ namespace Examine.Lucene.Indexing
             switch (value)
             {
                 case IIndexableField f:
+                    // https://lucene.apache.org/core/4_3_0/core/org/apache/lucene/index/IndexableField.html
+                    // BinaryDocValuesField, ByteDocValuesField, DerefBytesDocValuesField, DoubleDocValuesField, DoubleField,
+                    // Field, FloatDocValuesField, FloatField, IntDocValuesField, IntField, LongDocValuesField, LongField,
+                    // NumericDocValuesField, PackedLongDocValuesField, ShortDocValuesField, SortedBytesDocValuesField,
+                    // SortedDocValuesField, SortedSetDocValuesField, StoredField, StraightBytesDocValuesField, StringField, TextField
+                    // https://solr.apache.org/guide/6_6/docvalues.html
                     doc.Add(f);
                     break;
                 case TokenStream ts:

@@ -44,7 +44,7 @@ namespace Examine.Lucene.Search
             {
                 if (disposing)
                 {
-                    foreach(var i in _inner)
+                    foreach (var i in _inner)
                     {
                         i.Dispose();
                     }

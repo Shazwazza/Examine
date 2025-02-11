@@ -523,7 +523,7 @@ namespace Examine.Lucene.Search
         /// <param name="rawQuery"></param>
         /// <returns></returns>
         private Query ParseRawQuery(string rawQuery)
-            => CustomMultiFieldQueryParser.KeywordAnalyzerQueryParser.Parse(rawQuery);
+            => _queryParser.KeywordAnalyzerQueryParser.Parse(rawQuery);
 
         /// <summary>
         /// Uses a PhraseQuery to build a 'raw/exact' match

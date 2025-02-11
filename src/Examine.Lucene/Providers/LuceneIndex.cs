@@ -4,23 +4,29 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Threading;
 using System.Threading.Tasks;
+using Examine.Lucene.Directories;
+using Examine.Lucene.Indexing;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
+using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
-using Directory = Lucene.Net.Store.Directory;
-using static Lucene.Net.Index.IndexWriter;
 using Microsoft.Extensions.Options;
+using static Lucene.Net.Index.IndexWriter;
+using static Lucene.Net.Store.Lock;
+using Directory = Lucene.Net.Store.Directory;
 using Lucene.Net.Analysis.Standard;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Directories;
 using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Facet.Taxonomy.Directory;
 using static Lucene.Net.Replicator.IndexAndTaxonomyRevision;
+using Lucene.Net.Replicator;
 
 namespace Examine.Lucene.Providers
 {
@@ -157,7 +163,7 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime - using NRT
         /// </summary>
-        internal LuceneIndex(
+        public LuceneIndex(
             ILoggerFactory loggerFactory,
             string name,
             IOptionsMonitor<LuceneIndexOptions> indexOptions,
@@ -170,18 +176,19 @@ namespace Examine.Lucene.Providers
 
         #endregion
 
+        private static readonly string[] s_possibleSuffixes = new[] { "Index", "Indexer" };
         private readonly LuceneIndexOptions _options;
         private PerFieldAnalyzerWrapper? _fieldAnalyzer;
         private ControlledRealTimeReopenThread<IndexSearcher>? _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
-        private readonly Lazy<Directory>? _directory;
-#if FULLDEBUG
-        private FileStream? _logOutput;
-#endif
+        private readonly Lazy<Directory> _directory;
+        private readonly FileStream _logOutput;
         private bool _disposedValue;
         private readonly IIndexCommiter _committer;
 
         private volatile TrackingIndexWriter? _writer;
+
+        private SnapshotDirectoryTaxonomyIndexWriterFactory _snapshotDirectoryTaxonomyIndexWriterFactory;
 
         private int _activeWrites = 0;
 
@@ -255,20 +262,10 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Gets the field ananlyzer
         /// </summary>
-        public PerFieldAnalyzerWrapper FieldAnalyzer
-        {
-            get
-            {
-                if (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
-                {
-                    return _fieldAnalyzer ??= pfa;
-                }
-                else
-                {
-                    return _fieldAnalyzer ??= _fieldValueTypeCollection.Value.Analyzer;
-                }
-            }
-        }
+        public PerFieldAnalyzerWrapper FieldAnalyzer => (PerFieldAnalyzerWrapper)(_fieldAnalyzer ??=
+                (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
+                    ? pfa
+                    : _fieldValueTypeCollection.Value.Analyzer);
 
 
         /// <summary>
@@ -289,9 +286,9 @@ namespace Examine.Lucene.Providers
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
 
-#endregion
+        #endregion
 
-#region Events
+        #region Events
 
         /// <summary>
         /// Occurs when [document writing].
@@ -337,9 +334,9 @@ namespace Examine.Lucene.Providers
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
             => DocumentWriting?.Invoke(this, docArgs);
 
-#endregion
+        #endregion
 
-#region Provider implementation
+        #region Provider implementation
 
         /// <inheritdoc/>
         protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete)
@@ -543,6 +540,7 @@ namespace Examine.Lucene.Providers
                     //unlock it!
                     Unlock(dir);
                 }
+
                 //create the writer (this will overwrite old index files)
                 var writerConfig = new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
                 {
@@ -550,7 +548,17 @@ namespace Examine.Lucene.Providers
                     MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
                         (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
                 };
+
+                // TODO: With NRT, we should apparently use this but there is no real implementation of it!?
+                // https://stackoverflow.com/questions/12271614/lucene-net-indexwriter-setmergedsegmentwarmer
+                //writerConfig.SetMergedSegmentWarmer(new SimpleMergedSegmentWarmer())
+
                 writer = new IndexWriter(dir, writerConfig);
+
+                // Required to remove old index files which can be problematic
+                // if they remain in the index folder when replication is attempted.
+                writer.Commit();
+                writer.WaitForMerges();
 
             }
             catch (Exception ex)
@@ -697,9 +705,9 @@ namespace Examine.Lucene.Providers
             return indexedNodes;
         }
 
-#endregion
+        #endregion
 
-#region Protected
+        #region Protected
 
 
 
@@ -908,7 +916,7 @@ namespace Examine.Lucene.Providers
             var indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
-            if(valueSet.Values != null)
+            if (valueSet.Values != null)
             {
                 foreach (var field in valueSet.Values)
                 {
@@ -960,14 +968,16 @@ namespace Examine.Lucene.Providers
             }
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
+            _latestGen = UpdateLuceneDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
+        }
+
+        protected virtual long? UpdateLuceneDocument(Term term, Document doc)
+        {
             if (_options.UseTaxonomyIndex)
             {
-                _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), _options.FacetsConfig.Build(TaxonomyWriter, doc));
+                return IndexWriter.UpdateDocument(term, _options.FacetsConfig.Build(TaxonomyWriter, doc));
             }
-            else
-            {
-                _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), _options.FacetsConfig.Build(doc));
-            }
+            return IndexWriter.UpdateDocument(term, _options.FacetsConfig.Build(doc));
         }
 
         /// <summary>
@@ -1213,9 +1223,6 @@ namespace Examine.Lucene.Providers
         /// See example: http://www.lucenetutorial.com/lucene-nrt-hello-world.html
         /// http://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
         /// https://stackoverflow.com/questions/17993960/lucene-4-4-0-new-controlledrealtimereopenthread-sample-usage
-        /// TODO: Do we need/want to use the ControlledRealTimeReopenThread? Else according to mikecandles above in comments
-        /// we can probably just get away with using MaybeReopen each time we search. Though there are comments in the lucene
-        /// code to avoid that and do that on a background thread, which is exactly what ControlledRealTimeReopenThread already does.
         /// </remarks>
         public TrackingIndexWriter IndexWriter
         {
@@ -1285,9 +1292,33 @@ namespace Examine.Lucene.Providers
             {
                 throw new ArgumentNullException(nameof(d));
             }
-            var taxonomyWriter = new SnapshotDirectoryTaxonomyWriter(d);
+            return new DirectoryTaxonomyWriter(SnapshotDirectoryTaxonomyIndexWriterFactory, d);
+        }
 
-            return taxonomyWriter;
+        /// <summary>
+        /// Gets the taxonomy writer for the current index
+        /// </summary>
+        public SnapshotDirectoryTaxonomyIndexWriterFactory SnapshotDirectoryTaxonomyIndexWriterFactory
+        {
+            get
+            {
+                EnsureIndex(false);
+
+                if (_snapshotDirectoryTaxonomyIndexWriterFactory == null)
+                {
+                    Monitor.Enter(_writerLocker);
+                    try
+                    {
+                        _snapshotDirectoryTaxonomyIndexWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
+                    }
+                    finally
+                    {
+                        Monitor.Exit(_writerLocker);
+                    }
+                }
+
+                return _snapshotDirectoryTaxonomyIndexWriterFactory ?? throw new NullReferenceException(nameof(_snapshotDirectoryTaxonomyIndexWriterFactory));
+            }
         }
 
         /// <summary>
@@ -1319,40 +1350,71 @@ namespace Examine.Lucene.Providers
 
         #endregion
 
-#region Private
+        #region Private
 
         private LuceneSearcher CreateSearcher()
         {
-            var possibleSuffixes = new[] { "Index", "Indexer" };
             var name = Name;
-            foreach (var suffix in possibleSuffixes)
+            foreach (var suffix in s_possibleSuffixes)
             {
                 //trim the "Indexer" / "Index" suffix if it exists
                 if (!name.EndsWith(suffix))
-                    {
+                {
                     continue;
                 }
-#pragma warning disable IDE0057 // Use range operator
-                name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
-#pragma warning restore IDE0057 // Use range operator
+
+                name = name[..name.LastIndexOf(suffix, StringComparison.Ordinal)];
             }
 
             var writer = IndexWriter;
-            var searcherManager = new SearcherManager(writer.IndexWriter, true, new SearcherFactory());
+
+            // Create an IndexSearcher ReferenceManager to safely share IndexSearcher instances across
+            // multiple threads
+            var searcherManager = new SearcherManager(
+                writer.IndexWriter,
+
+                // TODO: Apply All Deletes? Will be faster if this is false, https://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
+                // BUT ... to do that we would need to fulfill this requirement:
+                // "yet during searching you have some way to ignore the old versions"
+                // Without fulfilling that requirement our Index_Read_And_Write_Ensure_No_Errors_In_Async tests fail when using
+                // non in-memory directories because it will return more results than what is actually in the index.
+                true,
+
+                new SearcherFactory());
+
             searcherManager.AddListener(this);
 
-            _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(writer, searcherManager, 5.0, 1.0)
+            if (_options.NrtEnabled)
             {
-                Name = $"{Name} NRT Reopen Thread",
-                IsBackground = true
-            };
+                // Create the ControlledRealTimeReopenThread that reopens the index periodically having into 
+                // account the changes made to the index and tracked by the TrackingIndexWriter instance
+                // The index is refreshed every XX sec when nobody is waiting 
+                // and every XX sec whenever is someone waiting (see search method)
+                // (see http://lucene.apache.org/core/4_3_0/core/org/apache/lucene/search/NRTManagerReopenThread.html)
+                _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(
+                    writer,
+                    searcherManager,
+                    _options.NrtTargetMaxStaleSec,    // when there is nobody waiting
+                    _options.NrtTargetMinStaleSec)    // when there is someone waiting
+                {
+                    Name = $"{Name} NRT Reopen Thread",
+                    IsBackground = true
+                };
 
-            _nrtReopenThread.Start();
+                _nrtReopenThread.Start();
 
+                // wait for most recent changes when first creating the searcher
+                WaitForChanges();
+            }
+            else
+            {
+                // wait for most recent changes when first creating the searcher
+                searcherManager.MaybeRefreshBlocking();
+            }
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig);
+            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.NrtEnabled, _options.FacetsConfig);
         }
 
         private LuceneTaxonomySearcher CreateTaxonomySearcher()
@@ -1363,7 +1425,7 @@ namespace Examine.Lucene.Providers
             {
                 //trim the "Indexer" / "Index" suffix if it exists
                 if (!name.EndsWith(suffix))
-                    {
+                {
                     continue;
                 }
 #pragma warning disable IDE0057 // Use range operator
@@ -1382,11 +1444,10 @@ namespace Examine.Lucene.Providers
             };
 
             _taxonomyNrtReopenThread.Start();
-
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig);
+            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.NrtEnabled, _options.FacetsConfig);
         }
 
         /// <summary>
@@ -1419,6 +1480,13 @@ namespace Examine.Lucene.Providers
             {
                 return false;
             }
+
+            // TODO: We can re-use the same document object to save a lot of GC!
+            // https://cwiki.apache.org/confluence/display/lucene/ImproveIndexingSpeed
+            // Re-use Document and Field instances
+            // As of Lucene 2.3 there are new setValue(...) methods that allow you to change the value of a Field.This allows you to re - use a single Field instance across many added documents, which can save substantial GC cost.
+            // It's best to create a single Document instance, then add multiple Field instances to it, but hold onto these Field instances and re-use them by changing their values for each added document. For example you might have an idField, bodyField, nameField, storedField1, etc. After the document is added, you then directly change the Field values (idField.setValue(...), etc), and then re-add your Document instance.
+            // Note that you cannot re - use a single Field instance within a Document, and, you should not change a Field's value until the Document containing that Field has been added to the index. See Field for details.
 
             var d = new Document();
             AddDocument(d, indexingNodeDataArgs.ValueSet);
@@ -1504,7 +1572,7 @@ namespace Examine.Lucene.Providers
             }
         }
 
-#endregion
+        #endregion
 
         /// <summary>
         /// Blocks the calling thread until the internal searcher can see latest documents
@@ -1517,10 +1585,13 @@ namespace Examine.Lucene.Providers
         {
             if (_latestGen.HasValue && !_disposedValue && !_cancellationToken.IsCancellationRequested)
             {
-                var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000);
-                if (_logger.IsEnabled(LogLevel.Debug))
+                if (_options.NrtEnabled)
                 {
-                    _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
+                    var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000);
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
+                    }
                 }
             }
         }
@@ -1648,8 +1719,6 @@ namespace Examine.Lucene.Providers
                         {
                             OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index", "-1", e));
                         }
-
-
                     }
                     if (_taxonomyWriter != null)
                     {
@@ -1669,6 +1738,11 @@ namespace Examine.Lucene.Providers
 #if FULLDEBUG
                     _logOutput?.Close();
 #endif
+                    _fieldAnalyzer?.Dispose();
+                    if (!object.ReferenceEquals(_fieldAnalyzer, DefaultAnalyzer))
+                    {
+                        DefaultAnalyzer?.Dispose();
+                    }
                 }
                 _disposedValue = true;
             }
@@ -1687,7 +1761,5 @@ namespace Examine.Lucene.Providers
             }
         }
     }
-
-
 }
 

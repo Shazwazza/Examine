@@ -21,11 +21,14 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         [Obsolete("To remove in Examine V5")]
-        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount)
+        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount,
+            float maxScore,
+            SearchAfterOptions searchAfterOptions)
         {
             _results = results;
             TotalItemCount = totalItemCount;
-            MaxScore = float.NaN;
+            MaxScore = maxScore;
+            SearchAfter = searchAfterOptions;
             Facets = _noFacets;
         }
 

@@ -7,15 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Bogus" Version="35.5.1" />
     <Compile Remove="Data\IndexService.Facets.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Data\IndexService.Facets.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Bogus" Version="34.0.2" />
   </ItemGroup>
 
   <ItemGroup>

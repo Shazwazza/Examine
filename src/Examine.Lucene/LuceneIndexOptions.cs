@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet;
@@ -13,6 +11,15 @@ namespace Examine.Lucene
     /// </summary>
     public class LuceneIndexOptions : IndexOptions
     {
+        public bool NrtEnabled { get; set; } = true;
+
+        public double NrtTargetMaxStaleSec { get; set; } = 60.0;
+
+        public double NrtTargetMinStaleSec { get; set; } = 1.0;
+
+        public double NrtCacheMaxMergeSizeMB { get; set; } = 5.0;
+
+        public double NrtCacheMaxCachedMB { get; set; } = 60.0;
         /// <summary>
         /// THe index deletion policy
         /// </summary>

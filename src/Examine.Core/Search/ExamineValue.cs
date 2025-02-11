@@ -3,7 +3,7 @@ using Examine.Search;
 namespace Examine.Search
 {
     /// <inheritdoc/>
-    public struct ExamineValue : IExamineValue
+    public readonly struct ExamineValue : IExamineValue
     {
         /// <inheritdoc/>
         public ExamineValue(Examineness vagueness, string value)
@@ -27,6 +27,5 @@ namespace Examine.Search
 
         /// <inheritdoc/>
         public float Level { get; }
-
     }
 }

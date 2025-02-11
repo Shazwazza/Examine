@@ -95,7 +95,7 @@ namespace Examine.Lucene
             IndexAndTaxonomyRevision rev;
             try
             {
-                rev = new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.TaxonomyWriter as SnapshotDirectoryTaxonomyWriter);
+                rev = new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory);
             }
             catch (InvalidOperationException)
             {
@@ -159,7 +159,7 @@ namespace Examine.Lucene
                     _logger.LogDebug("{IndexName} committed", index.Name);
                 }
             }
-            var rev = new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.TaxonomyWriter as SnapshotDirectoryTaxonomyWriter);
+            var rev = new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory);
             _replicator.Publish(rev);
         }
 

@@ -4,6 +4,8 @@ using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Facet;
 using Lucene.Net.Facet.Taxonomy;
+using Lucene.Net.Index;
+using Lucene.Net.Search;
 
 namespace Examine.Lucene.Providers
 {
@@ -14,7 +16,9 @@ namespace Examine.Lucene.Providers
     {
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly bool _isNrt;
         private bool _disposedValue;
+        private volatile ITaxonomySearchContext _searchContext;
 
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
@@ -24,23 +28,42 @@ namespace Examine.Lucene.Providers
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
         /// <param name="facetsConfig"></param>
-        public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig)
+        public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, bool isNrt, FacetsConfig facetsConfig)
             : base(name, analyzer, facetsConfig)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
+            _isNrt = isNrt;
         }
 
         /// <inheritdoc/>
         public override ISearchContext GetSearchContext()
-            => new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection);
+        {
+            // Don't create a new search context unless something has changed
+            var isCurrent = IsSearcherCurrent(_searcherManager);
+            if (_searchContext is null || !isCurrent)
+            {
+                _searchContext = new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection, _isNrt);
+            }
+
+            return _searchContext;
+        }
 
         /// <summary>
         /// Gets the Taxonomy SearchContext
         /// </summary>
         /// <returns></returns>
         public virtual ITaxonomySearchContext GetTaxonomySearchContext()
-            => new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection);
+        {
+            // Don't create a new search context unless something has changed
+            var isCurrent = IsSearcherCurrent(_searcherManager);
+            if (_searchContext is null || !isCurrent)
+            {
+                _searchContext = new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection, _isNrt);
+            }
+
+            return _searchContext;
+        }
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
@@ -82,6 +105,29 @@ namespace Examine.Lucene.Providers
             var facetLabel = taxonomyReader.GetPath(ordinal);
             var examineFacetLabel = new LuceneFacetLabel(facetLabel);
             return examineFacetLabel;
+        }
+
+        //
+        // Summary:
+        //     Returns true if no changes have occured since this searcher ie. reader was opened,
+        //     otherwise false.
+        private bool IsSearcherCurrent(SearcherTaxonomyManager searcherTaxonomyManager)
+        {
+            var indexSearcher = searcherTaxonomyManager.Acquire();
+            try
+            {
+                IndexReader indexReader = indexSearcher.Searcher.IndexReader;
+                //if (Debugging.AssertsEnabled)
+                //{
+                //    Debugging.Assert(indexReader is DirectoryReader, "searcher's IndexReader should be a DirectoryReader, but got {0}", indexReader);
+                //}
+
+                return ((DirectoryReader)indexReader).IsCurrent();
+            }
+            finally
+            {
+                searcherTaxonomyManager.Release(indexSearcher);
+            }
         }
     }
 }

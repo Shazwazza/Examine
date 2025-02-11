@@ -14,9 +14,11 @@ namespace Examine.Lucene.Providers
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly bool _isNrt;
         private bool _disposedValue;
+        private volatile ISearchContext _searchContext;
 
-
+        
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>
@@ -24,12 +26,28 @@ namespace Examine.Lucene.Providers
         /// <param name="searcherManager"></param>
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
-        [Obsolete("To remove in Examine V5")]
+        [Obsolete("Use ctor with all dependencies")]
         public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
+        }
+        
+        /// <summary>
+        /// Constructor allowing for creating a NRT instance based on a given writer
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="searcherManager"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="fieldValueTypeCollection"></param>
+        /// <param name="isNrt"></param>
+        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, bool isNrt)
+            : base(name, analyzer)
+        {
+            _searcherManager = searcherManager;
+            _fieldValueTypeCollection = fieldValueTypeCollection;
+            _isNrt = isNrt;
         }
 
         /// <summary>
@@ -40,16 +58,26 @@ namespace Examine.Lucene.Providers
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
         /// <param name="facetsConfig"></param>
-        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig)
+        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, bool isNrt, FacetsConfig facetsConfig)
             : base(name, analyzer, facetsConfig)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
+            _isNrt = isNrt;
         }
 
         /// <inheritdoc/>
         public override ISearchContext GetSearchContext()
-            => new SearchContext(_searcherManager, _fieldValueTypeCollection);
+        {
+            // Don't create a new search context unless something has changed
+            var isCurrent = _searcherManager.IsSearcherCurrent();
+            if (_searchContext is null || !isCurrent)
+            {
+                _searchContext = new SearchContext(_searcherManager, _fieldValueTypeCollection, _isNrt);
+            }
+
+            return _searchContext;
+        }
 
         /// <inheritdoc/>
         [Obsolete("To remove in Examine v5")]

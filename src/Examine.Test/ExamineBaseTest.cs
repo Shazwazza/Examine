@@ -14,18 +14,28 @@ namespace Examine.Test
 {
     public abstract class ExamineBaseTest
     {
+        protected ILoggerFactory LoggerFactory  =>  CreateLoggerFactory();
+
         [SetUp]
         public virtual void Setup()
         {
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
-            loggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
         }
 
-        public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig facetsConfig = null)
-        {
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
-            return new TestIndex(
-                loggerFactory,
+        [TearDown]
+        public virtual void TearDown() => LoggerFactory.Dispose();
+
+        public TestIndex GetTestIndex(
+            Directory d,
+            Analyzer analyzer,
+            FieldDefinitionCollection fieldDefinitions = null,
+            IndexDeletionPolicy indexDeletionPolicy = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
+            double nrtTargetMaxStaleSec = 60,
+            double nrtTargetMinStaleSec = 1,
+            bool nrtEnabled = true,
+            FacetsConfig facetsConfig = null)
+            => new TestIndex(
+                LoggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,
@@ -33,22 +43,32 @@ namespace Examine.Test
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
+                    NrtTargetMaxStaleSec = nrtTargetMaxStaleSec,
+                    NrtTargetMinStaleSec = nrtTargetMinStaleSec,
+                    NrtEnabled = nrtEnabled,
                     FacetsConfig = facetsConfig ?? new FacetsConfig()
                 }));
-        }
 
-        public TestIndex GetTestIndex(IndexWriter writer)
-        {
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
-            return new TestIndex(
-                loggerFactory,
-                Mock.Of<IOptionsMonitor<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions()),
+        public TestIndex GetTestIndex(
+            IndexWriter writer,
+            double nrtTargetMaxStaleSec = 60,
+            double nrtTargetMinStaleSec = 1)
+            => new TestIndex(
+                LoggerFactory,
+                Mock.Of<IOptionsMonitor<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions
+                {
+                    NrtTargetMaxStaleSec = nrtTargetMaxStaleSec,
+                    NrtTargetMinStaleSec = nrtTargetMinStaleSec
+                }),
                 writer);
-        }
+
+        protected virtual ILoggerFactory CreateLoggerFactory()
+            => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
+
 
         public TestIndex GetTaxonomyTestIndex(Directory d, Directory taxonomyDirectory, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig facetsConfig = null)
         {
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            var loggerFactory = CreateLoggerFactory();
             return new TestIndex(
                 loggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions

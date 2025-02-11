@@ -40,6 +40,7 @@ Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetPath(int ordinal) -> Examine
 Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory() -> Lucene.Net.Store.Directory?
 Examine.Lucene.Providers.LuceneIndex.LuceneIndex(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions, System.Func<Examine.Lucene.Providers.LuceneIndex!, Examine.Lucene.Providers.IIndexCommiter!>! indexCommiterFactory, Lucene.Net.Index.IndexWriter? writer = null) -> void
 Examine.Lucene.Providers.LuceneIndex.RaiseIndexCommited(object! sender, System.EventArgs! e) -> void
+Examine.Lucene.Providers.LuceneIndex.SnapshotDirectoryTaxonomyIndexWriterFactory.get -> Lucene.Net.Replicator.SnapshotDirectoryTaxonomyIndexWriterFactory!
 Examine.Lucene.Providers.LuceneIndex.TaxonomyWriter.get -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
 Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string! name, Lucene.Net.Search.SearcherManager! searcherManager, Lucene.Net.Analysis.Analyzer! analyzer, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection, Lucene.Net.Facet.FacetsConfig! facetsConfig) -> void
 Examine.Lucene.Providers.LuceneTaxonomySearcher
@@ -175,3 +176,26 @@ virtual Examine.Lucene.Providers.LuceneIndex.TaxonomySearcher.get -> Examine.Luc
 virtual Examine.Lucene.Providers.LuceneTaxonomySearcher.GetTaxonomySearchContext() -> Examine.Lucene.Search.ITaxonomySearchContext!
 virtual Examine.Lucene.Search.LuceneFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed) -> Lucene.Net.Facet.Facets!
 virtual Examine.Lucene.Search.TaxonomySearcherReference.Dispose(bool disposing) -> void
+Examine.Lucene.Directories.FileSystemDirectoryFactory.FileSystemDirectoryFactory(System.IO.DirectoryInfo baseDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions> indexOptions) -> void
+Examine.Lucene.Directories.FileSystemDirectoryFactory.IndexOptions.get -> Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions>
+Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo localDir, System.IO.DirectoryInfo mainDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, bool tryFixMainIndexIfCorrupt) -> void
+Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo localDir, System.IO.DirectoryInfo mainDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions> indexOptions) -> void
+Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo localDir, System.IO.DirectoryInfo mainDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions> indexOptions, bool tryFixMainIndexIfCorrupt) -> void
+Examine.Lucene.Directories.TempEnvFileSystemDirectoryFactory.TempEnvFileSystemDirectoryFactory(Examine.Lucene.Directories.IApplicationIdentifier applicationIdentifier, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions> indexOptions) -> void
+Examine.Lucene.LuceneIndexOptions.NrtCacheMaxCachedMB.get -> double
+Examine.Lucene.LuceneIndexOptions.NrtCacheMaxCachedMB.set -> void
+Examine.Lucene.LuceneIndexOptions.NrtCacheMaxMergeSizeMB.get -> double
+Examine.Lucene.LuceneIndexOptions.NrtCacheMaxMergeSizeMB.set -> void
+Examine.Lucene.LuceneIndexOptions.NrtEnabled.get -> bool
+Examine.Lucene.LuceneIndexOptions.NrtEnabled.set -> void
+Examine.Lucene.LuceneIndexOptions.NrtTargetMaxStaleSec.get -> double
+Examine.Lucene.LuceneIndexOptions.NrtTargetMaxStaleSec.set -> void
+Examine.Lucene.LuceneIndexOptions.NrtTargetMinStaleSec.get -> double
+Examine.Lucene.LuceneIndexOptions.NrtTargetMinStaleSec.set -> void
+Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string name, Lucene.Net.Search.SearcherManager searcherManager, Lucene.Net.Analysis.Analyzer analyzer, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection, bool isNrt) -> void
+Examine.Lucene.Providers.LuceneSearcher.MaybeRefresh() -> bool
+Examine.Lucene.Providers.LuceneSearcher.MaybeRefreshBlocking() -> void
+Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult> results, int totalItemCount, float maxScore, Examine.Lucene.Search.SearchAfterOptions searchAfterOptions) -> void
+Examine.Lucene.Search.SearchContext.SearchContext(Lucene.Net.Search.SearcherManager searcherManager, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection, bool isNrt) -> void
+Examine.Lucene.Search.SearcherReference.SearcherReference() -> void
+virtual Examine.Lucene.Providers.LuceneIndex.UpdateLuceneDocument(Lucene.Net.Index.Term term, Lucene.Net.Documents.Document doc) -> long?

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
@@ -25,6 +27,32 @@ namespace Examine.Test.Examine.Lucene.Search
             NoFacets,
             TaxonomyFacets,
             SortedSetFacets
+        }
+
+        [Test]
+        public void Multiple_Searches()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+
+            using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer, nrtEnabled: false))
+            {
+                indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
+
+                var searcher = indexer1.Searcher;
+
+                var result = searcher.Search("darkness");
+                foreach (var r in result)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                }
+
+                result = searcher.Search("total darkness");
+                foreach (var r in result)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                }
+            }
         }
 
         private bool HasFacets(FacetTestType withFacets) => withFacets == FacetTestType.TaxonomyFacets || withFacets == FacetTestType.SortedSetFacets;
@@ -4224,6 +4252,83 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 //Assert
                 Assert.AreEqual(3, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void By_Id()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { Content = "hello you guys", Type = "type1" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var query = searcher.CreateQuery().Id(2.ToString());
+                Console.WriteLine(query);
+
+                var results = query.Execute();
+
+                //Assert
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+        
+        [Ignore("This test needs to be updated to ensure that searching calls GetFieldInternalQuery with useQueryParser = false, see https://github.com/Shazwazza/Examine/issues/335#issuecomment-1834677581")]
+        [Test]
+        public void Query_With_Category_Multi_Threaded()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { Content = "hello you guys", Type = "type3" }),
+                    ValueSet.FromObject(4.ToString(), "media",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    ValueSet.FromObject(5.ToString(), "media",
+                        new { Content = "hi there, hello world", Type = "type2" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var tasks = Enumerable.Range(0, 1)
+                    .Select(x => new Task(() =>
+                    {
+                        var criteria = searcher.CreateQuery("content", BooleanOperation.And);
+                        IBooleanOperation examineQuery;
+                        examineQuery = criteria
+                            .GroupedOr(new string[] { "Type" }, "type1", "type2")
+                            .And()
+                            .Field("Content", "hel".MultipleCharacterWildcard());
+
+                        var results = examineQuery.Execute();
+
+                        //Assert
+                        Console.WriteLine(results.TotalItemCount + ", Thread: " + Thread.CurrentThread.ManagedThreadId);
+                        Assert.AreEqual(2, results.TotalItemCount);
+                    }))
+                    .ToArray();
+
+                Parallel.ForEach(tasks, x => x.Start());
+
+                Task.WaitAll(tasks);
+
+                Assert.IsTrue(tasks.All(x => x.IsCompletedSuccessfully));
             }
         }
 

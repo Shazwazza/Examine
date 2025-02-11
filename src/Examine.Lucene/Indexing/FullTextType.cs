@@ -128,6 +128,7 @@ namespace Examine.Lucene.Indexing
                 if (_sortable)
                 {
                     //to be sortable it cannot be analyzed so we have to make a different field
+                    // TODO: Investigate https://lucene.apache.org/core/4_3_0/core/org/apache/lucene/document/SortedDocValuesField.html
                     doc.Add(new StringField(
                         ExamineFieldNames.SortedFieldNamePrefix + FieldName,
                         str,

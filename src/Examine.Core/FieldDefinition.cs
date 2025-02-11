@@ -5,7 +5,7 @@ namespace Examine
     /// <summary>
     /// Defines a field to be indexed
     /// </summary>
-    public struct FieldDefinition : IEquatable<FieldDefinition>
+    public readonly struct FieldDefinition : IEquatable<FieldDefinition>
     {
         /// <summary>
         /// Constructor
@@ -18,12 +18,10 @@ namespace Examine
             {
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
             }
-
             if (string.IsNullOrWhiteSpace(type))
             {
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(type));
             }
-
             Name = name;
             Type = type;
         }
@@ -42,13 +40,10 @@ namespace Examine
         public bool Equals(FieldDefinition other) => string.Equals(Name, other.Name) && string.Equals(Type, other.Type);
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
-            if (obj is null)
-            {
+            if (ReferenceEquals(null, obj))
                 return false;
-            }
-
             return obj is FieldDefinition definition && Equals(definition);
         }
 
