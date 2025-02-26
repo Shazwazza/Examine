@@ -12,12 +12,12 @@ namespace Examine
     {
         public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers)
         {
-            foreach(IIndex i in indexes)
+            foreach (var i in indexes)
             {
                 AddIndex(i);
             }
 
-            foreach(ISearcher s in searchers)
+            foreach (var s in searchers)
             {
                 AddSearcher(s);
             }
@@ -74,7 +74,7 @@ namespace Examine
             {
                 if (disposing)
                 {
-                    Stop(false);
+                    // NOTE: Legacy - this used to dispose indexes, but that is managed by DI now
                     Stop(true);
                 }
 
@@ -111,21 +111,6 @@ namespace Examine
                     // we don't want to kill the app or anything, even though it is terminating, best to just ensure that 
                     // no strange lucene background thread stuff causes issues here.
                 }                
-            }
-            else
-            {
-                try
-                {
-                    foreach (var indexer in Indexes.OfType<IDisposable>())
-                    {
-                        indexer.Dispose();
-                    }
-                }
-                catch (Exception)
-                {
-                    //an exception shouldn't occur but if so we need to terminate
-                    Stop(true);
-                }
             }
         }
     }

@@ -15,6 +15,7 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Lucene.Net.Index.IndexWriter;
@@ -69,7 +70,11 @@ namespace Examine.Lucene.Providers
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
 
-            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
+            _directory = new Lazy<Directory>(() =>
+            {
+                _isDirectoryExternallyManaged = directoryOptions.DirectoryFactory is GenericDirectoryFactory gdf && gdf.ExternallyManaged;
+                return directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex);
+            });
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -99,6 +104,7 @@ namespace Examine.Lucene.Providers
 #if FULLDEBUG
         private readonly FileStream _logOutput;
 #endif
+        private bool _isDirectoryExternallyManaged = false;
         private bool _disposedValue;
         private readonly IndexCommiter _committer;
 
@@ -176,7 +182,7 @@ namespace Examine.Lucene.Providers
         /// This should ONLY be used internally by the scheduled committer we should refactor this out in the future
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
+        protected internal bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
 
         #endregion
 
@@ -965,7 +971,7 @@ namespace Examine.Lucene.Providers
 
             var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
             {
-                IndexDeletionPolicy = _options.IndexDeletionPolicy ?? new KeepOnlyLastCommitDeletionPolicy(),
+                IndexDeletionPolicy = _options.IndexDeletionPolicy ?? new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy()),
 #if FULLDEBUG
 
             //If we want to enable logging of lucene output....
@@ -1178,8 +1184,11 @@ namespace Examine.Lucene.Providers
                                 var indexedCount = 0;
                                 try
                                 {
-                                    // execute the callback
-                                    indexedCount = op();
+                                    if (!currentToken.IsCancellationRequested)
+                                    {
+                                        // execute the callback
+                                        indexedCount = op();
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -1312,6 +1321,9 @@ namespace Examine.Lucene.Providers
             {
                 if (disposing)
                 {
+                    //cancel any operation currently in place
+                    _cancellationTokenSource.Cancel();
+
                     if (_nrtReopenThread != null)
                     {
                         _nrtReopenThread.Interrupt();
@@ -1322,9 +1334,6 @@ namespace Examine.Lucene.Providers
                     {
                         _searcher.Value.Dispose();
                     }
-
-                    //cancel any operation currently in place
-                    _cancellationTokenSource.Cancel();
 
                     //Don't close the writer until there are definitely no more writes
                     //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
@@ -1338,6 +1347,7 @@ namespace Examine.Lucene.Providers
                     {
                         try
                         {
+                            // TODO: Is this the same analyzer we dispose below??
                             _writer?.IndexWriter?.Analyzer.Dispose();
                         }
                         catch (ObjectDisposedException)
@@ -1370,6 +1380,11 @@ namespace Examine.Lucene.Providers
                     {
                         DefaultAnalyzer?.Dispose();
                     }
+
+                    if ((_directory?.IsValueCreated ?? false) && !_isDirectoryExternallyManaged)
+                    {
+                        _directory.Value.Dispose();
+                    }                    
                 }
                 _disposedValue = true;
             }

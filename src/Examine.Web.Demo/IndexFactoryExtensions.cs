@@ -1,3 +1,5 @@
+using Examine.Lucene.Directories;
+using Examine.Lucene.Providers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Examine.Web.Demo
@@ -9,9 +11,9 @@ namespace Examine.Web.Demo
     {
         public static IServiceCollection CreateIndexes(this IServiceCollection services)
         {
-            services.AddExamineLuceneIndex("MyIndex");
+            services.AddExamineLuceneIndex<LuceneIndex, SyncedFileSystemDirectoryFactory>("MyIndex");
 
-            services.AddExamineLuceneIndex("SyncedIndex");
+            services.AddExamineLuceneIndex<LuceneIndex, SyncedFileSystemDirectoryFactory>("SyncedIndex");
 
             services.AddExamineLuceneMultiSearcher(
                 "MultiIndexSearcher",

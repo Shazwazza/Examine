@@ -9,11 +9,15 @@ using Examine.Lucene.Providers;
 using Lucene.Net.Codecs.Lucene46;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Directory = Lucene.Net.Store.Directory;
+using Microsoft.AspNetCore.DataProtection.Infrastructure;
+using System.Threading;
 
 namespace Examine.Test.Examine.Lucene.Directories
 {
@@ -22,6 +26,97 @@ namespace Examine.Test.Examine.Lucene.Directories
     public class SyncedFileSystemDirectoryFactoryTests : ExamineBaseTest
     {
         private const int ItemCount = 100;
+
+        [TestCase]
+        public void Given_GenericHostBoot_When_Indexed_Then_ReplicationSucceeds()
+        {
+            var appRoot = new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Guid.NewGuid().ToString()));
+            var applicationDiscriminator = new MyAppDiscriminator();
+            var tempDir = new DirectoryInfo(TempEnvFileSystemDirectoryFactory.GetTempPath(
+                Mock.Of<IApplicationIdentifier>(x => x.GetApplicationUniqueIdentifier() == applicationDiscriminator.Discriminator)));
+
+            try
+            {
+                appRoot.Create();
+
+                var builder = Host.CreateApplicationBuilder();
+                builder.Logging.AddConsole();
+                builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
+                var services = builder.Services;
+
+                services.AddSingleton<IApplicationDiscriminator>(applicationDiscriminator);
+                services.AddExamine(appRoot);
+                services.AddExamineLuceneIndex<LuceneIndex, SyncedFileSystemDirectoryFactory>("MyIndex");
+                services.AddExamineLuceneIndex<LuceneIndex, SyncedFileSystemDirectoryFactory>("SyncedIndex");
+
+                var host = builder.Build();
+
+                var manager = host.Services.GetRequiredService<IExamineManager>();
+                if (!manager.TryGetIndex("MyIndex", out var i1) || i1 is not LuceneIndex index1)
+                {
+                    throw new Exception("Index not found");
+                }
+
+                if (!manager.TryGetIndex("SyncedIndex", out var i2) || i2 is not LuceneIndex index2)
+                {
+                    throw new Exception("Index not found");
+                }
+
+                var dir1 = (SyncedFileSystemDirectory)index1.GetLuceneDirectory();
+                var dir2 = (SyncedFileSystemDirectory)index2.GetLuceneDirectory();
+
+                var dirInfo1 = ((MMapDirectory)((NRTCachingDirectory)dir1.MainLuceneDirectory).Delegate).Directory;
+                var dirInfo2 = ((MMapDirectory)((NRTCachingDirectory)dir2.MainLuceneDirectory).Delegate).Directory;
+                Assert.IsFalse(dirInfo1.Exists);
+                Assert.IsFalse(dirInfo2.Exists);
+
+                try
+                {
+                    using (index1.WithThreadingMode(IndexThreadingMode.Synchronous))
+                    using (index2.WithThreadingMode(IndexThreadingMode.Synchronous))
+                    {
+                        index1.IndexItem(
+                            new ValueSet(1.ToString(), "content",
+                                new Dictionary<string, IEnumerable<object>>
+                                {
+                                    {"item1", new List<object>(new[] {"value1"})},
+                                    {"item2", new List<object>(new[] {"value2"})}
+                                }));
+
+                        index2.IndexItem(
+                            new ValueSet(1.ToString(), "content",
+                                new Dictionary<string, IEnumerable<object>>
+                                {
+                                    {"item1", new List<object>(new[] {"value1"})},
+                                    {"item2", new List<object>(new[] {"value2"})}
+                                }));
+                    }
+
+                    // Allow time to complete indexing/file writing/syncing
+                    Thread.Sleep(1000);
+
+                    host.Dispose();
+                }
+                finally
+                {
+                    // Validate that the replication worked and the directory can be read
+                    Assert.IsTrue(dirInfo1.Exists);
+                    Assert.IsTrue(dirInfo2.Exists);
+                    using var mainDir1 = FSDirectory.Open(dirInfo1);
+                    using var mainDir2 = FSDirectory.Open(dirInfo2);
+                    Assert.Greater(mainDir1.ListAll().Length, 1);
+                    Assert.Greater(mainDir2.ListAll().Length, 1);
+                    Assert.IsTrue(DirectoryReader.IndexExists(mainDir1));
+                    Assert.IsTrue(DirectoryReader.IndexExists(mainDir2));                    
+                }
+            }
+            finally
+            {
+                appRoot.Delete(true);
+                tempDir.Delete(true);
+            }
+        }
 
         [TestCase(true, false, true, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.Fixed | SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully)]
         [TestCase(true, false, false, SyncedFileSystemDirectoryFactory.CreateResult.NotClean | SyncedFileSystemDirectoryFactory.CreateResult.CorruptCreatedNew)]
@@ -57,9 +152,16 @@ namespace Examine.Test.Examine.Lucene.Directories
                         DirectoryFactory = syncedDirFactory
                     }));
 
-                var result = syncedDirFactory.TryCreateDirectory(index, false, out var dir);
-
-                Assert.IsTrue(result.HasFlag(expected), $"{result} does not have flag {expected}");
+                Directory dir = null;
+                try
+                {
+                    var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
+                    Assert.IsTrue(result.HasFlag(expected), $"{result} does not have flag {expected}");
+                }
+                finally
+                {
+                    dir?.Dispose();
+                }
             }
             finally
             {
@@ -98,9 +200,16 @@ namespace Examine.Test.Examine.Lucene.Directories
                             DirectoryFactory = syncedDirFactory
                         }));
 
-                    var result = syncedDirFactory.TryCreateDirectory(index, false, out var dir);
-
-                    Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
+                    Directory dir = null;
+                    try
+                    {
+                        var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
+                        Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
+                    }
+                    finally
+                    {
+                        dir?.Dispose();
+                    }
                 }
 
                 // Ensure the docs are there in main
@@ -224,6 +333,11 @@ namespace Examine.Test.Examine.Lucene.Directories
 
             logger.LogInformation($"Deleting {indexFile.FullName}");
             File.Delete(indexFile.FullName);
+        }
+
+        private class MyAppDiscriminator : IApplicationDiscriminator
+        {
+            public string Discriminator { get; } = Guid.NewGuid().ToString();
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Examine.Lucene.Directories
     /// Creates a Lucene <see cref="Lucene.Net.Store.Directory"/> for an index
     /// </summary>
     /// <remarks>
-    /// The directory created must only be created ONCE per index and disposed when the factory is disposed.
+    /// The directory created must only be created ONCE per index and disposed when the index is disposed.
     /// </remarks>
     public interface IDirectoryFactory : IDisposable
     {

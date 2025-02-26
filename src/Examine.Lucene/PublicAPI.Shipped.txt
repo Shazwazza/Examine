@@ -328,7 +328,6 @@ override Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Exam
 override Examine.Lucene.Directories.MultiIndexLockFactory.ClearLock(string lockName) -> void
 override Examine.Lucene.Directories.MultiIndexLockFactory.MakeLock(string lockName) -> Lucene.Net.Store.Lock
 override Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory
-override Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.Dispose(bool disposing) -> void
 override Examine.Lucene.Indexing.DateTimeType.AddSingleValue(Lucene.Net.Documents.Document doc, object value) -> void
 override Examine.Lucene.Indexing.DateTimeType.GetQuery(string query) -> Lucene.Net.Search.Query
 override Examine.Lucene.Indexing.DateTimeType.GetQuery(System.DateTime? lower, System.DateTime? upper, bool lowerInclusive = true, bool upperInclusive = true) -> Lucene.Net.Search.Query

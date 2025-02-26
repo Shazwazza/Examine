@@ -39,7 +39,7 @@ namespace Examine.Test
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,
-                    DirectoryFactory = new GenericDirectoryFactory(_ => d),
+                    DirectoryFactory = new GenericDirectoryFactory(_ => d, true),
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,

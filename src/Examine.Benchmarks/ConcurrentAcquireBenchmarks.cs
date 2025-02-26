@@ -30,8 +30,7 @@ namespace Examine.Benchmarks
             _tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
 
             // indexer for lucene
-            var tempIndexer = InitializeAndIndexItems(_tempBasePath, _analyzer, out var indexDir);
-            tempIndexer.Dispose();
+            InitializeAndIndexItems(_tempBasePath, _analyzer, out var indexDir);
             _indexDir = FSDirectory.Open(indexDir);
             var writerConfig = new IndexWriterConfig(LuceneVersion.LUCENE_48, _analyzer);
             //writerConfig.SetMaxBufferedDocs(1000);
@@ -113,7 +112,7 @@ namespace Examine.Benchmarks
         protected override ILoggerFactory CreateLoggerFactory()
             => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
 #endif
-        private TestIndex InitializeAndIndexItems(
+        private void InitializeAndIndexItems(
             string tempBasePath,
             Analyzer analyzer,
             out DirectoryInfo indexDir)
@@ -121,8 +120,8 @@ namespace Examine.Benchmarks
             var tempPath = Path.Combine(tempBasePath, Guid.NewGuid().ToString());
             System.IO.Directory.CreateDirectory(tempPath);
             indexDir = new DirectoryInfo(tempPath);
-            var luceneDirectory = FSDirectory.Open(indexDir);
-            var indexer = GetTestIndex(luceneDirectory, analyzer);
+            using var luceneDirectory = FSDirectory.Open(indexDir);
+            using var indexer = GetTestIndex(luceneDirectory, analyzer);
 
             var random = new Random();
             var valueSets = new List<ValueSet>();
@@ -138,8 +137,6 @@ namespace Examine.Benchmarks
             }
 
             indexer.IndexItems(valueSets);
-
-            return indexer;
         }
     }
 }
