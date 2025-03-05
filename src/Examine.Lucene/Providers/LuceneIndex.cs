@@ -21,6 +21,7 @@ using Examine.Lucene.Directories;
 using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Facet.Taxonomy.Directory;
 using static Lucene.Net.Replicator.IndexAndTaxonomyRevision;
+using Lucene.Net.Replicator;
 
 namespace Examine.Lucene.Providers
 {
@@ -1285,9 +1286,9 @@ namespace Examine.Lucene.Providers
             {
                 throw new ArgumentNullException(nameof(d));
             }
-            var taxonomyWriter = new SnapshotDirectoryTaxonomyWriter(d);
 
-            return taxonomyWriter;
+            var factory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
+            return new DirectoryTaxonomyWriter(factory, d);
         }
 
         /// <summary>
