@@ -1,4 +1,5 @@
 ![Nuget](https://img.shields.io/nuget/v/Examine) [![Examine Build](https://github.com/Shazwazza/Examine/actions/workflows/build.yml/badge.svg)](https://github.com/Shazwazza/Examine/actions/workflows/build.yml) [![Build Status](https://dev.azure.com/shazwazza/Examine/_apis/build/status/Shazwazza.Examine?branchName=dev)](https://dev.azure.com/shazwazza/Examine/_build/latest?definitionId=4&branchName=dev) 
+[![libs.tech recommends](https://libs.tech/project/10895804/badge.svg)](https://libs.tech/project/10895804/examine)
 
 Examine
 ===
