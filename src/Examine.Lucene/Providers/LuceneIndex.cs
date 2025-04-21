@@ -354,7 +354,7 @@ namespace Examine.Lucene.Providers
                             //In this case we need to initialize a writer and continue as normal.
                             //Since we are already inside the writer lock and it is null, we are allowed to 
                             // make this call with out using GetIndexWriter() to do the initialization.
-                            _writer ??= CreateIndexWriterInternal();
+                            _writer ??= CreateIndexWriterWithLockCheck();
 
                             //We're forcing an overwrite, 
                             // this means that we need to cancel all operations currently in place,
@@ -416,18 +416,7 @@ namespace Examine.Lucene.Providers
                 }
 
                 //create the writer (this will overwrite old index files)
-                var writerConfig = new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
-                {
-                    OpenMode = OpenMode.CREATE,
-                    MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
-                        (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
-                };
-
-                // TODO: With NRT, we should apparently use this but there is no real implementation of it!?
-                // https://stackoverflow.com/questions/12271614/lucene-net-indexwriter-setmergedsegmentwarmer
-                //writerConfig.SetMergedSegmentWarmer(new SimpleMergedSegmentWarmer())
-
-                writer = new IndexWriter(dir, writerConfig);
+                writer = CreateIndexWriterWithOpenMode(dir, OpenMode.CREATE);
 
                 // Required to remove old index files which can be problematic
                 // if they remain in the index folder when replication is attempted.
@@ -793,7 +782,7 @@ namespace Examine.Lucene.Providers
             private DateTime _timestamp;
             private Timer _timer;
             private readonly object _locker = new object();
-            private const int WaitMilliseconds = 2000;
+            private const int WaitMilliseconds = 1000;
 
             /// <summary>
             /// The maximum time period that will elapse until we must commit (5 mins)
@@ -926,20 +915,21 @@ namespace Examine.Lucene.Providers
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
         /// <returns></returns>
-        private TrackingIndexWriter CreateIndexWriterInternal()
+        private TrackingIndexWriter CreateIndexWriterWithLockCheck()
         {
             var dir = GetLuceneDirectory();
 
-            // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
+            // Unfortunately if the appdomain is taken down this will remain locked, so we can 
             // ensure that it's unlocked here in that case.
             try
             {
                 if (IsLocked(dir))
                 {
-                    if (_logger.IsEnabled(LogLevel.Debug))
+                    if (_logger.IsEnabled(LogLevel.Information))
                     {
                         _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
                     }
+
                     //unlock it!
                     Unlock(dir);
                 }
@@ -962,16 +952,66 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-        protected virtual IndexWriter CreateIndexWriter(Directory d)
+        protected virtual IndexWriter CreateIndexWriter(Directory d) => CreateIndexWriterWithOpenMode(d, OpenMode.CREATE_OR_APPEND);
+
+        /// <summary>
+        /// Gets the TrackingIndexWriter for the current directory
+        /// </summary>
+        /// <remarks>
+        /// Using a TrackingIndexWriter allows for more control over NRT readers. Though Examine doesn't specifically
+        /// use the features of TrackingIndexWriter directly (i.e. to be able to wait for a specific generation),
+        /// this is a requirement of NRT with SearchManager and ControlledRealTimeReopenThread.
+        /// See example: http://www.lucenetutorial.com/lucene-nrt-hello-world.html
+        /// http://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
+        /// https://stackoverflow.com/questions/17993960/lucene-4-4-0-new-controlledrealtimereopenthread-sample-usage
+        /// </remarks>
+        public TrackingIndexWriter IndexWriter
+        {
+            get
+            {
+                EnsureIndex(false);
+
+                if (_writer == null)
+                {
+                    Monitor.Enter(_writerLocker);
+                    try
+                    {
+                        _writer ??= CreateIndexWriterWithLockCheck();
+                    }
+                    finally
+                    {
+                        Monitor.Exit(_writerLocker);
+                    }
+
+                }
+
+                return _writer;
+            }
+        }
+
+        #endregion
+
+        #region Private
+
+        private IndexWriter CreateIndexWriterWithOpenMode(Directory d, OpenMode openMode)
         {
             if (d == null)
             {
                 throw new ArgumentNullException(nameof(d));
             }
-
-            var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
+            var writerConfig = new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
             {
                 IndexDeletionPolicy = _options.IndexDeletionPolicy ?? new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy()),
+                OpenMode = openMode,
+
+                //https://solr.apache.org/guide/solr/latest/configuration-guide/index-segments-merging.html#mergepolicyfactory
+                MergePolicy = new TieredMergePolicy
+                {
+                    MaxMergeAtOnce = 10,
+                    SegmentsPerTier = 10,
+                    ForceMergeDeletesPctAllowed = 10.0f,
+                    MaxMergedSegmentMB = 5000
+                },
 #if FULLDEBUG
 
             //If we want to enable logging of lucene output....
@@ -998,49 +1038,19 @@ namespace Examine.Lucene.Providers
 
                 MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
                     (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
-            });
+            };
+
+            if (_options.NrtEnabled)
+            {
+                // With NRT, we should apparently use this but there is no real implementation of it!?
+                // https://stackoverflow.com/questions/12271614/lucene-net-indexwriter-setmergedsegmentwarmer
+                writerConfig.MergedSegmentWarmer = new SimpleMergedSegmentWarmer(new LoggingInfoStream<LuceneIndex>(_logger));
+            }
+
+            var writer = new IndexWriter(d, writerConfig);
 
             return writer;
         }
-
-        /// <summary>
-        /// Gets the TrackingIndexWriter for the current directory
-        /// </summary>
-        /// <remarks>
-        /// Using a TrackingIndexWriter allows for more control over NRT readers. Though Examine doesn't specifically
-        /// use the features of TrackingIndexWriter directly (i.e. to be able to wait for a specific generation),
-        /// this is a requirement of NRT with SearchManager and ControlledRealTimeReopenThread.
-        /// See example: http://www.lucenetutorial.com/lucene-nrt-hello-world.html
-        /// http://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
-        /// https://stackoverflow.com/questions/17993960/lucene-4-4-0-new-controlledrealtimereopenthread-sample-usage
-        /// </remarks>
-        public TrackingIndexWriter IndexWriter
-        {
-            get
-            {
-                EnsureIndex(false);
-
-                if (_writer == null)
-                {
-                    Monitor.Enter(_writerLocker);
-                    try
-                    {
-                        _writer ??= CreateIndexWriterInternal();
-                    }
-                    finally
-                    {
-                        Monitor.Exit(_writerLocker);
-                    }
-
-                }
-
-                return _writer;
-            }
-        }
-
-        #endregion
-
-        #region Private
 
         private LuceneSearcher CreateSearcher()
         {
