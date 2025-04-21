@@ -102,27 +102,28 @@ namespace Examine.Lucene.Directories
 
             if (mainIndexExists)
             {
-                mainResult = CheckIndexHealthAndFix(mainLuceneDir, luceneIndex.Name, _tryFixMainIndexIfCorrupt);
+                mainResult = CheckIndexHealthAndFix(mainLuceneDir, mainLuceneIndexFolder, luceneIndex.Name, _tryFixMainIndexIfCorrupt);
             }
 
             // the main index is/was unhealthy or missing, lets check the local index if it exists
             if (localIndexExists && (!mainIndexExists || mainResult.HasFlag(CreateResult.NotClean) || mainResult.HasFlag(CreateResult.MissingSegments)))
             {
                 // TODO: add details here and more below too
-                _logger.LogInformation("");
 
-                var localResult = CheckIndexHealthAndFix(localLuceneDir, luceneIndex.Name, false);
+                var localResult = CheckIndexHealthAndFix(localLuceneDir, localLuceneIndexFolder, luceneIndex.Name, false);
 
                 if (localResult == CreateResult.Init)
                 {
                     // it was read successfully, we can sync back to main
-                    localResult |= TryGetIndexWriter(OpenMode.APPEND, localLuceneDir, false, luceneIndex.Name, out var indexWriter);
+                    localResult |= TryGetIndexWriter(OpenMode.APPEND, localLuceneDir, localLuceneIndexFolder, false, luceneIndex.Name, out var indexWriter);
                     using (indexWriter)
                     {
                         if (localResult.HasFlag(CreateResult.OpenedSuccessfully))
                         {
                             SyncIndex(indexWriter, true, luceneIndex.Name, mainLuceneIndexFolder, tempDir);
                             mainResult |= CreateResult.SyncedFromLocal;
+                            // we need to check the main index again, as it may have been fixed by the sync
+                            mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
                         }
                     }
                 }
@@ -137,7 +138,7 @@ namespace Examine.Lucene.Directories
                             ? OpenMode.APPEND
                             : OpenMode.CREATE;
 
-                mainResult |= TryGetIndexWriter(openMode, mainLuceneDir, true, luceneIndex.Name, out var indexWriter);
+                mainResult |= TryGetIndexWriter(openMode, mainLuceneDir, mainLuceneIndexFolder, true, luceneIndex.Name, out var indexWriter);
                 using (indexWriter)
                 {
                     if (!mainResult.HasFlag(CreateResult.SyncedFromLocal))
@@ -192,6 +193,7 @@ namespace Examine.Lucene.Directories
         private CreateResult TryGetIndexWriter(
             OpenMode openMode,
             Directory luceneDirectory,
+            DirectoryInfo directoryInfo,
             bool createNewIfCorrupt,
             string indexName,
             out IndexWriter indexWriter)
@@ -219,9 +221,10 @@ namespace Examine.Lucene.Directories
                 if (createNewIfCorrupt)
                 {
                     // Index is corrupted, typically this will be FileNotFoundException or CorruptIndexException
-                    _logger.LogError(ex, "{IndexName} index is corrupt, a new one will be created", indexName);
+                    _logger.LogError(ex, "{IndexName} at {IndexPath} index is corrupt, a new one will be created", indexName, directoryInfo.FullName);
 
-                    // TODO: Here I think we need to totally clear all files in the directory
+                    // Totally clear all files in the directory
+                    ClearDirectory(directoryInfo);
 
                     indexWriter = GetIndexWriter(luceneDirectory, OpenMode.CREATE);
                 }
@@ -234,16 +237,21 @@ namespace Examine.Lucene.Directories
             }
         }
 
-        private void SyncIndex(IndexWriter sourceIndexWriter, bool forceUnlock, string indexName, DirectoryInfo destinationDirectory, DirectoryInfo tempDir)
+        private void ClearDirectory(DirectoryInfo directoryInfo)
         {
-            // First, we need to clear the main index. If for some reason it is at the same revision, the syncing won't do anything.
-            if (destinationDirectory.Exists)
+            if (directoryInfo.Exists)
             {
-                foreach (var file in destinationDirectory.EnumerateFiles())
+                foreach (var file in directoryInfo.EnumerateFiles())
                 {
                     file.Delete();
                 }
             }
+        }
+
+        private void SyncIndex(IndexWriter sourceIndexWriter, bool forceUnlock, string indexName, DirectoryInfo destinationDirectory, DirectoryInfo tempDir)
+        {
+            // First, we need to clear the main index. If for some reason it is at the same revision, the syncing won't do anything.
+            ClearDirectory(destinationDirectory);
 
             using (var sourceIndex = new LuceneIndex(_loggerFactory, indexName, new TempOptions(), sourceIndexWriter))
             using (var destinationLuceneDirectory = FSDirectory.Open(destinationDirectory, LockFactory.GetLockFactory(destinationDirectory)))
@@ -261,6 +269,7 @@ namespace Examine.Lucene.Directories
 
         private CreateResult CheckIndexHealthAndFix(
             Directory luceneDir,
+            DirectoryInfo directoryInfo,
             string indexName,
             bool doFix)
         {
@@ -280,17 +289,17 @@ namespace Examine.Lucene.Directories
 
             if (status.MissingSegments)
             {
-                _logger.LogWarning("{IndexName} index is missing segments, it will be deleted.", indexName);
+                _logger.LogWarning("{IndexName} index at {IndexPath} is missing segments, it will be deleted.", indexName, directoryInfo.FullName);
                 result = CreateResult.MissingSegments;
             }
             else if (!status.Clean)
             {
-                _logger.LogWarning("Checked main index {IndexName} and it is not clean.", indexName);
+                _logger.LogWarning("Checked index {IndexName} at {IndexPath} and it is not clean.", indexName, directoryInfo.FullName);
                 result = CreateResult.NotClean;
 
                 if (doFix)
                 {
-                    _logger.LogWarning("Attempting to fix {IndexName}. {DocumentsLost} documents will be lost.", indexName, status.TotLoseDocCount);
+                    _logger.LogWarning("Attempting to fix {IndexName} at {IndexPath}. {DocumentsLost} documents will be lost.", indexName, status.TotLoseDocCount, directoryInfo.FullName);
 
                     try
                     {
@@ -299,25 +308,25 @@ namespace Examine.Lucene.Directories
 
                         if (!status.Clean)
                         {
-                            _logger.LogError("{IndexName} index could not be fixed, it will be deleted.", indexName);
+                            _logger.LogError("{IndexName} index at {IndexPath} could not be fixed, it will be deleted.", indexName, directoryInfo.FullName);
                             result |= CreateResult.NotFixed;
                         }
                         else
                         {
-                            _logger.LogInformation("Index {IndexName} fixed. {DocumentsLost} documents were lost.", indexName, status.TotLoseDocCount);
+                            _logger.LogInformation("Index {IndexName} at {IndexPath} fixed. {DocumentsLost} documents were lost.", indexName, status.TotLoseDocCount, directoryInfo.FullName);
                             result |= CreateResult.Fixed;
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "{IndexName} index could not be fixed, it will be deleted.", indexName);
+                        _logger.LogError(ex, "{IndexName} index at {IndexPath} could not be fixed, it will be deleted.", indexName, directoryInfo.FullName);
                         result |= CreateResult.ExceptionNotFixed;
                     }
                 }
             }
             else
             {
-                _logger.LogInformation("Checked main index {IndexName} and it is clean.", indexName);
+                _logger.LogInformation("Checked index {IndexName} at {IndexPath} and it is clean.", indexName, directoryInfo.FullName);
             }
 
             return result;
@@ -332,7 +341,8 @@ namespace Examine.Lucene.Directories
                     new StandardAnalyzer(LuceneInfo.CurrentVersion))
                 {
                     OpenMode = openMode,
-                    IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy())
+                    IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy()),
+                    MergePolicy = new TieredMergePolicy()
                 });
 
             return indexWriter;
