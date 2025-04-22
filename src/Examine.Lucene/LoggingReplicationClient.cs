@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Lucene.Net.Replicator;
 using Microsoft.Extensions.Logging;
 
@@ -27,7 +27,8 @@ namespace Examine.Lucene
 
         private class CustomLoggingInfoStream : LoggingInfoStream<LoggingReplicationClient>
         {
-            public CustomLoggingInfoStream(ILogger<LoggingReplicationClient> logger) : base(logger)
+            public CustomLoggingInfoStream(ILogger<LoggingReplicationClient> logger)
+                : base(logger, LogLevel.Debug)
             {
             }
 
@@ -36,7 +37,7 @@ namespace Examine.Lucene
                 if (Logger.IsEnabled(LogLevel.Debug))
                 {
                     // don't log this, it means there is no session
-                    if (!message.EndsWith("="))
+                    if (!message.EndsWith('='))
                     {
                         base.Message(component, message);
                     }

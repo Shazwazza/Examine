@@ -101,9 +101,6 @@ namespace Examine.Lucene.Providers
         private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
         private readonly Lazy<Directory> _directory;
-#if FULLDEBUG
-        private readonly FileStream _logOutput;
-#endif
         private bool _isDirectoryExternallyManaged = false;
         private bool _disposedValue;
         private readonly IndexCommiter _committer;
@@ -999,6 +996,7 @@ namespace Examine.Lucene.Providers
             {
                 throw new ArgumentNullException(nameof(d));
             }
+
             var writerConfig = new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
             {
                 IndexDeletionPolicy = _options.IndexDeletionPolicy ?? new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy()),
@@ -1012,39 +1010,17 @@ namespace Examine.Lucene.Providers
                     ForceMergeDeletesPctAllowed = 10.0f,
                     MaxMergedSegmentMB = 5000
                 },
-#if FULLDEBUG
-
-            //If we want to enable logging of lucene output....
-            //It is also possible to set a default InfoStream on the static IndexWriter class
-            InfoStream =
-
-            _logOutput?.Close();
-            if (LuceneIndexFolder != null)
-            {
-                try
-                {
-                    System.IO.Directory.CreateDirectory(LuceneIndexFolder.FullName);
-                    _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), FileMode.Append);
-           
-            
-                }
-                catch (Exception ex)
-                {
-                    //if an exception is thrown here we won't worry about it, it will mean we cannot create the log file
-                }
-            }
-
-#endif
-
                 MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
                     (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
             };
+
+            writerConfig.SetInfoStream(new LoggingInfoStream<LuceneIndex>(_logger, LogLevel.Trace));
 
             if (_options.NrtEnabled)
             {
                 // With NRT, we should apparently use this but there is no real implementation of it!?
                 // https://stackoverflow.com/questions/12271614/lucene-net-indexwriter-setmergedsegmentwarmer
-                writerConfig.MergedSegmentWarmer = new SimpleMergedSegmentWarmer(new LoggingInfoStream<LuceneIndex>(_logger));
+                writerConfig.MergedSegmentWarmer = new SimpleMergedSegmentWarmer(new LoggingInfoStream<LuceneIndex>(_logger, LogLevel.Debug));
             }
 
             var writer = new IndexWriter(d, writerConfig);
@@ -1382,9 +1358,6 @@ namespace Examine.Lucene.Providers
                     }
 
                     _cancellationTokenSource.Dispose();
-#if FULLDEBUG
-                    _logOutput?.Close();
-#endif
                     _fieldAnalyzer?.Dispose();
                     if (!object.ReferenceEquals(_fieldAnalyzer, DefaultAnalyzer))
                     {
