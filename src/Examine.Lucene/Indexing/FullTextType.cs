@@ -45,7 +45,7 @@ namespace Examine.Lucene.Indexing
         /// <param name="taxonomyIndex"></param>
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
-        public FullTextType(string fieldName, ILoggerFactory logger, bool isFacetable, bool taxonomyIndex, bool sortable, Analyzer analyzer)
+        public FullTextType(string fieldName, bool isFacetable, bool taxonomyIndex, bool sortable, ILoggerFactory logger, Analyzer analyzer)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
@@ -63,15 +63,12 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        [Obsolete("To be removed in Examine V5")]
+        // [Obsolete("To be removed in Examine V5")] // TODO: Why?
 #pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public FullTextType(string fieldName, ILoggerFactory logger, Analyzer? analyzer = null, bool sortable = false)
 #pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
-            : base(fieldName, logger, true)
+            : this(fieldName, false, false, sortable, logger, analyzer ?? new CultureInvariantStandardAnalyzer())
         {
-            _sortable = sortable;
-            _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
-            _isFacetable = false;
         }
 
         /// <summary>

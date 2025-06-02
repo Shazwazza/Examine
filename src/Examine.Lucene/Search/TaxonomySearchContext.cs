@@ -19,9 +19,6 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="searcherManager"></param>
-        /// <param name="fieldValueTypeCollection"></param>
-        /// <exception cref="ArgumentNullException"></exception>
         public TaxonomySearchContext(SearcherTaxonomyManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, bool isNrt)
         {
             _searcherManager = searcherManager ?? throw new ArgumentNullException(nameof(searcherManager));

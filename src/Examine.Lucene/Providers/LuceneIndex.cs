@@ -37,7 +37,7 @@ namespace Examine.Lucene.Providers
             ILoggerFactory loggerFactory,
             string name,
             IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
-           : this(loggerFactory, name, (IOptionsMonitor<LuceneIndexOptions>)indexOptions)
+           : this(loggerFactory, name, indexOptions, CreateDefaultCommitter)
         {
             var directoryOptions = indexOptions.GetNamedOptions(name);
 
@@ -95,7 +95,6 @@ namespace Examine.Lucene.Providers
             }
             else
             {
-                _taxonomySearcher = new Lazy<LuceneTaxonomySearcher>(() => throw new NotSupportedException("TaxonomySearcher not supported when not using taxonomy index."));
                 _searcher = new Lazy<BaseLuceneSearcher>(CreateSearcher);
             }
 
@@ -110,14 +109,13 @@ namespace Examine.Lucene.Providers
         private PerFieldAnalyzerWrapper? _fieldAnalyzer;
         private ControlledRealTimeReopenThread<IndexSearcher>? _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
-        private readonly Lazy<Directory> _lazyDirectory;
+        private readonly Lazy<Directory>? _lazyDirectory;
         private bool _isDirectoryExternallyManaged = false;
         private bool _disposedValue;
         private readonly IIndexCommitter _committer;
 
         private volatile TrackingIndexWriter? _writer;
-
-        private SnapshotDirectoryTaxonomyIndexWriterFactory _snapshotDirectoryTaxonomyIndexWriterFactory;
+        private volatile DirectoryTaxonomyWriter? _taxonomyWriter;
 
         private int _activeWrites = 0;
 
@@ -170,10 +168,9 @@ namespace Examine.Lucene.Providers
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
 
-        private volatile DirectoryTaxonomyWriter? _taxonomyWriter;
         private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>? _taxonomyNrtReopenThread;
 
-        private readonly Lazy<LuceneTaxonomySearcher> _taxonomySearcher;
+        private readonly Lazy<LuceneTaxonomySearcher>? _taxonomySearcher;
         private readonly Lazy<Directory>? _lazyTaxonomyDirectory;
 
         #region Properties
@@ -376,8 +373,7 @@ namespace Examine.Lucene.Providers
                             if (_options.UseTaxonomyIndex)
                             {
                                 //Now create the taxonomy index
-                                var taxonomyDir = GetLuceneTaxonomyDirectory() ?? throw new InvalidOperationException($"{Name} is configured to use a taxonomy index but the directory is null");
-
+                                var taxonomyDir = GetLuceneTaxonomyDirectory();
                                 CreateNewTaxonomyIndex(taxonomyDir);
                             }
                         }
@@ -756,8 +752,6 @@ namespace Examine.Lucene.Providers
             return _taxonomyExists.Value;
         }
 
-
-
         /// <summary>
         /// Removes the specified term from the index
         /// </summary>
@@ -916,13 +910,13 @@ namespace Examine.Lucene.Providers
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
-        public Directory GetLuceneDirectory() => _writer != null ? _writer.IndexWriter.Directory : _lazyDirectory.Value;
+        public Directory GetLuceneDirectory() => _writer != null ? _writer.IndexWriter.Directory : _lazyDirectory?.Value ?? throw new InvalidOperationException($"{Name} does not have a Lucene Writer or Directory configured.");
 
         /// <summary>
         /// Returns the Lucene Directory used to store the taxonomy index
         /// </summary>
         /// <returns></returns>
-        public Directory? GetLuceneTaxonomyDirectory() => _taxonomyWriter != null ? _taxonomyWriter.Directory : _lazyTaxonomyDirectory?.Value;
+        public Directory GetLuceneTaxonomyDirectory() => _taxonomyWriter != null ? _taxonomyWriter.Directory : _lazyTaxonomyDirectory?.Value ?? throw new InvalidOperationException($"{Name} does not have a Lucene Taxonomy Writer or Directory configured.");
 
 
         /// <summary>
@@ -1052,30 +1046,9 @@ namespace Examine.Lucene.Providers
         }
 
         /// <summary>
-        /// Gets the taxonomy writer for the current index
+        /// Gets the taxonomy writer factory for the current index
         /// </summary>
-        public SnapshotDirectoryTaxonomyIndexWriterFactory SnapshotDirectoryTaxonomyIndexWriterFactory
-        {
-            get
-            {
-                EnsureIndex(false);
-
-                if (_snapshotDirectoryTaxonomyIndexWriterFactory == null)
-                {
-                    Monitor.Enter(_writerLocker);
-                    try
-                    {
-                        _snapshotDirectoryTaxonomyIndexWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
-                    }
-                    finally
-                    {
-                        Monitor.Exit(_writerLocker);
-                    }
-                }
-
-                return _snapshotDirectoryTaxonomyIndexWriterFactory ?? throw new NullReferenceException(nameof(_snapshotDirectoryTaxonomyIndexWriterFactory));
-            }
-        }
+        internal SnapshotDirectoryTaxonomyIndexWriterFactory SnapshotDirectoryTaxonomyIndexWriterFactory { get; } = new SnapshotDirectoryTaxonomyIndexWriterFactory();
 
         /// <summary>
         /// Gets the taxonomy writer for the current index
@@ -1208,7 +1181,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.NrtEnabled, _options.FacetsConfig);
+            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig, _options.NrtEnabled);
         }
 
         private LuceneTaxonomySearcher CreateTaxonomySearcher()
@@ -1241,7 +1214,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.NrtEnabled, _options.FacetsConfig);
+            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig, _options.NrtEnabled);
         }
 
         /// <summary>
@@ -1455,11 +1428,11 @@ namespace Examine.Lucene.Providers
             return false;
         }
 
-        private IIndexCommitter CreateDefaultCommitter(LuceneIndex index)
+        private static IIndexCommitter CreateDefaultCommitter(LuceneIndex index)
         {
-            var committer = new IndexCommitter(index);
-            committer.CommitError += (sender, args) => OnIndexingError(args);
-            committer.Committed += (sender, args) => IndexCommitted?.Invoke(this, EventArgs.Empty);
+            var committer = new IndexCommitter(index, index._cancellationToken);
+            committer.CommitError += (sender, args) => index.OnIndexingError(args);
+            committer.Committed += (sender, args) => index.IndexCommitted?.Invoke(index, EventArgs.Empty);
             return committer;
         }
 

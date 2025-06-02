@@ -30,44 +30,14 @@ namespace Examine.Lucene
         private readonly ILogger<ExamineReplicator> _logger;
 
         /// <summary>
-        /// Creates an instance of <see cref="ExamineReplicator"/>
+        /// Initializes a new instance of the <see cref="ExamineReplicator"/> class.
         /// </summary>
-        /// <param name="loggerFactory">The logger factory</param>
-        /// <param name="sourceIndex">The source index</param>
-        /// <param name="destinationDirectory">The destination directory</param>
-        /// <param name="tempStorage">The temp storage directory info</param>
-        [Obsolete("Use ctor specifying loggers instead")]
-        public ExamineReplicator(
-            ILoggerFactory loggerFactory,
-            LuceneIndex sourceIndex,
-            Directory destinationDirectory,
-            DirectoryInfo tempStorage)
-            : this(
-                  loggerFactory.CreateLogger<ExamineReplicator>(),
-                  loggerFactory.CreateLogger<LoggingReplicationClient>(),
-                  sourceIndex,
-                  destinationDirectory,
-                  tempStorage)
-        {
-        }
-
-        [Obsolete("Use ctor specifying source directory instead")]
-        public ExamineReplicator(
-            ILogger<ExamineReplicator> replicatorLogger,
-            ILogger<LoggingReplicationClient> clientLogger,
-            LuceneIndex sourceIndex,
-            Directory destinationDirectory,
-            DirectoryInfo tempStorage)
-            : this(
-                  replicatorLogger,
-                  clientLogger,
-                  sourceIndex,
-                  UnwrapSourceDirectory(sourceIndex.GetLuceneDirectory()),
-                  destinationDirectory,
-                  tempStorage)
-        {
-        }
-
+        /// <param name="replicatorLogger">The logger for the replicator.</param>
+        /// <param name="clientLogger">The logger for the replication client.</param>
+        /// <param name="sourceIndex">The source index to replicate from.</param>
+        /// <param name="sourceDirectory">The source directory of the index.</param>
+        /// <param name="destinationDirectory">The destination directory for replication.</param>
+        /// <param name="tempStorage">The temporary storage directory used during replication.</param>
         public ExamineReplicator(
             ILogger<ExamineReplicator> replicatorLogger,
             ILogger<LoggingReplicationClient> clientLogger,
@@ -240,6 +210,7 @@ namespace Examine.Lucene
             }
         }
 
+        /// <inheritdoc />
         public void Dispose() =>
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
@@ -266,7 +237,7 @@ namespace Examine.Lucene
                 return UnwrapSourceDirectory(nrtDir.Delegate);
             }
 
-            return null;
+            throw new InvalidOperationException($"Cannot unwrap directory of type {dir.GetType().Name}. Expected FSDirectory or NRTCachingDirectory.");
         }
     }
 }

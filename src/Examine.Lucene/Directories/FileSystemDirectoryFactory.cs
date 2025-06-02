@@ -15,23 +15,9 @@ namespace Examine.Lucene.Directories
     {
         private readonly DirectoryInfo _baseDir;
 
-         /// <summary>
+        /// <summary>
         /// Creates an instance of <see cref="FileSystemDirectoryFactory"/>
         /// </summary>
-        /// <param name="baseDir">The base directory</param>
-        /// <param name="lockFactory">The lock factory</param>
-        [Obsolete("Use ctor with all dependencies")]
-        public FileSystemDirectoryFactory(
-            DirectoryInfo baseDir,
-            ILockFactory lockFactory)
-            : this (baseDir, lockFactory, new FakeLuceneDirectoryIndexOptionsOptionsMonitor())
-        {
-        }
-         /// <summary>
-        /// Creates an instance of <see cref="FileSystemDirectoryFactory"/>
-        /// </summary>
-        /// <param name="baseDir">The base directory</param>
-        /// <param name="lockFactory">The lock factory</param>
         public FileSystemDirectoryFactory(
             DirectoryInfo baseDir,
             ILockFactory lockFactory,
@@ -47,6 +33,9 @@ namespace Examine.Lucene.Directories
         /// </summary>
         public ILockFactory LockFactory { get; }
 
+        /// <summary>
+        /// Provides access to index options for Lucene directories.
+        /// </summary>
         protected IOptionsMonitor<LuceneDirectoryIndexOptions> IndexOptions { get; }
 
         /// <inheritdoc/>
@@ -75,7 +64,7 @@ namespace Examine.Lucene.Directories
         /// <inheritdoc/>
         protected override Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
-            var path = Path.Combine(_baseDir.FullName, luceneIndex.Name,"taxonomy");
+            var path = Path.Combine(_baseDir.FullName, luceneIndex.Name, "taxonomy");
             var luceneIndexFolder = new DirectoryInfo(path);
 
             var dir = FSDirectory.Open(luceneIndexFolder, LockFactory.GetLockFactory(luceneIndexFolder));

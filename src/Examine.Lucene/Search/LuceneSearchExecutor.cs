@@ -79,9 +79,9 @@ namespace Examine.Lucene.Search
             }
 
             var sortFields = _sortField as SortField[] ?? _sortField.ToArray();
-            Sort sort = null;
-            FieldDoc scoreDocAfter = null;
-            Filter filter = null;
+            Sort? sort = null;
+            FieldDoc? scoreDocAfter = null;
+            Filter? filter = null;
 
             using (var searcher = _searchContext.GetSearcher())
             {
@@ -98,6 +98,7 @@ namespace Examine.Lucene.Search
                     sort = new Sort(sortFields);
                     sort.Rewrite(searcher.IndexSearcher);
                 }
+
                 if (_luceneQueryOptions != null && _luceneQueryOptions.SearchAfter != null)
                 {
                     //The document to find results after.
@@ -115,7 +116,7 @@ namespace Examine.Lucene.Search
                 if (sortFields.Length > 0)
                 {
                     bool fillFields = true;
-                    topDocsCollector = TopFieldCollector.Create(sort, numHits, scoreDocAfter, fillFields, trackDocScores, trackMaxScore, false);
+                    topDocsCollector = TopFieldCollector.Create(sort!, numHits, scoreDocAfter, fillFields, trackDocScores, trackMaxScore, false);
                 }
                 else
                 {
@@ -226,7 +227,7 @@ namespace Examine.Lucene.Search
             return scoreDocAfter;
         }
 
-         internal static SearchAfterOptions GetSearchAfterOptions(TopDocs topDocs)
+        internal static SearchAfterOptions? GetSearchAfterOptions(TopDocs topDocs)
         {
             if (topDocs.TotalHits > 0)
             {

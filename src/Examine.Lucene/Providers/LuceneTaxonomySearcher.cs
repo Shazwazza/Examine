@@ -12,23 +12,18 @@ namespace Examine.Lucene.Providers
     /// <summary>
     /// A searcher for taxonomy indexes
     /// </summary>
-    public class LuceneTaxonomySearcher : BaseLuceneSearcher, IDisposable, ILuceneTaxonomySearcher
+    public class LuceneTaxonomySearcher : BaseLuceneSearcher, ILuceneTaxonomySearcher
     {
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private readonly bool _isNrt;
         private bool _disposedValue;
-        private volatile ITaxonomySearchContext _searchContext;
+        private volatile ITaxonomySearchContext? _searchContext;
 
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="searcherManager"></param>
-        /// <param name="analyzer"></param>
-        /// <param name="fieldValueTypeCollection"></param>
-        /// <param name="facetsConfig"></param>
-        public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, bool isNrt, FacetsConfig facetsConfig)
+        public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig, bool isNrt)
             : base(name, analyzer, facetsConfig)
         {
             _searcherManager = searcherManager;
@@ -65,19 +60,17 @@ namespace Examine.Lucene.Providers
             return _searchContext;
         }
 
-        /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
+        /// <inheritdoc />
+#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
+        public override void Dispose()
+#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
         {
             if (!_disposedValue)
             {
-                if (disposing)
-                {
-                    _searcherManager.Dispose();
-                }
-
+                _searcherManager.Dispose();
                 _disposedValue = true;
             }
-            base.Dispose(disposing);
+            ;
         }
 
         /// <inheritdoc/>
@@ -116,7 +109,7 @@ namespace Examine.Lucene.Providers
             var indexSearcher = searcherTaxonomyManager.Acquire();
             try
             {
-                IndexReader indexReader = indexSearcher.Searcher.IndexReader;
+                var indexReader = indexSearcher.Searcher.IndexReader;
                 //if (Debugging.AssertsEnabled)
                 //{
                 //    Debugging.Assert(indexReader is DirectoryReader, "searcher's IndexReader should be a DirectoryReader, but got {0}", indexReader);

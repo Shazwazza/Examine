@@ -8,37 +8,26 @@ namespace Examine.Lucene.Search
     /// </summary>
     public class LuceneQueryOptions : QueryOptions
     {
-        // TODO: Review all this
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="skip">Number of result documents to skip.</param>
-        /// <param name="take">Optional number of result documents to take.</param>
-        /// <param name="searchAfter">Optionally skip to results after the results from the previous search execution. Used for efficient deep paging.</param>
-        /// <param name="trackDocumentScores">Whether to Track Document Scores. For best performance, if not needed, leave false.</param>
-        [Obsolete("To remove in Examine 5.0")]
-#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
-        public LuceneQueryOptions(int skip, int? take = null, SearchAfterOptions? searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false,
-            int skipTakeMaxResults = AbsoluteMaxResults,
-            bool autoCalculateSkipTakeMaxResults = false)
-#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
-            : base(skip, take)
-        {
-            TrackDocumentScores = trackDocumentScores;
-            TrackDocumentMaxScore = trackDocumentMaxScore;
-            SearchAfter = searchAfter;
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="facetSampling">Whether to apply Facet sampling to improve performance. If not required, leave null</param>
         /// <param name="skip">Number of result documents to skip.</param>
         /// <param name="take">Optional number of result documents to take.</param>
         /// <param name="searchAfter">Optionally skip to results after the results from the previous search execution. Used for efficent deep paging.</param>
         /// <param name="trackDocumentMaxScore">Whether to track the maximum document score. For best performance, if not needed, leave false.</param>
+        /// <param name="skipTakeMaxResults">When using Skip/Take (not SearchAfter) this will be the maximum data set size that can be paged.</param>
+        /// <param name="autoCalculateSkipTakeMaxResults">If enabled, this will pre-calculate the document count in the index to use for <see cref="SkipTakeMaxResults"/>.</param>
         /// <param name="trackDocumentScores">Whether to Track Document Scores. For best performance, if not needed, leave false.</param>
-        public LuceneQueryOptions(LuceneFacetSamplingQueryOptions? facetSampling, int skip, int? take, SearchAfterOptions? searchAfter, bool trackDocumentScores, bool trackDocumentMaxScore)
+        /// <param name="facetSampling">Whether to apply Facet sampling to improve performance. If not required, leave null</param>
+        public LuceneQueryOptions(
+            int skip,
+            int? take,
+            SearchAfterOptions? searchAfter,
+            bool trackDocumentScores,
+            bool trackDocumentMaxScore,
+            int skipTakeMaxResults = AbsoluteMaxResults,
+            bool autoCalculateSkipTakeMaxResults = false,
+            LuceneFacetSamplingQueryOptions? facetSampling = null)
             : base(skip, take)
         {
             SearchAfter = searchAfter;

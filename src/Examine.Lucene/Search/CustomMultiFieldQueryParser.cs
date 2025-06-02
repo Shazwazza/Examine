@@ -13,7 +13,7 @@ namespace Examine.Lucene.Search
     /// </summary>
     public class CustomMultiFieldQueryParser : MultiFieldQueryParser
     {
-        private QueryParser _keywordAnalyzerQueryParser;
+        private QueryParser? _keywordAnalyzerQueryParser;
 
         /// <inheritdoc/>
         public CustomMultiFieldQueryParser(LuceneVersion matchVersion, string[] fields, Analyzer analyzer)

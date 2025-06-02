@@ -30,13 +30,12 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
-        [Obsolete("To be removed in Examine V5")]
+        // [Obsolete("To be removed in Examine V5")] // TODO: Why?
 #pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public Int32Type(string fieldName, ILoggerFactory logger, bool store = true)
 #pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
-            : base(fieldName, logger, store)
+            : this(fieldName, false, false, logger, store)
         {
-            _isFacetable = false;
         }
 
         /// <summary>
@@ -69,6 +68,7 @@ namespace Examine.Lucene.Indexing
                 doc.Add(new NumericDocValuesField(FieldName, parsedVal));
                 return;
             }
+
             base.AddValue(doc, value);
         }
 
@@ -101,11 +101,9 @@ namespace Examine.Lucene.Indexing
                 doc.Add(new NumericDocValuesField(FieldName, parsedVal));
             }
         }
+
         /// <inheritdoc/>
-        public override Query GetQuery(string query)
-        {
-            return !TryConvert(query, out int parsedVal) ? null : GetQuery(parsedVal, parsedVal);
-        }
+        public override Query? GetQuery(string query) => !TryConvert(query, out int parsedVal) ? null : GetQuery(parsedVal, parsedVal);
 
         /// <inheritdoc/>
         public override Query GetQuery(int? lower, int? upper, bool lowerInclusive = true, bool upperInclusive = true)

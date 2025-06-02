@@ -11,18 +11,18 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// The number of categories in the Taxonomy
         /// </summary>
-        int CategoryCount { get; }
+        public int CategoryCount { get; }
 
         /// <summary>
         /// Returns the Ordinal for the dim and path
         /// </summary>
-        int GetOrdinal(string dim, string[] path);
+        public int GetOrdinal(string dim, string[] path);
 
         /// <summary>
         /// Given a dimensions ordinal (id), get the Path.
         /// </summary>
         /// <param name="ordinal">Demension ordinal (id)</param>
         /// <returns>Path</returns>
-        IFacetLabel GetPath(int ordinal);
+        public IFacetLabel GetPath(int ordinal);
     }
 }

@@ -31,13 +31,12 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
-        [Obsolete("To be removed in Examine V5")]
+        // [Obsolete("To be removed in Examine V5")] // TODO: Why?
 #pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public SingleType(string fieldName, ILoggerFactory logger, bool store = true)
 #pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
-            : base(fieldName, logger, store)
+            : this(fieldName, false, false, logger, store)
         {
-            _isFacetable = false;
         }
 
         /// <summary>

@@ -10,6 +10,8 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene
 {
+    // TODO: Review all of this so that it is aligned with the fixes for the replicator changes.
+
     /// <summary>
     /// Used to replicate an index to a destination directory
     /// </summary>
