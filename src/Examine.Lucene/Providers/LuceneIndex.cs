@@ -15,6 +15,7 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Lucene.Net.Index.IndexWriter;
@@ -155,7 +156,12 @@ namespace Examine.Lucene.Providers
             {
                 _taxonomyDirectory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateTaxonomyDirectory(this, directoryOptions.UnlockIndex));
             }
-            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
+
+            _directory = new Lazy<Directory>(() =>
+            {
+                _isDirectoryExternallyManaged = directoryOptions.DirectoryFactory is GenericDirectoryFactory gdf && gdf.ExternallyManaged;
+                return directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex);
+            });
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -182,7 +188,7 @@ namespace Examine.Lucene.Providers
         private ControlledRealTimeReopenThread<IndexSearcher>? _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
         private readonly Lazy<Directory> _directory;
-        private readonly FileStream _logOutput;
+        private bool _isDirectoryExternallyManaged = false;
         private bool _disposedValue;
         private readonly IIndexCommiter _committer;
 
@@ -284,7 +290,7 @@ namespace Examine.Lucene.Providers
         /// This should ONLY be used internally by the scheduled committer we should refactor this out in the future
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
+        protected internal bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
 
         #endregion
 
@@ -475,7 +481,7 @@ namespace Examine.Lucene.Providers
                             //In this case we need to initialize a writer and continue as normal.
                             //Since we are already inside the writer lock and it is null, we are allowed to 
                             // make this call with out using GetIndexWriter() to do the initialization.
-                            _writer ??= CreateIndexWriterInternal();
+                            _writer ??= CreateIndexWriterWithLockCheck();
 
                             if (_options.UseTaxonomyIndex && _taxonomyWriter == null)
                             {
@@ -542,18 +548,7 @@ namespace Examine.Lucene.Providers
                 }
 
                 //create the writer (this will overwrite old index files)
-                var writerConfig = new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
-                {
-                    OpenMode = OpenMode.CREATE,
-                    MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
-                        (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
-                };
-
-                // TODO: With NRT, we should apparently use this but there is no real implementation of it!?
-                // https://stackoverflow.com/questions/12271614/lucene-net-indexwriter-setmergedsegmentwarmer
-                //writerConfig.SetMergedSegmentWarmer(new SimpleMergedSegmentWarmer())
-
-                writer = new IndexWriter(dir, writerConfig);
+                writer = CreateIndexWriterWithOpenMode(dir, OpenMode.CREATE);
 
                 // Required to remove old index files which can be problematic
                 // if they remain in the index folder when replication is attempted.
@@ -989,7 +984,7 @@ namespace Examine.Lucene.Providers
             private DateTime _timestamp;
             private Timer? _timer;
             private readonly object _locker = new object();
-            private const int WaitMilliseconds = 2000;
+            private const int WaitMilliseconds = 1000;
 
             /// <summary>
             /// The maximum time period that will elapse until we must commit (5 mins)
@@ -1136,20 +1131,21 @@ namespace Examine.Lucene.Providers
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
         /// <returns></returns>
-        private TrackingIndexWriter? CreateIndexWriterInternal()
+        private TrackingIndexWriter CreateIndexWriterWithLockCheck()
         {
             var dir = GetLuceneDirectory();
 
-            // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
+            // Unfortunately if the appdomain is taken down this will remain locked, so we can 
             // ensure that it's unlocked here in that case.
             try
             {
                 if (IsLocked(dir))
                 {
-                    if (_logger.IsEnabled(LogLevel.Debug))
+                    if (_logger.IsEnabled(LogLevel.Information))
                     {
                         _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
                     }
+
                     //unlock it!
                     Unlock(dir);
                 }
@@ -1172,46 +1168,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-        protected virtual IndexWriter CreateIndexWriter(Directory? d)
-        {
-            if (d == null)
-            {
-                throw new ArgumentNullException(nameof(d));
-            }
-
-            var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
-            {
-                IndexDeletionPolicy = _options.IndexDeletionPolicy ?? new KeepOnlyLastCommitDeletionPolicy(),
-#if FULLDEBUG
-
-            //If we want to enable logging of lucene output....
-            //It is also possible to set a default InfoStream on the static IndexWriter class
-            InfoStream =
-
-            _logOutput?.Close();
-            if (LuceneIndexFolder != null)
-            {
-                try
-                {
-                    System.IO.Directory.CreateDirectory(LuceneIndexFolder.FullName);
-                    _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), FileMode.Append);
-           
-            
-                }
-                catch (Exception ex)
-                {
-                    //if an exception is thrown here we won't worry about it, it will mean we cannot create the log file
-                }
-            }
-
-#endif
-
-                MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
-                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
-            });
-
-            return writer;
-        }
+        protected virtual IndexWriter CreateIndexWriter(Directory d) => CreateIndexWriterWithOpenMode(d, OpenMode.CREATE_OR_APPEND);
 
         /// <summary>
         /// Gets the TrackingIndexWriter for the current directory
@@ -1235,7 +1192,7 @@ namespace Examine.Lucene.Providers
                     Monitor.Enter(_writerLocker);
                     try
                     {
-                        _writer ??= CreateIndexWriterInternal();
+                        _writer ??= CreateIndexWriterWithLockCheck();
                     }
                     finally
                     {
@@ -1351,6 +1308,44 @@ namespace Examine.Lucene.Providers
         #endregion
 
         #region Private
+
+        private IndexWriter CreateIndexWriterWithOpenMode(Directory d, OpenMode openMode)
+        {
+            if (d == null)
+            {
+                throw new ArgumentNullException(nameof(d));
+            }
+
+            var writerConfig = new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
+            {
+                IndexDeletionPolicy = _options.IndexDeletionPolicy ?? new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy()),
+                OpenMode = openMode,
+
+                //https://solr.apache.org/guide/solr/latest/configuration-guide/index-segments-merging.html#mergepolicyfactory
+                MergePolicy = new TieredMergePolicy
+                {
+                    MaxMergeAtOnce = 10,
+                    SegmentsPerTier = 10,
+                    ForceMergeDeletesPctAllowed = 10.0f,
+                    MaxMergedSegmentMB = 5000
+                },
+                MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
+                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
+            };
+
+            writerConfig.SetInfoStream(new LoggingInfoStream<LuceneIndex>(_logger, LogLevel.Trace));
+
+            if (_options.NrtEnabled)
+            {
+                // With NRT, we should apparently use this but there is no real implementation of it!?
+                // https://stackoverflow.com/questions/12271614/lucene-net-indexwriter-setmergedsegmentwarmer
+                writerConfig.MergedSegmentWarmer = new SimpleMergedSegmentWarmer(new LoggingInfoStream<LuceneIndex>(_logger, LogLevel.Debug));
+            }
+
+            var writer = new IndexWriter(d, writerConfig);
+
+            return writer;
+        }
 
         private LuceneSearcher CreateSearcher()
         {
@@ -1528,8 +1523,11 @@ namespace Examine.Lucene.Providers
                                 var indexedCount = 0;
                                 try
                                 {
-                                    // execute the callback
-                                    indexedCount = op();
+                                    if (!currentToken.IsCancellationRequested)
+                                    {
+                                        // execute the callback
+                                        indexedCount = op();
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -1665,6 +1663,9 @@ namespace Examine.Lucene.Providers
             {
                 if (disposing)
                 {
+                    //cancel any operation currently in place
+                    _cancellationTokenSource.Cancel();
+
                     if (_nrtReopenThread is not null)
                     {
                         _nrtReopenThread.Interrupt();
@@ -1683,9 +1684,6 @@ namespace Examine.Lucene.Providers
                         _searcher.Value.Dispose();
                     }
 
-                    //cancel any operation currently in place
-                    _cancellationTokenSource.Cancel();
-
                     //Don't close the writer until there are definitely no more writes
                     //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
                     //we are not terminating Lucene while it is actively writing to the index.
@@ -1698,6 +1696,7 @@ namespace Examine.Lucene.Providers
                     {
                         try
                         {
+                            // TODO: Is this the same analyzer we dispose below??
                             _writer?.IndexWriter?.Analyzer.Dispose();
                         }
                         catch (ObjectDisposedException)
@@ -1734,15 +1733,16 @@ namespace Examine.Lucene.Providers
                     }
 
                     _cancellationTokenSource.Dispose();
-
-#if FULLDEBUG
-                    _logOutput?.Close();
-#endif
                     _fieldAnalyzer?.Dispose();
                     if (!object.ReferenceEquals(_fieldAnalyzer, DefaultAnalyzer))
                     {
                         DefaultAnalyzer?.Dispose();
                     }
+
+                    if ((_directory?.IsValueCreated ?? false) && !_isDirectoryExternallyManaged)
+                    {
+                        _directory.Value.Dispose();
+                    }                    
                 }
                 _disposedValue = true;
             }

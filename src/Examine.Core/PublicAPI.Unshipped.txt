@@ -92,4 +92,3 @@ Examine.Search.OrderingExtensions
 static Examine.Search.OrderingExtensions.WithFacets(this Examine.Search.IOrdering! ordering, System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
 const Examine.Search.QueryOptions.AbsoluteMaxResults = 10000 -> int
 const Examine.Search.QueryOptions.DefaultMaxResults = 100 -> int
-static Examine.SearchExtensions.Escape(this string s, float boost) -> Examine.Search.IExamineValue

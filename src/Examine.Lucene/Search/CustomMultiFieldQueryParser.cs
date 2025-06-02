@@ -1,7 +1,6 @@
 using System;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Core;
-using Lucene.Net.QueryParsers;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using Lucene.Net.Util;

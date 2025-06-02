@@ -85,7 +85,11 @@ namespace Examine.Lucene.Search
 
             using (var searcher = _searchContext.GetSearcher())
             {
-                var maxResults = Math.Min((_options.Skip + 1) * _options.Take, QueryOptions.AbsoluteMaxResults);
+                var maxSkipTakeDataSetSize = _luceneQueryOptions?.AutoCalculateSkipTakeMaxResults ?? false
+                    ? GetMaxDoc()
+                    : _luceneQueryOptions?.SkipTakeMaxResults ?? QueryOptions.AbsoluteMaxResults;
+
+                var maxResults = Math.Min((_options.Skip + 1) * _options.Take, maxSkipTakeDataSetSize);
                 maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
                 int numHits = maxResults;
 
@@ -173,7 +177,7 @@ namespace Examine.Lucene.Search
                 // See https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
                 foreach (var scoreDoc in topDocs.ScoreDocs)
                 {
-                    var result = GetSearchResult(scoreDoc, topDocs, searcher.IndexSearcher);
+                    var result = GetSearchResult(scoreDoc, searcher.IndexSearcher);
                     if (result != null)
                     {
                         results.Add(result);
@@ -185,6 +189,20 @@ namespace Examine.Lucene.Search
 
                 return new LuceneSearchResults(results, totalItemCount, facets, maxScore, searchAfterOptions);
             }
+        }
+
+        /// <summary>
+        /// Used to calculate the total number of documents in the index.
+        /// </summary>
+        private int GetMaxDoc()
+        {
+            if (_maxDoc == null)
+            {
+                using var searcher = _searchContext.GetSearcher();
+                _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
+            }
+
+            return _maxDoc.Value;
         }
 
         private static FieldDoc GetScoreDocAfter(SearchAfterOptions searchAfterOptions)
@@ -259,7 +277,7 @@ namespace Examine.Lucene.Search
             return facets;
         }
 
-        private LuceneSearchResult GetSearchResult(ScoreDoc scoreDoc, TopDocs topDocs, IndexSearcher luceneSearcher)
+        private LuceneSearchResult GetSearchResult(ScoreDoc scoreDoc, IndexSearcher luceneSearcher)
         {
             var docId = scoreDoc.Doc;
             Document doc;

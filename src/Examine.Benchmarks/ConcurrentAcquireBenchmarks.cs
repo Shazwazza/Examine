@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using Lucene.Net.Analysis;
@@ -29,8 +30,7 @@ namespace Examine.Benchmarks
             _tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
 
             // indexer for lucene
-            var tempIndexer = InitializeAndIndexItems(_tempBasePath, _analyzer, out var indexDir);
-            tempIndexer.Dispose();
+            InitializeAndIndexItems(_tempBasePath, _analyzer, out var indexDir);
             _indexDir = FSDirectory.Open(indexDir);
             var writerConfig = new IndexWriterConfig(LuceneVersion.LUCENE_48, _analyzer);
             //writerConfig.SetMaxBufferedDocs(1000);
@@ -46,13 +46,13 @@ namespace Examine.Benchmarks
         [GlobalCleanup]
         public override void TearDown()
         {
-            _searcherManager.Dispose();
-            _writer.Dispose();
-            _indexDir.Dispose();
+            _searcherManager?.Dispose();
+            _writer?.Dispose();
+            _indexDir?.Dispose();
 
             base.TearDown();
 
-            System.IO.Directory.Delete(_tempBasePath, true);
+            System.IO.Directory.Delete(_tempBasePath!, true);
         }
 
         [Params(1, 15, 30, 100)]
@@ -65,10 +65,7 @@ namespace Examine.Benchmarks
 
             for (var i = 0; i < ThreadCount; i++)
             {
-                tasks.Add(new Task(() =>
-                {
-                    var i = 0;
-                }));
+                tasks.Add(new Task(() => Debug.Write(i)));
             }
 
             foreach (var task in tasks)
@@ -88,7 +85,7 @@ namespace Examine.Benchmarks
             {
                 tasks.Add(new Task(() =>
                 {
-                    var searcher = _searcherManager.Acquire();
+                    var searcher = _searcherManager!.Acquire();
                     try
                     {
                         if (searcher.IndexReader.RefCount > (ThreadCount + 1))
@@ -115,7 +112,7 @@ namespace Examine.Benchmarks
         protected override ILoggerFactory CreateLoggerFactory()
             => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
 #endif
-        private TestIndex InitializeAndIndexItems(
+        private void InitializeAndIndexItems(
             string tempBasePath,
             Analyzer analyzer,
             out DirectoryInfo indexDir)
@@ -123,8 +120,8 @@ namespace Examine.Benchmarks
             var tempPath = Path.Combine(tempBasePath, Guid.NewGuid().ToString());
             System.IO.Directory.CreateDirectory(tempPath);
             indexDir = new DirectoryInfo(tempPath);
-            var luceneDirectory = FSDirectory.Open(indexDir);
-            var indexer = GetTestIndex(luceneDirectory, analyzer);
+            using var luceneDirectory = FSDirectory.Open(indexDir);
+            using var indexer = GetTestIndex(luceneDirectory, analyzer);
 
             var random = new Random();
             var valueSets = new List<ValueSet>();
@@ -140,8 +137,6 @@ namespace Examine.Benchmarks
             }
 
             indexer.IndexItems(valueSets);
-
-            return indexer;
         }
     }
 }

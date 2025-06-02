@@ -17,7 +17,7 @@ namespace Examine.Web.Demo
             _loggerFactory = loggerFactory;
         }
 
-        public void Configure(string name, LuceneDirectoryIndexOptions options)
+        public void Configure(string? name, LuceneDirectoryIndexOptions options)
         {
             switch (name)
             {

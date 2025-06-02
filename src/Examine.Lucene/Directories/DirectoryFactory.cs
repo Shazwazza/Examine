@@ -34,6 +34,18 @@ namespace Examine.Lucene.Directories
             _taxonomyDirectoryFactory = taxonomyDirectoryFactory;
         }
 
+        internal GenericDirectoryFactory(Func<string, Directory> factory, Func<string, Directory> taxonomyDirectoryFactory, bool externallyManaged)
+        {
+            _factory = factory;
+            _taxonomyDirectoryFactory = taxonomyDirectoryFactory;
+            ExternallyManaged = externallyManaged;
+        }
+        
+        /// <summary>
+        /// When set to true, indicates that the directory is managed externally and will be disposed of by the caller, not the index.
+        /// </summary>
+        internal bool ExternallyManaged { get; }
+        
         /// <inheritdoc/>
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {

@@ -1,9 +1,11 @@
 using System;
 using System.IO;
+using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
 using Lucene.Net.Index;
 using Lucene.Net.Replicator;
 using Lucene.Net.Store;
+using Lucene.Net.Util;
 using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 
@@ -18,10 +20,11 @@ namespace Examine.Lucene
     public class ExamineReplicator : IDisposable
     {
         private bool _disposedValue;
-        private readonly IReplicator _replicator;
+        private readonly LocalReplicator _replicator;
         private readonly LuceneIndex _sourceIndex;
+        private readonly Directory _sourceDirectory;
         private readonly Directory _destinationDirectory;
-        private readonly ReplicationClient _localReplicationClient;
+        private readonly Lazy<LoggingReplicationClient> _localReplicationClient;
         private readonly object _locker = new object();
         private bool _started = false;
         private readonly ILogger<ExamineReplicator> _logger;
@@ -33,42 +36,74 @@ namespace Examine.Lucene
         /// <param name="sourceIndex">The source index</param>
         /// <param name="destinationDirectory">The destination directory</param>
         /// <param name="tempStorage">The temp storage directory info</param>
+        [Obsolete("Use ctor specifying loggers instead")]
         public ExamineReplicator(
             ILoggerFactory loggerFactory,
             LuceneIndex sourceIndex,
             Directory destinationDirectory,
             DirectoryInfo tempStorage)
+            : this(
+                  loggerFactory.CreateLogger<ExamineReplicator>(),
+                  loggerFactory.CreateLogger<LoggingReplicationClient>(),
+                  sourceIndex,
+                  destinationDirectory,
+                  tempStorage)
+        {
+        }
+
+        [Obsolete("Use ctor specifying source directory instead")]
+        public ExamineReplicator(
+            ILogger<ExamineReplicator> replicatorLogger,
+            ILogger<LoggingReplicationClient> clientLogger,
+            LuceneIndex sourceIndex,
+            Directory destinationDirectory,
+            DirectoryInfo tempStorage)
+            : this(
+                  replicatorLogger,
+                  clientLogger,
+                  sourceIndex,
+                  UnwrapSourceDirectory(sourceIndex.GetLuceneDirectory()),
+                  destinationDirectory,
+                  tempStorage)
+        {
+        }
+
+        public ExamineReplicator(
+            ILogger<ExamineReplicator> replicatorLogger,
+            ILogger<LoggingReplicationClient> clientLogger,
+            LuceneIndex sourceIndex,
+            Directory sourceDirectory,
+            Directory destinationDirectory,
+            DirectoryInfo tempStorage)
         {
             _sourceIndex = sourceIndex;
+            _sourceDirectory = sourceDirectory;
             _destinationDirectory = destinationDirectory;
             _replicator = new LocalReplicator();
-            _logger = loggerFactory.CreateLogger<ExamineReplicator>();
+            _logger = replicatorLogger;
 
-            _localReplicationClient = new LoggingReplicationClient(
-                loggerFactory.CreateLogger<LoggingReplicationClient>(),
-                _replicator,
-                new IndexReplicationHandler(
-                    destinationDirectory,
-                    () =>
-                    {
-                        if (_logger.IsEnabled(LogLevel.Debug))
+            _localReplicationClient = new Lazy<LoggingReplicationClient>(()
+                => new LoggingReplicationClient(
+                    clientLogger,
+                    _replicator,
+                    new IndexReplicationHandler(
+                        destinationDirectory,
+                        () =>
                         {
-                            var sourceDir = sourceIndex.GetLuceneDirectory() as FSDirectory;
-                            var destDir = destinationDirectory as FSDirectory;
-
-                            // Callback, can be used to notifiy when replication is done (i.e. to open the index)
+                            // Callback, can be used to notify when replication is done (i.e. to open the index)
                             if (_logger.IsEnabled(LogLevel.Debug))
                             {
+                                var sourceDir = UnwrapDirectory(sourceDirectory);
+                                var destDir = UnwrapDirectory(destinationDirectory);
+
                                 _logger.LogDebug(
                                     "{IndexName} replication complete from {SourceDirectory} to {DestinationDirectory}",
                                     sourceIndex.Name,
                                     sourceDir?.Directory.ToString() ?? "InMemory",
                                     destDir?.Directory.ToString() ?? "InMemory");
                             }
-                        }
-                  
-                    }),
-                new PerSessionDirectoryFactory(tempStorage.FullName));
+                        }),
+                    new PerSessionDirectoryFactory(tempStorage.FullName)));
         }
 
         /// <summary>
@@ -83,7 +118,7 @@ namespace Examine.Lucene
 
             _logger.LogInformation(
                 "Replicating index from {SourceIndex} to {DestinationIndex}",
-                _sourceIndex.GetLuceneDirectory(),
+                _sourceDirectory,
                 _destinationDirectory);
 
             IndexRevision rev;
@@ -99,11 +134,11 @@ namespace Examine.Lucene
             }
 
             _replicator.Publish(rev);
-            _localReplicationClient.UpdateNow();
+            _localReplicationClient.Value.UpdateNow();
 
             _logger.LogInformation(
                 "Replication from index {SourceIndex} to {DestinationIndex} complete.",
-                _sourceIndex.GetLuceneDirectory(),
+                _sourceDirectory,
                 _destinationDirectory);
         }
 
@@ -114,14 +149,19 @@ namespace Examine.Lucene
         /// <exception cref="InvalidOperationException"></exception>
         public void StartIndexReplicationOnSchedule(int milliseconds)
         {
+            if (_started)
+            {
+                return;
+            }
+
             lock (_locker)
             {
-                if (_started)
+                _started = true;
+
+                if (_sourceIndex.IsCancellationRequested)
                 {
                     return;
                 }
-
-                _started = true;
 
                 if (IndexWriter.IsLocked(_destinationDirectory))
                 {
@@ -132,7 +172,7 @@ namespace Examine.Lucene
 
                 // this will update the destination every second if there are changes.
                 // the change monitor will be stopped when this is disposed.
-                _localReplicationClient.StartUpdateThread(milliseconds, $"IndexRep{_sourceIndex.Name}");
+                _localReplicationClient.Value.StartUpdateThread(milliseconds, $"IndexRep{_sourceIndex.Name}");
             }
 
         }
@@ -153,8 +193,12 @@ namespace Examine.Lucene
                 }
                 _logger.LogDebug("{IndexName} committed", index?.Name ?? $"({nameof(index)} is null)");
             }
-            var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
-            _replicator.Publish(rev);
+
+            if (!_sourceIndex.IsCancellationRequested)
+            {
+                var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+                _replicator.Publish(rev);
+            }
         }
 
         /// <summary>
@@ -168,22 +212,61 @@ namespace Examine.Lucene
                 if (disposing)
                 {
                     _sourceIndex.IndexCommitted -= SourceIndex_IndexCommitted;
-                    _localReplicationClient.Dispose();
+
+                    // Disposal in this order based on lucene.net tests:
+                    // https://github.com/apache/lucenenet/blob/6b161d961a7764f2d2dbe90ee2ae03f73ccce019/src/Lucene.Net.Tests.Replicator/IndexReplicationClientTest.cs#L169
+                    // replicator client
+                    // writer
+                    // replicator
+                    // publish directory
+                    // handler directory
+
+                    // We have:
+                    //   writer - done with LuceneIndex
+                    //   SyncedFileSystemDirectory - done with LuceneIndex
+                    //   - ExamineReplicator (this)
+                    //   -- client
+                    //   --- replicator
+                    //   - publish directory
+                    //   - handler directory - done with base class FilterDirectory
+                    if (_localReplicationClient.IsValueCreated)
+                    {
+                        _localReplicationClient.Value.Dispose();
+                    }
+                    _replicator.Dispose();
                 }
 
                 _disposedValue = true;
             }
         }
 
-        /// <summary>
-        /// Disposes the instance
-        /// </summary>
-        public void Dispose()
-        {
+        public void Dispose() =>
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-#pragma warning disable IDE0022 // Use expression body for method
             Dispose(disposing: true);
-#pragma warning restore IDE0022 // Use expression body for method
+
+        private static FSDirectory UnwrapSourceDirectory(Directory dir)
+        {
+            if (dir is SyncedFileSystemDirectory syncedDir)
+            {
+                return UnwrapDirectory(syncedDir.LocalLuceneDirectory);
+            }
+
+            return UnwrapDirectory(dir);
+        }
+
+        private static FSDirectory UnwrapDirectory(Directory dir)
+        {
+            if (dir is FSDirectory fsDir)
+            {
+                return fsDir;
+            }
+
+            if (dir is NRTCachingDirectory nrtDir)
+            {
+                return UnwrapSourceDirectory(nrtDir.Delegate);
+            }
+
+            return null;
         }
     }
 }

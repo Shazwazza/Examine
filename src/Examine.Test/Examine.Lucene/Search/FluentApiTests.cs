@@ -13,6 +13,7 @@ using Lucene.Net.Facet;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 
 
@@ -4282,7 +4283,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(1, results.TotalItemCount);
             }
         }
-        
+
         [Ignore("This test needs to be updated to ensure that searching calls GetFieldInternalQuery with useQueryParser = false, see https://github.com/Shazwazza/Examine/issues/335#issuecomment-1834677581")]
         [Test]
         public void Query_With_Category_Multi_Threaded()
@@ -4684,6 +4685,7 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
+        // TODO: Redo this with the updated code Paging_With_Skip_Take from v3
         [TestCase(FacetTestType.TaxonomyFacets)]
         [TestCase(FacetTestType.SortedSetFacets)]
         [TestCase(FacetTestType.NoFacets)]
