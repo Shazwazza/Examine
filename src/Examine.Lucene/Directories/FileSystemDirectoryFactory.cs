@@ -11,7 +11,7 @@ namespace Examine.Lucene.Directories
     /// <summary>
     /// Represents a directory factory for creating file system directories
     /// </summary>
-    public class FileSystemDirectoryFactory : DirectoryFactoryBase
+    public class FileSystemDirectoryFactory : IDirectoryFactory
     {
         private readonly DirectoryInfo _baseDir;
 
@@ -39,7 +39,7 @@ namespace Examine.Lucene.Directories
         protected IOptionsMonitor<LuceneDirectoryIndexOptions> IndexOptions { get; }
 
         /// <inheritdoc/>
-        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        public virtual Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var path = Path.Combine(_baseDir.FullName, luceneIndex.Name);
             var luceneIndexFolder = new DirectoryInfo(path);
@@ -62,7 +62,7 @@ namespace Examine.Lucene.Directories
         }
 
         /// <inheritdoc/>
-        protected override Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        public Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var path = Path.Combine(_baseDir.FullName, luceneIndex.Name, "taxonomy");
             var luceneIndexFolder = new DirectoryInfo(path);

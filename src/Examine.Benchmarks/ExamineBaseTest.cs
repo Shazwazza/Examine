@@ -22,7 +22,7 @@ namespace Examine.Benchmarks
         public virtual void TearDown() => LoggerFactory!.Dispose();
 
         public TestIndex GetTestIndex(
-            Directory d,
+            Directory luceneDirectory,
             Analyzer analyzer,
             FieldDefinitionCollection? fieldDefinitions = null,
             IndexDeletionPolicy? indexDeletionPolicy = null,
@@ -34,8 +34,8 @@ namespace Examine.Benchmarks
                 LoggerFactory!,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
-                    FieldDefinitions = fieldDefinitions,
-                    DirectoryFactory = new GenericDirectoryFactory(_ => d, true),
+                    FieldDefinitions = fieldDefinitions ?? new FieldDefinitionCollection(),
+                    DirectoryFactory = GenericDirectoryFactory.FromExternallyManaged(_ => luceneDirectory, null),
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,

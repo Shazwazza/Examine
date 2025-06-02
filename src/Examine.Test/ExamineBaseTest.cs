@@ -39,7 +39,7 @@ namespace Examine.Test
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,
-                    DirectoryFactory = new GenericDirectoryFactory(_ => d, true),
+                    DirectoryFactory = GenericDirectoryFactory.FromExternallyManaged(_ => d, null),
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
@@ -74,7 +74,7 @@ namespace Examine.Test
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,
-                    DirectoryFactory = new GenericDirectoryFactory(_ => d, _ => taxonomyDirectory),
+                    DirectoryFactory = GenericDirectoryFactory.FromExternallyManaged(_ => d, _ => taxonomyDirectory),
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,

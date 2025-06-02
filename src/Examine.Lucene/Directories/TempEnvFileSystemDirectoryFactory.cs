@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 
 namespace Examine.Lucene.Directories
 {
-
     /// <summary>
     /// A directory factory used to create an instance of FSDirectory that uses the current %temp% environment variable.
     /// </summary>

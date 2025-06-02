@@ -24,12 +24,12 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
            this IServiceCollection serviceCollection,
            string name,
-           Action<ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>> configuration)
+           Action<LuceneDirectoryIndexOptions>? configuration = null)
            where TIndex : LuceneIndex
            where TDirectoryFactory : class, IDirectoryFactory
         {
-            var config = new ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>(name);
-            configuration.Invoke(config);
+            var config = new LuceneDirectoryIndexOptions();
+            configuration?.Invoke(config);
 
             // This is the long way to add IOptions but gives us access to the
             // services collection which we need to get the dir factory
@@ -49,8 +49,7 @@ namespace Examine
 
             return serviceCollection.AddSingleton<IIndex>(services =>
             {
-                var options
-                        = services.GetRequiredService<IOptionsMonitor<LuceneDirectoryIndexOptions>>();
+                var options = services.GetRequiredService<IOptionsMonitor<LuceneDirectoryIndexOptions>>();
 
                 var index = ActivatorUtilities.CreateInstance<TIndex>(
                     services,
@@ -66,7 +65,7 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex(
             this IServiceCollection serviceCollection,
             string name,
-            Action<ExamineLuceneIndexConfiguration<LuceneIndex, FileSystemDirectoryFactory>> configuration) => serviceCollection.AddExamineLuceneIndex<LuceneIndex, FileSystemDirectoryFactory>(name, configuration);
+            Action<LuceneDirectoryIndexOptions>? configuration = null) => serviceCollection.AddExamineLuceneIndex<LuceneIndex, FileSystemDirectoryFactory>(name, configuration);
 
         /// <summary>
         /// Registers a file system based Lucene Examine index
@@ -74,35 +73,8 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex>(
             this IServiceCollection serviceCollection,
             string name,
-            Action<ExamineLuceneIndexConfiguration<TIndex, FileSystemDirectoryFactory>> configuration)
+            Action<LuceneDirectoryIndexOptions>? configuration = null)
             where TIndex : LuceneIndex => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, configuration);
-
-        /// <summary>
-        /// Registers a standalone Examine searcher
-        /// </summary>
-        /// <typeparam name="TSearcher"></typeparam>
-        /// <param name="serviceCollection"></param>
-        /// <param name="name"></param>
-        /// <param name="parameterFactory">
-        /// A factory to fulfill the custom searcher construction parameters excluding the name that are not already registered in DI.
-        /// </param>
-        /// <returns></returns>
-        public static IServiceCollection AddExamineSearcher<TSearcher>(
-            this IServiceCollection serviceCollection,
-            string name,
-            Func<IServiceProvider, IList<object>> parameterFactory)
-            where TSearcher : ISearcher
-           => serviceCollection.AddTransient<ISearcher>(services =>
-           {
-               var parameters = parameterFactory(services);
-               parameters.Insert(0, name);
-
-               var searcher = ActivatorUtilities.CreateInstance<TSearcher>(
-                   services,
-                   parameters.ToArray());
-
-               return searcher;
-           });
 
         /// <summary>
         /// Registers a Lucene multi index searcher
@@ -111,32 +83,33 @@ namespace Examine
             this IServiceCollection serviceCollection,
             string name,
             string[] indexNames,
-            Action<ExamineLuceneMultiSearcherConfiguration>? configuration = null)
+            Action<LuceneMultiSearcherOptions>? configuration = null)
         {
-            var cfg = new ExamineLuceneMultiSearcherConfiguration(name, indexNames);
-            configuration?.Invoke(cfg);
-            return serviceCollection.AddExamineSearcher<MultiIndexSearcher>(name, s =>
+            var config = new LuceneMultiSearcherOptions(name, indexNames);
+            configuration?.Invoke(config);
+
+            // This is the long way to add IOptions but gives us access to the
+            // services collection which we need to get the dir factory
+            serviceCollection.AddSingleton<IConfigureOptions<LuceneMultiSearcherOptions>>(
+                services => new ConfigureNamedOptions<LuceneMultiSearcherOptions>(
+                    name,
+                    (options) =>
                     {
-                        var matchedIndexes = s.GetServices<IIndex>()
-                             .Where(x => indexNames.Contains(x.Name));
+                        options.Analyzer = config.Analyzer;
+                        options.FacetConfiguration = config.FacetConfiguration;
+                    }));
 
-                        var parameters = new List<object>
-                        {
-                    matchedIndexes,
-                        };
+            // Transient I think because of how the search context is created, it can't hang on to it.
+            return serviceCollection.AddTransient<ISearcher>(s =>
+            {
+                var namedOptions = s.GetRequiredService<IOptionsMonitor<LuceneMultiSearcherOptions>>().Get(name);
+                var matchedIndexes = s.GetServices<IIndex>().Where(x => namedOptions.IndexNames.Contains(x.Name));
+                var searcher = ActivatorUtilities.CreateInstance<MultiIndexSearcher>(
+                    s,
+                    matchedIndexes);
 
-                        if (cfg.FacetConfiguration != null)
-                        {
-                            parameters.Add(cfg.FacetConfiguration);
-                        }
-
-                        if (cfg.Analyzer != null)
-                        {
-                            parameters.Add(cfg.Analyzer);
-                        }
-
-                        return parameters;
-                    });
+                return searcher;
+            });
         }
 
         /// <summary>

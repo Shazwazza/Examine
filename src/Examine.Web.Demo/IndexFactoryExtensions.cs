@@ -40,7 +40,7 @@ namespace Examine.Web.Demo
             services.AddExamineLuceneMultiSearcher(
                 "MultiIndexSearcher",
                 new[] { "MyIndex", "SyncedIndex", "FacetIndex" },
-                opt=> opt.FacetConfiguration = new FacetsConfig());
+                opt => opt.FacetConfiguration = new FacetsConfig());
 
             services.ConfigureOptions<ConfigureIndexOptions>();
 

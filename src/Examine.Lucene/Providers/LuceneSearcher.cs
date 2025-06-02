@@ -1,8 +1,6 @@
-using System;
 using Examine.Lucene.Search;
 using Lucene.Net.Search;
-using Lucene.Net.Analysis;
-using Lucene.Net.Facet;
+using Microsoft.Extensions.Options;
 
 namespace Examine.Lucene.Providers
 {
@@ -21,8 +19,8 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>
-        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig, bool isNrt)
-            : base(name, analyzer, facetsConfig)
+        public LuceneSearcher(string name, SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, IOptionsMonitor<LuceneSearcherOptions> options, bool isNrt)
+            : base(name, options)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
@@ -43,9 +41,7 @@ namespace Examine.Lucene.Providers
         }
 
         /// <inheritdoc/>
-#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
         public override void Dispose()
-#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
         {
             if (!_disposedValue)
             {

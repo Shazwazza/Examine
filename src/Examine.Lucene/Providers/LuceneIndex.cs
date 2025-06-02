@@ -10,6 +10,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
 using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Facet.Taxonomy.Directory;
 using Lucene.Net.Index;
@@ -108,6 +109,7 @@ namespace Examine.Lucene.Providers
         private readonly LuceneIndexOptions _options;
         private PerFieldAnalyzerWrapper? _fieldAnalyzer;
         private ControlledRealTimeReopenThread<IndexSearcher>? _nrtReopenThread;
+        private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>? _taxonomyNrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
         private readonly Lazy<Directory>? _lazyDirectory;
         private bool _isDirectoryExternallyManaged = false;
@@ -167,8 +169,6 @@ namespace Examine.Lucene.Providers
 
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
-
-        private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>? _taxonomyNrtReopenThread;
 
         private readonly Lazy<LuceneTaxonomySearcher>? _taxonomySearcher;
         private readonly Lazy<Directory>? _lazyTaxonomyDirectory;
@@ -1079,8 +1079,6 @@ namespace Examine.Lucene.Providers
 
         #endregion
 
-        #region Private
-
         private IndexWriter CreateIndexWriterWithOpenMode(Directory d, OpenMode openMode)
         {
             if (d == null)
@@ -1181,7 +1179,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig, _options.NrtEnabled);
+            return new LuceneSearcher(name + "Searcher", searcherManager, FieldValueTypeCollection, new SearcherOptions(this, FieldAnalyzer, _options.FacetsConfig), _options.NrtEnabled);
         }
 
         private LuceneTaxonomySearcher CreateTaxonomySearcher()
@@ -1195,15 +1193,16 @@ namespace Examine.Lucene.Providers
                 {
                     continue;
                 }
-#pragma warning disable IDE0057 // Use range operator
-                name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
-#pragma warning restore IDE0057 // Use range operator
+
+                name = name[..name.LastIndexOf(suffix, StringComparison.Ordinal)];
             }
 
             var writer = IndexWriter;
             var taxonomyWriter = TaxonomyWriter;
             var searcherManager = new SearcherTaxonomyManager(writer.IndexWriter, true, new SearcherFactory(), taxonomyWriter);
             searcherManager.AddListener(this);
+
+            // TODO: What if NRT is not enabled?
             _taxonomyNrtReopenThread = new ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>(writer, searcherManager, 5.0, 1.0)
             {
                 Name = $"{Name} Taxonomy NRT Reopen Thread",
@@ -1214,7 +1213,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig, _options.NrtEnabled);
+            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldValueTypeCollection, new SearcherOptions(this, FieldAnalyzer, _options.FacetsConfig), _options.NrtEnabled);
         }
 
         /// <summary>
@@ -1341,8 +1340,6 @@ namespace Examine.Lucene.Providers
                 }
             }
         }
-
-        #endregion
 
         /// <summary>
         /// Blocks the calling thread until the internal searcher can see latest documents

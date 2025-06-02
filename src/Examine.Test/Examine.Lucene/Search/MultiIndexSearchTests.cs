@@ -1,10 +1,14 @@
 using System;
 using System.Linq;
+using Examine.Lucene;
 using Examine.Lucene.Providers;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
-using NUnit.Framework;
 using Lucene.Net.Analysis.Util;
 using Lucene.Net.Facet;
+using Microsoft.Extensions.Options;
+using Moq;
+using NUnit.Framework;
 
 namespace Examine.Test.Examine.Lucene.Search
 {
@@ -35,10 +39,15 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
 
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions("testSearcher", new[] { indexer1.Name, indexer2.Name })
+                {
+                    Analyzer = customAnalyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
                 var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2 },
-                    new FacetsConfig(),
-                    customAnalyzer);
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2 });
 
                 // Even though the custom analyzer doesn't have a stop word of 'will'
                 // it will still return nothing because the word has been stripped during indexing.
@@ -63,12 +72,17 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
 
-                var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2 },
-                    new FacetsConfig(),
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions("testSearcher", new[] { indexer1.Name, indexer2.Name })
+                {
                     // The Analyzer here is used for query parsing values when 
                     // non ManagedQuery queries are executed.
-                    standardAnalyzer);
+                    Analyzer = standardAnalyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
+                var searcher = new MultiIndexSearcher("testSearcher",
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2 });
 
                 // A text search like this will use a ManagedQuery which means it will
                 // use the analyzer assigned to each field to parse the query
@@ -95,12 +109,17 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
 
-                var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2 },
-                    new FacetsConfig(),
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions("testSearcher", new[] { indexer1.Name, indexer2.Name })
+                {
                     // The Analyzer here is used for query parsing values when 
                     // non ManagedQuery queries are executed.
-                    standardAnalyzer);
+                    Analyzer = standardAnalyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
+                var searcher = new MultiIndexSearcher("testSearcher",
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2 });
 
                 var result = searcher
                         .CreateQuery("content")
@@ -135,10 +154,15 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions("testSearcher", new[] { indexer1.Name, indexer2.Name, indexer3.Name, indexer4.Name })
+                {
+                    Analyzer = analyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
                 var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2, indexer3, indexer4 },
-                    new FacetsConfig(),
-                    analyzer);
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2, indexer3, indexer4 });
 
                 var result = searcher.Search("darkness");
 
@@ -171,11 +195,16 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
 
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions("testSearcher", new[] { indexer1.Name, indexer2.Name, indexer3.Name, indexer4.Name })
+                {
+                    Analyzer = analyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
                 var searcher = new MultiIndexSearcher(
                     "testSearcher",
-                    new[] { indexer1, indexer2, indexer3, indexer4 },
-                    new FacetsConfig(),
-                    analyzer);
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2, indexer3, indexer4 });
 
                 var searchContext = searcher.GetSearchContext();
                 var result = searchContext.SearchableFields;

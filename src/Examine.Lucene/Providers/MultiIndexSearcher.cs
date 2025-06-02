@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Lucene.Search;
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Facet;
+using Microsoft.Extensions.Options;
 
 namespace Examine.Lucene.Providers
 {
@@ -18,14 +16,8 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Constructor to allow for creating a searcher at runtime
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="indexes"></param>
-        /// <param name="facetsConfig">Get the current <see cref="FacetsConfig"/> by injecting <see cref="LuceneIndexOptions.FacetsConfig"/> or use <code>new FacetsConfig()</code> for an empty configuration</param>
-        /// <param name="analyzer"></param>
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, FacetsConfig facetsConfig, Analyzer? analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion), facetsConfig)
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        public MultiIndexSearcher(string name, IOptionsMonitor<LuceneMultiSearcherOptions> options, IEnumerable<IIndex> indexes)
+            : base(name, options)
         {
             _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.Searcher));
         }
@@ -33,14 +25,8 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Constructor to allow for creating a searcher at runtime
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="searchers"></param>
-        /// <param name="facetsConfig">Get the current <see cref="FacetsConfig"/> by injecting <see cref="LuceneIndexOptions.FacetsConfig"/> or use <code>new FacetsConfig()</code> for an empty configuration</param>
-        /// <param name="analyzer"></param>
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, FacetsConfig facetsConfig, Analyzer? analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion), facetsConfig)
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        public MultiIndexSearcher(string name, IOptionsMonitor<LuceneMultiSearcherOptions> options, Lazy<IEnumerable<ISearcher>> searchers)
+            : base(name, options)
         {
             _searchers = searchers;
         }
@@ -56,9 +42,7 @@ namespace Examine.Lucene.Providers
         public bool SearchersInitialized => _searchers.IsValueCreated;
 
         /// <inheritdoc />
-#pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
         public override void Dispose()
-#pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
         {
         }
 

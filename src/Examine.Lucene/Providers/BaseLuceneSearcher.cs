@@ -1,9 +1,11 @@
 using System;
-using Lucene.Net.Analysis;
-using Lucene.Net.Search;
 using Examine.Lucene.Search;
 using Examine.Search;
+using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet;
+using Lucene.Net.Search;
+using Microsoft.Extensions.Options;
 
 namespace Examine.Lucene.Providers
 {
@@ -17,10 +19,7 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="analyzer"></param>
-        /// <param name="facetsConfig"></param>
-        protected BaseLuceneSearcher(string name, Analyzer analyzer, FacetsConfig facetsConfig)
+        protected BaseLuceneSearcher(string name, IOptionsMonitor<LuceneSearcherOptions> options)
             : base(name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -28,8 +27,10 @@ namespace Examine.Lucene.Providers
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
             }
 
-            LuceneAnalyzer = analyzer;
-            _facetsConfig = facetsConfig;
+            var searchOptions = options.Get(name);
+
+            LuceneAnalyzer = searchOptions.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            _facetsConfig = searchOptions.FacetConfiguration ?? new FacetsConfig();
         }
 
         /// <summary>
@@ -38,9 +39,8 @@ namespace Examine.Lucene.Providers
         public Analyzer LuceneAnalyzer { get; }
 
         /// <summary>
-        /// Gets the seach context
+        /// Gets the search context
         /// </summary>
-        /// <returns></returns>
         public abstract ISearchContext GetSearchContext();
 
 #pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
@@ -73,13 +73,6 @@ namespace Examine.Lucene.Providers
             var sc = CreateQuery().ManagedQuery(searchText);
             return sc.Execute(options);
         }
-
-        /// <summary>
-        /// Gets a FacetConfig with default configuration
-        /// </summary>
-        /// <returns>Facet Config</returns>
-        [Obsolete("To remove in Examine V5")]
-        public virtual FacetsConfig GetDefaultFacetConfig() => new FacetsConfig();
 
         /// <inheritdoc />
         public abstract void Dispose();

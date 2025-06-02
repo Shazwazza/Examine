@@ -4,6 +4,9 @@ using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 using Examine.Lucene.Providers;
 using Lucene.Net.Facet;
+using Moq;
+using Microsoft.Extensions.Options;
+using Examine.Lucene;
 
 namespace Examine.Test.Examine.Lucene.Search
 {
@@ -33,10 +36,16 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
-                var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2, indexer3, indexer4 },
-                    new FacetsConfig(),
-                    analyzer);
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions("testSearcher", new[] { indexer1.Name, indexer2.Name, indexer3.Name, indexer4.Name })
+                {
+                    Analyzer = analyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
+                var searcher = new MultiIndexSearcher(
+                    "testSearcher",
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2, indexer3, indexer4 });
 
                 var result = searcher.Search("darkness");
 
@@ -69,10 +78,16 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
 
-                var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2, indexer3, indexer4 },
-                    new FacetsConfig(),
-                    analyzer);
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions("testSearcher", new[] { indexer1.Name, indexer2.Name, indexer3.Name, indexer4.Name })
+                {
+                    Analyzer = analyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
+                var searcher = new MultiIndexSearcher(
+                    "testSearcher",
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2, indexer3, indexer4 });
 
                 var result = searcher.GetSearchContext().SearchableFields;
                 //will be item1 , item2, item3, and item4

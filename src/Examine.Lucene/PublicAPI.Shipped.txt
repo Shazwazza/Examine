@@ -1,5 +1,4 @@
 #nullable enable
-abstract Examine.Lucene.Directories.DirectoryFactoryBase.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
 abstract Examine.Lucene.Indexing.IndexFieldRangeValueType<T>.GetQuery(T? lower, T? upper, bool lowerInclusive = true, bool upperInclusive = true) -> Lucene.Net.Search.Query!
 abstract Examine.Lucene.Indexing.IndexFieldValueTypeBase.AddSingleValue(Lucene.Net.Documents.Document! doc, object! value) -> void
 abstract Examine.Lucene.Providers.BaseLuceneSearcher.GetSearchContext() -> Examine.Lucene.Search.ISearchContext!
@@ -41,9 +40,6 @@ Examine.Lucene.DelegateFieldValueTypeFactory.DelegateFieldValueTypeFactory(Syste
 Examine.Lucene.Directories.DefaultLockFactory
 Examine.Lucene.Directories.DefaultLockFactory.DefaultLockFactory() -> void
 Examine.Lucene.Directories.DefaultLockFactory.GetLockFactory(System.IO.DirectoryInfo! directory) -> Lucene.Net.Store.LockFactory!
-Examine.Lucene.Directories.DirectoryFactoryBase
-Examine.Lucene.Directories.DirectoryFactoryBase.DirectoryFactoryBase() -> void
-Examine.Lucene.Directories.DirectoryFactoryBase.Dispose() -> void
 Examine.Lucene.Directories.FileSystemDirectoryFactory
 Examine.Lucene.Directories.FileSystemDirectoryFactory.FileSystemDirectoryFactory(System.IO.DirectoryInfo! baseDir, Examine.Lucene.Directories.ILockFactory! lockFactory) -> void
 Examine.Lucene.Directories.FileSystemDirectoryFactory.LockFactory.get -> Examine.Lucene.Directories.ILockFactory!

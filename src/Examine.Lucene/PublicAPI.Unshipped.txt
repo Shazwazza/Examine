@@ -1,5 +1,7 @@
 #nullable enable
 abstract Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
+Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
+Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
 Examine.Lucene.Directories.GenericDirectoryFactory.GenericDirectoryFactory(System.Func<string!, Lucene.Net.Store.Directory!>! factory, System.Func<string!, Lucene.Net.Store.Directory!>! taxonomyDirectoryFactory) -> void
 Examine.Lucene.Directories.IDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
 Examine.Lucene.Directories.SyncedTaxonomyFileSystemDirectoryFactory
@@ -37,10 +39,8 @@ Examine.Lucene.Providers.ILuceneTaxonomySearcher
 Examine.Lucene.Providers.ILuceneTaxonomySearcher.CategoryCount.get -> int
 Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetOrdinal(string! dim, string![]! path) -> int
 Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetPath(int ordinal) -> Examine.Search.IFacetLabel!
-Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory() -> Lucene.Net.Store.Directory?
-Examine.Lucene.Providers.LuceneIndex.LuceneIndex(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions, System.Func<Examine.Lucene.Providers.LuceneIndex!, Examine.Lucene.Providers.IIndexCommiter!>! indexCommiterFactory, Lucene.Net.Index.IndexWriter? writer = null) -> void
-Examine.Lucene.Providers.LuceneIndex.RaiseIndexCommited(object! sender, System.EventArgs! e) -> void
-Examine.Lucene.Providers.LuceneIndex.SnapshotDirectoryTaxonomyIndexWriterFactory.get -> Lucene.Net.Replicator.SnapshotDirectoryTaxonomyIndexWriterFactory!
+Examine.Lucene.Providers.LuceneIndex.GetLuceneDirectory() -> Lucene.Net.Store.Directory!
+Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory() -> Lucene.Net.Store.Directory!
 Examine.Lucene.Providers.LuceneIndex.TaxonomyWriter.get -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
 Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string! name, Lucene.Net.Search.SearcherManager! searcherManager, Lucene.Net.Analysis.Analyzer! analyzer, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection, Lucene.Net.Facet.FacetsConfig! facetsConfig) -> void
 Examine.Lucene.Providers.LuceneTaxonomySearcher
@@ -144,7 +144,6 @@ Examine.Lucene.Search.TaxonomySearcherReference.IndexSearcher.get -> Lucene.Net.
 Examine.Lucene.Search.TaxonomySearcherReference.TaxonomyReader.get -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyReader!
 Examine.Lucene.Search.TaxonomySearcherReference.TaxonomySearcherReference(Lucene.Net.Facet.Taxonomy.SearcherTaxonomyManager! searcherManager) -> void
 override Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
-override Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
 override Examine.Lucene.Directories.SyncedTaxonomyFileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
 override Examine.Lucene.Directories.SyncedTaxonomyFileSystemDirectoryFactory.Dispose(bool disposing) -> void
 override Examine.Lucene.Indexing.DateTimeType.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
@@ -171,7 +170,8 @@ virtual Examine.Lucene.Indexing.SingleType.ExtractFacets(Examine.Lucene.Search.I
 virtual Examine.Lucene.Providers.BaseLuceneSearcher.Dispose() -> void
 virtual Examine.Lucene.Providers.BaseLuceneSearcher.Dispose(bool disposing) -> void
 virtual Examine.Lucene.Providers.BaseLuceneSearcher.GetDefaultFacetConfig() -> Lucene.Net.Facet.FacetsConfig!
-virtual Examine.Lucene.Providers.LuceneIndex.CreateTaxonomyWriter(Lucene.Net.Store.Directory? d) -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
+virtual Examine.Lucene.Providers.LuceneIndex.CreateIndexWriter(Lucene.Net.Store.Directory! d) -> Lucene.Net.Index.IndexWriter!
+virtual Examine.Lucene.Providers.LuceneIndex.CreateTaxonomyWriter(Lucene.Net.Store.Directory! d) -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
 virtual Examine.Lucene.Providers.LuceneIndex.TaxonomySearcher.get -> Examine.Lucene.Providers.ILuceneTaxonomySearcher?
 virtual Examine.Lucene.Providers.LuceneTaxonomySearcher.GetTaxonomySearchContext() -> Examine.Lucene.Search.ITaxonomySearchContext!
 virtual Examine.Lucene.Search.LuceneFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed) -> Lucene.Net.Facet.Facets!
@@ -195,15 +195,11 @@ Examine.Lucene.LuceneIndexOptions.NrtTargetMaxStaleSec.set -> void
 Examine.Lucene.LuceneIndexOptions.NrtTargetMinStaleSec.get -> double
 Examine.Lucene.LuceneIndexOptions.NrtTargetMinStaleSec.set -> void
 Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string name, Lucene.Net.Search.SearcherManager searcherManager, Lucene.Net.Analysis.Analyzer analyzer, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection, bool isNrt) -> void
-Examine.Lucene.Search.LuceneQueryOptions
 Examine.Lucene.Search.LuceneQueryOptions.AutoCalculateSkipTakeMaxResults.get -> bool
 Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int? take = null, Examine.Lucene.Search.SearchAfterOptions searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false) -> void
 Examine.Lucene.Search.LuceneQueryOptions.SearchAfter.get -> Examine.Lucene.Search.SearchAfterOptions
 Examine.Lucene.Search.LuceneQueryOptions.SkipTakeMaxResults.get -> int
-Examine.Lucene.Search.LuceneQueryOptions.TrackDocumentMaxScore.get -> bool
-Examine.Lucene.Search.LuceneQueryOptions.TrackDocumentScores.get -> bool
 Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult> results, int totalItemCount, float maxScore, Examine.Lucene.Search.SearchAfterOptions searchAfterOptions) -> void
-Examine.Lucene.Search.LuceneSearchResults.MaxScore.get -> float
 Examine.Lucene.Search.LuceneSearchResults.SearchAfter.get -> Examine.Lucene.Search.SearchAfterOptions
 Examine.Lucene.Search.SearchContext.SearchContext(Lucene.Net.Search.SearcherManager searcherManager, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection, bool isNrt) -> void
 Examine.Lucene.Search.SearcherReference.SearcherReference() -> void

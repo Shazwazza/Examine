@@ -183,7 +183,7 @@ namespace Examine.Lucene.Directories
         }
 
         /// <inheritdoc />
-        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        public override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             _ = TryCreateDirectory(luceneIndex, forceUnlock, out var directory);
             return directory;
