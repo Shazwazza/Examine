@@ -29,27 +29,14 @@ namespace Examine.Lucene.Directories
         private readonly ILogger<ExamineReplicator> _replicatorLogger;
         private readonly ILogger<LoggingReplicationClient> _clientLogger;
 
-        [Obsolete("Use ctor with all dependencies")]
-        public SyncedFileSystemDirectoryFactory(
-           DirectoryInfo localDir,
-           DirectoryInfo mainDir,
-           ILockFactory lockFactory,
-           ILoggerFactory loggerFactory)
-           : this(localDir, mainDir, lockFactory, loggerFactory, new FakeLuceneDirectoryIndexOptionsOptionsMonitor(), false)
-        {
-        }
-
-        [Obsolete("Use ctor with all dependencies")]
-        public SyncedFileSystemDirectoryFactory(
-            DirectoryInfo localDir,
-            DirectoryInfo mainDir,
-            ILockFactory lockFactory,
-            ILoggerFactory loggerFactory,
-            bool tryFixMainIndexIfCorrupt)
-            : base(mainDir, lockFactory, new FakeLuceneDirectoryIndexOptionsOptionsMonitor())
-        {
-        }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SyncedFileSystemDirectoryFactory"/> class.
+        /// </summary>
+        /// <param name="localDir">The local directory where the index will be replicated.</param>
+        /// <param name="mainDir">The main directory where the index is stored.</param>
+        /// <param name="lockFactory">The lock factory used for managing index locks.</param>
+        /// <param name="loggerFactory">The logger factory used for creating loggers.</param>
+        /// <param name="indexOptions">The options monitor for Lucene directory index options.</param>
         public SyncedFileSystemDirectoryFactory(
             DirectoryInfo localDir,
             DirectoryInfo mainDir,
@@ -60,6 +47,15 @@ namespace Examine.Lucene.Directories
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SyncedFileSystemDirectoryFactory"/> class.
+        /// </summary>
+        /// <param name="localDir">The local directory where the index will be replicated.</param>
+        /// <param name="mainDir">The main directory where the index is stored.</param>
+        /// <param name="lockFactory">The lock factory used for managing index locks.</param>
+        /// <param name="loggerFactory">The logger factory used for creating loggers.</param>
+        /// <param name="indexOptions">The options monitor for Lucene directory index options.</param>
+        /// <param name="tryFixMainIndexIfCorrupt">Indicates whether to attempt fixing the main index if it is corrupt.</param>
         public SyncedFileSystemDirectoryFactory(
             DirectoryInfo localDir,
             DirectoryInfo mainDir,
@@ -115,11 +111,11 @@ namespace Examine.Lucene.Directories
                 {
                     // it was read successfully, we can sync back to main
                     localResult |= TryGetIndexWriter(OpenMode.APPEND, localLuceneDir, localLuceneIndexFolder, false, luceneIndex.Name, out var indexWriter);
-                    using (indexWriter)
+                    if (localResult.HasFlag(CreateResult.OpenedSuccessfully))
                     {
-                        if (localResult.HasFlag(CreateResult.OpenedSuccessfully))
+                        using (indexWriter!)
                         {
-                            SyncIndex(indexWriter, true, luceneIndex.Name, mainLuceneIndexFolder, tempDir);
+                            SyncIndex(indexWriter!, true, luceneIndex.Name, mainLuceneIndexFolder, tempDir);
                             mainResult |= CreateResult.SyncedFromLocal;
                             // we need to check the main index again, as it may have been fixed by the sync
                             mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
@@ -138,11 +134,14 @@ namespace Examine.Lucene.Directories
                             : OpenMode.CREATE;
 
                 mainResult |= TryGetIndexWriter(openMode, mainLuceneDir, mainLuceneIndexFolder, true, luceneIndex.Name, out var indexWriter);
-                using (indexWriter)
+                if (indexWriter is not null)
                 {
-                    if (!mainResult.HasFlag(CreateResult.SyncedFromLocal))
+                    using (indexWriter)
                     {
-                        SyncIndex(indexWriter, forceUnlock, luceneIndex.Name, localLuceneIndexFolder, tempDir);
+                        if (!mainResult.HasFlag(CreateResult.SyncedFromLocal))
+                        {
+                            SyncIndex(indexWriter, forceUnlock, luceneIndex.Name, localLuceneIndexFolder, tempDir);
+                        }
                     }
                 }
             }
@@ -183,6 +182,7 @@ namespace Examine.Lucene.Directories
             SyncedFromLocal = 128
         }
 
+        /// <inheritdoc />
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             _ = TryCreateDirectory(luceneIndex, forceUnlock, out var directory);
@@ -195,7 +195,7 @@ namespace Examine.Lucene.Directories
             DirectoryInfo directoryInfo,
             bool createNewIfCorrupt,
             string indexName,
-            out IndexWriter indexWriter)
+            out IndexWriter? indexWriter)
         {
             try
             {
@@ -350,7 +350,8 @@ namespace Examine.Lucene.Directories
         private class TempOptions : IOptionsMonitor<LuceneDirectoryIndexOptions>
         {
             public LuceneDirectoryIndexOptions CurrentValue => new LuceneDirectoryIndexOptions();
-            public LuceneDirectoryIndexOptions Get(string name) => CurrentValue;
+
+            public LuceneDirectoryIndexOptions Get(string? name) => CurrentValue;
 
             public IDisposable OnChange(Action<LuceneDirectoryIndexOptions, string> listener) => throw new NotImplementedException();
         }

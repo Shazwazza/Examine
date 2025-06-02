@@ -17,35 +17,29 @@ namespace Examine.Lucene.Directories
         /// Creates a an instance of <see cref="GenericDirectoryFactory"/>
         /// </summary>
         /// <param name="factory">The factory</param>
-        [Obsolete("To remove in Examine V5")]
-        public GenericDirectoryFactory(Func<string, Directory> factory)
-        {
-            _factory = factory;
-        }
-
-        /// <summary>
-        /// Creates a an instance of <see cref="GenericDirectoryFactory"/>
-        /// </summary>
-        /// <param name="factory">The factory</param>
         /// <param name="taxonomyDirectoryFactory">The taxonomy directory factory</param>
-        public GenericDirectoryFactory(Func<string, Directory> factory, Func<string, Directory> taxonomyDirectoryFactory)
+        public GenericDirectoryFactory(
+            Func<string, Directory> factory,
+            Func<string, Directory> taxonomyDirectoryFactory)
+            : this(factory, taxonomyDirectoryFactory, false)
         {
-            _factory = factory;
-            _taxonomyDirectoryFactory = taxonomyDirectoryFactory;
         }
 
-        internal GenericDirectoryFactory(Func<string, Directory> factory, Func<string, Directory> taxonomyDirectoryFactory, bool externallyManaged)
+        internal GenericDirectoryFactory(
+            Func<string, Directory> factory,
+            Func<string, Directory> taxonomyDirectoryFactory,
+            bool externallyManaged)
         {
             _factory = factory;
             _taxonomyDirectoryFactory = taxonomyDirectoryFactory;
             ExternallyManaged = externallyManaged;
         }
-        
+
         /// <summary>
         /// When set to true, indicates that the directory is managed externally and will be disposed of by the caller, not the index.
         /// </summary>
         internal bool ExternallyManaged { get; }
-        
+
         /// <inheritdoc/>
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
@@ -60,6 +54,7 @@ namespace Examine.Lucene.Directories
         /// <inheritdoc/>
         protected override Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
+            // TODO: Do we allow null?
             if (_taxonomyDirectoryFactory is null)
             {
                 throw new NullReferenceException("Taxonomy Directory factory is null. Use constructor with all parameters");

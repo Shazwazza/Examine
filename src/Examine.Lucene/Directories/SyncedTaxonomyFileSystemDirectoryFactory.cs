@@ -12,114 +12,116 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
-    /// <summary>
-    /// A directory factory that replicates the index and it's Taxonomy Index from main storage on initialization to another
-    /// directory, then creates a lucene Directory based on that replicated index. A replication thread
-    /// is spawned to then replicate the local index back to the main storage location.
-    /// </summary>
-    /// <remarks>
-    /// By default, Examine configures the local directory to be the %temp% folder.
-    /// </remarks>
-    public class SyncedTaxonomyFileSystemDirectoryFactory : FileSystemDirectoryFactory
-    {
-        private readonly DirectoryInfo _localDir;
-        private readonly ILoggerFactory _loggerFactory;
-        private ExamineTaxonomyReplicator? _replicator;
+    // TODO: Fix this properly
 
-        /// <inheritdoc/>
-        public SyncedTaxonomyFileSystemDirectoryFactory(
-            DirectoryInfo localDir,
-            DirectoryInfo mainDir,
-            ILockFactory lockFactory,
-            ILoggerFactory loggerFactory)
-            : base(mainDir, lockFactory)
-        {
-            _localDir = localDir;
-            _loggerFactory = loggerFactory;
-        }
+    /////// <summary>
+    /////// A directory factory that replicates the index and it's Taxonomy Index from main storage on initialization to another
+    /////// directory, then creates a lucene Directory based on that replicated index. A replication thread
+    /////// is spawned to then replicate the local index back to the main storage location.
+    /////// </summary>
+    /////// <remarks>
+    /////// By default, Examine configures the local directory to be the %temp% folder.
+    /////// </remarks>
+    ////public class SyncedTaxonomyFileSystemDirectoryFactory : FileSystemDirectoryFactory
+    ////{
+    ////    private readonly DirectoryInfo _localDir;
+    ////    private readonly ILoggerFactory _loggerFactory;
+    ////    private ExamineTaxonomyReplicator? _replicator;
 
-        /// <inheritdoc/>
-        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
-        {
-            var luceneTaxonomyIndex = luceneIndex as LuceneIndex;
-            var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
-            var localLuceneIndexFolder = new DirectoryInfo(path);
+    ////    /// <inheritdoc/>
+    ////    public SyncedTaxonomyFileSystemDirectoryFactory(
+    ////        DirectoryInfo localDir,
+    ////        DirectoryInfo mainDir,
+    ////        ILockFactory lockFactory,
+    ////        ILoggerFactory loggerFactory)
+    ////        : base(mainDir, lockFactory)
+    ////    {
+    ////        _localDir = localDir;
+    ////        _loggerFactory = loggerFactory;
+    ////    }
 
-            Directory mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
+    ////    /// <inheritdoc/>
+    ////    protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+    ////    {
+    ////        var luceneTaxonomyIndex = luceneIndex as LuceneIndex;
+    ////        var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
+    ////        var localLuceneIndexFolder = new DirectoryInfo(path);
 
-            var taxonomyPath = Path.Combine(_localDir.FullName, luceneIndex.Name, "taxonomy");
-            var localLuceneTaxonomyIndexFolder = new DirectoryInfo(taxonomyPath);
+    ////        Directory mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
 
-            Directory mainTaxonomyDir = base.CreateTaxonomyDirectory(luceneTaxonomyIndex, forceUnlock);
+    ////        var taxonomyPath = Path.Combine(_localDir.FullName, luceneIndex.Name, "taxonomy");
+    ////        var localLuceneTaxonomyIndexFolder = new DirectoryInfo(taxonomyPath);
 
-            // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
-            var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
+    ////        Directory mainTaxonomyDir = base.CreateTaxonomyDirectory(luceneTaxonomyIndex, forceUnlock);
 
-            if (DirectoryReader.IndexExists(mainDir) && DirectoryReader.IndexExists(mainTaxonomyDir))
-            {
-                // when the lucene directory is going to be created, we'll sync from main storage to local
-                // storage before any index/writer is opened.
-                using (var tempMainIndexWriter = new IndexWriter(
-                    mainDir,
-                    new IndexWriterConfig(
-                        LuceneInfo.CurrentVersion,
-                        new StandardAnalyzer(LuceneInfo.CurrentVersion))
-                    {
-                        OpenMode = OpenMode.APPEND,
-                        IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy())
-                    }))
-                using (var tempMainIndex = new LuceneIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
-                using (var tempLocalDirectory = new SimpleFSDirectory(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
-                using (var tempTaxonomyLocalDirectory = new SimpleFSDirectory(localLuceneTaxonomyIndexFolder, LockFactory.GetLockFactory(localLuceneTaxonomyIndexFolder)))
-                using (var replicator = new ExamineTaxonomyReplicator(_loggerFactory, tempMainIndex, tempLocalDirectory, tempTaxonomyLocalDirectory, tempDir))
-                {
-                    if (forceUnlock)
-                    {
-                        IndexWriter.Unlock(tempLocalDirectory);
-                    }
+    ////        // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
+    ////        var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
 
-                    // replicate locally.
-                    replicator.ReplicateIndex();
-                }
-            }
+    ////        if (DirectoryReader.IndexExists(mainDir) && DirectoryReader.IndexExists(mainTaxonomyDir))
+    ////        {
+    ////            // when the lucene directory is going to be created, we'll sync from main storage to local
+    ////            // storage before any index/writer is opened.
+    ////            using (var tempMainIndexWriter = new IndexWriter(
+    ////                mainDir,
+    ////                new IndexWriterConfig(
+    ////                    LuceneInfo.CurrentVersion,
+    ////                    new StandardAnalyzer(LuceneInfo.CurrentVersion))
+    ////                {
+    ////                    OpenMode = OpenMode.APPEND,
+    ////                    IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy())
+    ////                }))
+    ////            using (var tempMainIndex = new LuceneIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
+    ////            using (var tempLocalDirectory = new SimpleFSDirectory(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
+    ////            using (var tempTaxonomyLocalDirectory = new SimpleFSDirectory(localLuceneTaxonomyIndexFolder, LockFactory.GetLockFactory(localLuceneTaxonomyIndexFolder)))
+    ////            using (var replicator = new ExamineTaxonomyReplicator(_loggerFactory, tempMainIndex, tempLocalDirectory, tempTaxonomyLocalDirectory, tempDir))
+    ////            {
+    ////                if (forceUnlock)
+    ////                {
+    ////                    IndexWriter.Unlock(tempLocalDirectory);
+    ////                }
 
-            // now create the replicator that will copy from local to main on schedule
-            _replicator = new ExamineTaxonomyReplicator(_loggerFactory, luceneTaxonomyIndex, mainDir, mainTaxonomyDir, tempDir);
-            var localLuceneDir = FSDirectory.Open(
-                localLuceneIndexFolder,
-                LockFactory.GetLockFactory(localLuceneIndexFolder));
+    ////                // replicate locally.
+    ////                replicator.ReplicateIndex();
+    ////            }
+    ////        }
 
-            if (forceUnlock)
-            {
-                IndexWriter.Unlock(localLuceneDir);
-            }
+    ////        // now create the replicator that will copy from local to main on schedule
+    ////        _replicator = new ExamineTaxonomyReplicator(_loggerFactory, luceneTaxonomyIndex, mainDir, mainTaxonomyDir, tempDir);
+    ////        var localLuceneDir = FSDirectory.Open(
+    ////            localLuceneIndexFolder,
+    ////            LockFactory.GetLockFactory(localLuceneIndexFolder));
 
-            // Start replicating back to main
-            _replicator.StartIndexReplicationOnSchedule(1000);
+    ////        if (forceUnlock)
+    ////        {
+    ////            IndexWriter.Unlock(localLuceneDir);
+    ////        }
 
-            return localLuceneDir;
-        }
+    ////        // Start replicating back to main
+    ////        _replicator.StartIndexReplicationOnSchedule(1000);
 
-        /// <summary>
-        /// Disposes the instance
-        /// </summary>
-        /// <param name="disposing">If the call is coming from Dispose</param>
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            if (disposing)
-            {
-                _replicator?.Dispose();
-            }
-        }
+    ////        return localLuceneDir;
+    ////    }
 
-        private class TempOptions : IOptionsMonitor<LuceneDirectoryIndexOptions>
-        {
-            public LuceneDirectoryIndexOptions CurrentValue => new LuceneDirectoryIndexOptions();
-            public LuceneDirectoryIndexOptions Get(string name) => CurrentValue;
+    ////    /// <summary>
+    ////    /// Disposes the instance
+    ////    /// </summary>
+    ////    /// <param name="disposing">If the call is coming from Dispose</param>
+    ////    protected override void Dispose(bool disposing)
+    ////    {
+    ////        base.Dispose(disposing);
+    ////        if (disposing)
+    ////        {
+    ////            _replicator?.Dispose();
+    ////        }
+    ////    }
 
-            public IDisposable OnChange(Action<LuceneDirectoryIndexOptions, string> listener) => throw new NotImplementedException();
-        }
+    ////    private class TempOptions : IOptionsMonitor<LuceneDirectoryIndexOptions>
+    ////    {
+    ////        public LuceneDirectoryIndexOptions CurrentValue => new LuceneDirectoryIndexOptions();
+    ////        public LuceneDirectoryIndexOptions Get(string name) => CurrentValue;
 
-    }
+    ////        public IDisposable OnChange(Action<LuceneDirectoryIndexOptions, string> listener) => throw new NotImplementedException();
+    ////    }
+
+    ////}
 }

@@ -13,25 +13,6 @@ namespace Examine.Lucene.Providers
     public abstract class BaseLuceneSearcher : BaseSearchProvider, IDisposable
     {
         private readonly FacetsConfig _facetsConfig;
-        private bool _disposedValue;
-
-        /// <summary>
-        /// Constructor to allow for creating an indexer at runtime
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="analyzer"></param>
-        [Obsolete("To remove in Examine V5")]
-        protected BaseLuceneSearcher(string name, Analyzer analyzer)
-            : base(name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
-            }
-
-            LuceneAnalyzer = analyzer;
-            _facetsConfig = GetDefaultFacetConfig();
-        }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -100,26 +81,8 @@ namespace Examine.Lucene.Providers
         [Obsolete("To remove in Examine V5")]
         public virtual FacetsConfig GetDefaultFacetConfig() => new FacetsConfig();
 
-        /// <summary>
-        /// Disposes of the searcher
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                _disposedValue = true;
-            }
-        }
-
         /// <inheritdoc />
-        [Obsolete("The virutal modifier will be removed in Examine V5, override Dispose(bool) instead")]
-        public virtual void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
+        public abstract void Dispose();
 
         ///// <summary>
         ///// This is NOT used! however I'm leaving this here as example code
