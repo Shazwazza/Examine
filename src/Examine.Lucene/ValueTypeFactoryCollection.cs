@@ -37,9 +37,7 @@ namespace Examine.Lucene
         /// <param name="fieldValueTypeFactory"></param>
         /// <returns></returns>
         public bool TryGetFactory(string valueTypeName,
-#if !NETSTANDARD2_0
             [MaybeNullWhen(false)]
-#endif
             out IFieldValueTypeFactory fieldValueTypeFactory)
             => _valueTypeFactories.TryGetValue(valueTypeName, out fieldValueTypeFactory);
 

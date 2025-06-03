@@ -191,7 +191,6 @@ namespace Examine.Lucene.Search
                             inner.Add(q, Occur.SHOULD);
                         }
                     }
-#if !NETSTANDARD2_0 && !NETSTANDARD2_1
                     else if(typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
                     {
                         var minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
@@ -207,7 +206,6 @@ namespace Examine.Lucene.Search
                             inner.Add(q, Occur.SHOULD);
                         }
                     }
-#endif
                     else
                     {
                         throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");

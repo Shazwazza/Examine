@@ -20,19 +20,6 @@ namespace Examine.Lucene.Search
         private readonly IReadOnlyCollection<ISearchResult> _results;
 
         /// <inheritdoc/>
-        [Obsolete("To remove in Examine V5")]
-        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount,
-            float maxScore,
-            SearchAfterOptions searchAfterOptions)
-        {
-            _results = results;
-            TotalItemCount = totalItemCount;
-            MaxScore = maxScore;
-            SearchAfter = searchAfterOptions;
-            Facets = _noFacets;
-        }
-
-        /// <inheritdoc/>
         public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IReadOnlyDictionary<string, IFacetResult> facets, float maxScore, SearchAfterOptions? searchAfterOptions)
         {
             _results = results;

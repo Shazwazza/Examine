@@ -10,6 +10,8 @@ namespace Examine
     /// </summary>
     public class ValueSet
     {
+        private static readonly IReadOnlyDictionary<string, IReadOnlyList<object>> Empty = new Dictionary<string, IReadOnlyList<object>>();
+
         /// <summary>
         /// The id of the object to be indexed
         /// </summary>
@@ -21,17 +23,17 @@ namespace Examine
         /// <remarks>
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </remarks>
-        public string? Category { get; }
+        public string Category { get; } = string.Empty;
 
         /// <summary>
         /// The item's node type (in umbraco terms this would be the doc type alias)
         /// </summary>
-        public string? ItemType { get; }
+        public string ItemType { get; } = string.Empty;
 
         /// <summary>
         /// The values to be indexed
         /// </summary>
-        public IReadOnlyDictionary<string, IReadOnlyList<object>>? Values { get; }
+        public IReadOnlyDictionary<string, IReadOnlyList<object>> Values { get; } = Empty;
 
         /// <summary>
         /// Constructor that only specifies an ID
@@ -114,17 +116,17 @@ namespace Examine
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(string id, string? category, string? itemType, IDictionary<string, IEnumerable<object>> values)
+        public ValueSet(string id, string category, string itemType, IDictionary<string, IEnumerable<object>> values)
             : this(id, category, itemType, values.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList()))
         {
         }
 
-        private ValueSet(string id, string? category, string? itemType, IReadOnlyDictionary<string, IReadOnlyList<object>>? values)
+        private ValueSet(string id, string category, string itemType, IReadOnlyDictionary<string, IReadOnlyList<object>> values)
         {
             Id = id;
             Category = category;
             ItemType = itemType;
-            Values = values?.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList()) ?? default;
+            Values = values.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList());
         }
 
         /// <summary>

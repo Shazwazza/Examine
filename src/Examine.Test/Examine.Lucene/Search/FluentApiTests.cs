@@ -15,8 +15,6 @@ using Lucene.Net.Search;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 
-
-
 namespace Examine.Test.Examine.Lucene.Search
 {
     [TestFixture]
@@ -5006,7 +5004,6 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-#if NET6_0_OR_GREATER
         [TestCase(FacetTestType.TaxonomyFacets)] [TestCase(FacetTestType.SortedSetFacets)]
         [TestCase(FacetTestType.NoFacets)]
         public void Range_DateOnly(FacetTestType withFacets)
@@ -5180,7 +5177,6 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(1, numberSortedResult.TotalItemCount);
             }
         }
-#endif
 
         [TestCase(1, 2, 1, 2)]
         [TestCase(2, 2, 2, 2)]

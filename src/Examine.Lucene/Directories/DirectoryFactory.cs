@@ -18,7 +18,7 @@ namespace Examine.Lucene.Directories
         /// </summary>
         public GenericDirectoryFactory(
             Func<string, Directory> factory,
-            Func<string, Directory> taxonomyDirectoryFactory)
+            Func<string, Directory>? taxonomyDirectoryFactory = null)
             : this(false, factory, taxonomyDirectoryFactory)
         {
         }

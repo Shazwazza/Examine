@@ -24,15 +24,12 @@
     <Authors>shandem</Authors>
     <PackageIcon>logo-round-small.png</PackageIcon>
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
-    <VersionPrefix>2.0.0</VersionPrefix>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Examine.Web.Demo' AND '$(MSBuildProjectName)' != 'Examine.Test'">
-    <TargetFrameworks>net6.0;net8.0;</TargetFrameworks>
-    <LangVersion>latest</LangVersion>
+    <VersionPrefix>4.0.0</VersionPrefix>
   </PropertyGroup>
   
-  <!-- Disable the nullable warnings when compiling for .NET Standard 2.0 -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <NoWarn>$(NoWarn);nullable</NoWarn>
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net8.0;</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 </Project>

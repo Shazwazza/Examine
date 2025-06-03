@@ -21,10 +21,10 @@ namespace Examine.Lucene.Search
         /// <param name="facetSampling">Whether to apply Facet sampling to improve performance. If not required, leave null</param>
         public LuceneQueryOptions(
             int skip,
-            int? take,
-            SearchAfterOptions? searchAfter,
-            bool trackDocumentScores,
-            bool trackDocumentMaxScore,
+            int take = DefaultMaxResults,
+            SearchAfterOptions? searchAfter = null,
+            bool trackDocumentScores = false,
+            bool trackDocumentMaxScore = false,
             int skipTakeMaxResults = AbsoluteMaxResults,
             bool autoCalculateSkipTakeMaxResults = false,
             LuceneFacetSamplingQueryOptions? facetSampling = null)

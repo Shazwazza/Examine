@@ -258,18 +258,13 @@ Examine.SearchResult.this[int resultIndex].get -> System.Collections.Generic.Key
 Examine.SearchResult.this[string! key].get -> string?
 Examine.SearchResult.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
 Examine.ValueSet
-Examine.ValueSet.Category.get -> string?
 Examine.ValueSet.Clone() -> Examine.ValueSet!
 Examine.ValueSet.GetValue(string! key) -> object?
 Examine.ValueSet.GetValues(string! key) -> System.Collections.Generic.IEnumerable<object!>!
 Examine.ValueSet.Id.get -> string!
-Examine.ValueSet.ItemType.get -> string?
-Examine.ValueSet.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Collections.Generic.IReadOnlyList<object!>!>?
-Examine.ValueSet.ValueSet(string! id) -> void
 Examine.ValueSet.ValueSet(string! id, string! category, string! itemType, System.Collections.Generic.IDictionary<string!, object!>! values) -> void
 Examine.ValueSet.ValueSet(string! id, string! category, System.Collections.Generic.IDictionary<string!, object!>! values) -> void
 Examine.ValueSet.ValueSet(string! id, string! category, System.Collections.Generic.IDictionary<string!, System.Collections.Generic.IEnumerable<object!>!>! values) -> void
-Examine.ValueSet.ValueSet(string! id, string? category, string? itemType, System.Collections.Generic.IDictionary<string!, System.Collections.Generic.IEnumerable<object!>!>! values) -> void
 Examine.ValueSetValidationResult
 Examine.ValueSetValidationResult.Status.get -> Examine.ValueSetValidationStatus
 Examine.ValueSetValidationResult.ValueSet.get -> Examine.ValueSet!

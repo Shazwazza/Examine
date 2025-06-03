@@ -136,7 +136,7 @@ namespace Examine.Test.Examine.Lucene.Directories
             {
                 CreateIndex(mainPath, corruptIndex, removeSegments);
 
-                using var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
+                var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
                     new DirectoryInfo(tempPath),
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
@@ -152,7 +152,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                         DirectoryFactory = syncedDirFactory
                     }));
 
-                Directory dir = null;
+                Directory? dir = null;
                 try
                 {
                     var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
@@ -184,32 +184,31 @@ namespace Examine.Test.Examine.Lucene.Directories
                 // create healthy index
                 CreateIndex(tempPath, false, false);
 
-                using (var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
+                var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
                     new DirectoryInfo(tempPath),
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),
                     LoggerFactory,
                     Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
-                    false))
-                {
-                    using var index = new LuceneIndex(
-                        LoggerFactory,
-                        TestIndex.TestIndexName,
-                        Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                        {
-                            DirectoryFactory = syncedDirFactory
-                        }));
+                    false);
 
-                    Directory dir = null;
-                    try
+                using var index = new LuceneIndex(
+                    LoggerFactory,
+                    TestIndex.TestIndexName,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                     {
-                        var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
-                        Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
-                    }
-                    finally
-                    {
-                        dir?.Dispose();
-                    }
+                        DirectoryFactory = syncedDirFactory
+                    }));
+
+                Directory? dir = null;
+                try
+                {
+                    var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
+                    Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
+                }
+                finally
+                {
+                    dir?.Dispose();
                 }
 
                 // Ensure the docs are there in main
@@ -218,7 +217,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     TestIndex.TestIndexName,
                     Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                     {
-                        DirectoryFactory = new GenericDirectoryFactory(_ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName))),
+                        DirectoryFactory = new GenericDirectoryFactory(_ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName)), null),
                     }));
 
                 var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
@@ -245,7 +244,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                 // create unhealthy index
                 CreateIndex(tempPath, true, false);
 
-                using var syncedFactory = new SyncedFileSystemDirectoryFactory(
+                var syncedFactory = new SyncedFileSystemDirectoryFactory(
                     new DirectoryInfo(tempPath),
                     new DirectoryInfo(mainPath),
                     new DefaultLockFactory(),

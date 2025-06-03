@@ -40,11 +40,7 @@ Examine.Lucene.DelegateFieldValueTypeFactory.DelegateFieldValueTypeFactory(Syste
 Examine.Lucene.Directories.DefaultLockFactory
 Examine.Lucene.Directories.DefaultLockFactory.DefaultLockFactory() -> void
 Examine.Lucene.Directories.DefaultLockFactory.GetLockFactory(System.IO.DirectoryInfo! directory) -> Lucene.Net.Store.LockFactory!
-Examine.Lucene.Directories.FileSystemDirectoryFactory
-Examine.Lucene.Directories.FileSystemDirectoryFactory.FileSystemDirectoryFactory(System.IO.DirectoryInfo! baseDir, Examine.Lucene.Directories.ILockFactory! lockFactory) -> void
-Examine.Lucene.Directories.FileSystemDirectoryFactory.LockFactory.get -> Examine.Lucene.Directories.ILockFactory!
 Examine.Lucene.Directories.GenericDirectoryFactory
-Examine.Lucene.Directories.GenericDirectoryFactory.GenericDirectoryFactory(System.Func<string!, Lucene.Net.Store.Directory!>! factory) -> void
 Examine.Lucene.Directories.IApplicationIdentifier
 Examine.Lucene.Directories.IApplicationIdentifier.GetApplicationUniqueIdentifier() -> string!
 Examine.Lucene.Directories.IDirectoryFactory
@@ -55,16 +51,13 @@ Examine.Lucene.Directories.MultiIndexLockFactory
 Examine.Lucene.Directories.MultiIndexLockFactory.MultiIndexLockFactory(Lucene.Net.Store.Directory! master, Lucene.Net.Store.Directory! child) -> void
 Examine.Lucene.Directories.MultiIndexLockFactory.MultiIndexLockFactory(Lucene.Net.Store.LockFactory! master, Lucene.Net.Store.LockFactory! child) -> void
 Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory
-Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo! localDir, System.IO.DirectoryInfo! mainDir, Examine.Lucene.Directories.ILockFactory! lockFactory, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory) -> void
 Examine.Lucene.Directories.TempEnvFileSystemDirectoryFactory
-Examine.Lucene.Directories.TempEnvFileSystemDirectoryFactory.TempEnvFileSystemDirectoryFactory(Examine.Lucene.Directories.IApplicationIdentifier! applicationIdentifier, Examine.Lucene.Directories.ILockFactory! lockFactory) -> void
 Examine.Lucene.DocumentWritingEventArgs
 Examine.Lucene.DocumentWritingEventArgs.Document.get -> Lucene.Net.Documents.Document!
 Examine.Lucene.DocumentWritingEventArgs.DocumentWritingEventArgs(Examine.ValueSet! valueSet, Lucene.Net.Documents.Document! d) -> void
 Examine.Lucene.DocumentWritingEventArgs.ValueSet.get -> Examine.ValueSet!
 Examine.Lucene.ExamineReplicator
 Examine.Lucene.ExamineReplicator.Dispose() -> void
-Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! destinationDirectory, System.IO.DirectoryInfo! tempStorage) -> void
 Examine.Lucene.ExamineReplicator.ReplicateIndex() -> void
 Examine.Lucene.ExamineReplicator.StartIndexReplicationOnSchedule(int milliseconds) -> void
 Examine.Lucene.FieldValueTypeCollection
@@ -132,7 +125,6 @@ Examine.Lucene.LuceneIndexOptions.IndexValueTypesFactory.get -> System.Collectio
 Examine.Lucene.LuceneIndexOptions.IndexValueTypesFactory.set -> void
 Examine.Lucene.LuceneIndexOptions.LuceneIndexOptions() -> void
 Examine.Lucene.Providers.BaseLuceneSearcher
-Examine.Lucene.Providers.BaseLuceneSearcher.BaseLuceneSearcher(string! name, Lucene.Net.Analysis.Analyzer! analyzer) -> void
 Examine.Lucene.Providers.BaseLuceneSearcher.CreateQuery(string? category, Examine.Search.BooleanOperation defaultOperation, Lucene.Net.Analysis.Analyzer! luceneAnalyzer, Examine.Lucene.Search.LuceneSearchOptions! searchOptions) -> Examine.Search.IQuery!
 Examine.Lucene.Providers.BaseLuceneSearcher.LuceneAnalyzer.get -> Lucene.Net.Analysis.Analyzer!
 Examine.Lucene.Providers.ErrorCheckingScoringBooleanQueryRewrite
@@ -151,11 +143,9 @@ Examine.Lucene.Providers.LuceneIndex.FieldAnalyzer.get -> Lucene.Net.Analysis.Mi
 Examine.Lucene.Providers.LuceneIndex.FieldValueTypeCollection.get -> Examine.Lucene.FieldValueTypeCollection!
 Examine.Lucene.Providers.LuceneIndex.GetDocumentCount() -> long
 Examine.Lucene.Providers.LuceneIndex.GetFieldNames() -> System.Collections.Generic.IEnumerable<string!>!
-Examine.Lucene.Providers.LuceneIndex.GetLuceneDirectory() -> Lucene.Net.Store.Directory?
 Examine.Lucene.Providers.LuceneIndex.IndexCommitted -> System.EventHandler?
 Examine.Lucene.Providers.LuceneIndex.IndexReady() -> bool
 Examine.Lucene.Providers.LuceneIndex.IndexWriter.get -> Lucene.Net.Index.TrackingIndexWriter!
-Examine.Lucene.Providers.LuceneIndex.IsCancellationRequested.get -> bool
 Examine.Lucene.Providers.LuceneIndex.IsReadable(out System.Exception? ex) -> bool
 Examine.Lucene.Providers.LuceneIndex.LuceneIndex(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions) -> void
 Examine.Lucene.Providers.LuceneIndex.RunAsync.get -> bool
@@ -163,11 +153,7 @@ Examine.Lucene.Providers.LuceneIndex.RunAsync.set -> void
 Examine.Lucene.Providers.LuceneIndex.WaitForChanges() -> void
 Examine.Lucene.Providers.LuceneIndex.WithThreadingMode(Examine.Lucene.Providers.IndexThreadingMode mode) -> System.IDisposable!
 Examine.Lucene.Providers.LuceneSearcher
-Examine.Lucene.Providers.LuceneSearcher.Dispose() -> void
-Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string! name, Lucene.Net.Search.SearcherManager! searcherManager, Lucene.Net.Analysis.Analyzer! analyzer, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection) -> void
 Examine.Lucene.Providers.MultiIndexSearcher
-Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, System.Collections.Generic.IEnumerable<Examine.IIndex!>! indexes, Lucene.Net.Analysis.Analyzer? analyzer = null) -> void
-Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher!>!>! searchers, Lucene.Net.Analysis.Analyzer? analyzer = null) -> void
 Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get -> System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.LuceneSearcher!>!
 Examine.Lucene.Providers.MultiIndexSearcher.SearchersInitialized.get -> bool
 Examine.Lucene.Providers.ValueSetValidatorDelegate
@@ -222,7 +208,6 @@ Examine.Lucene.Search.LuceneQuery.ManagedQuery(string! query, string![]? fields 
 Examine.Lucene.Search.LuceneQuery.NativeQuery(string! query) -> Examine.Search.IBooleanOperation!
 Examine.Lucene.Search.LuceneQuery.RangeQuery<T>(string![]! fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) -> Examine.Search.IBooleanOperation!
 Examine.Lucene.Search.LuceneQueryOptions
-Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int? take = null, Examine.Lucene.Search.SearchAfterOptions? searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false) -> void
 Examine.Lucene.Search.LuceneQueryOptions.SearchAfter.get -> Examine.Lucene.Search.SearchAfterOptions?
 Examine.Lucene.Search.LuceneQueryOptions.TrackDocumentMaxScore.get -> bool
 Examine.Lucene.Search.LuceneQueryOptions.TrackDocumentScores.get -> bool
@@ -290,7 +275,6 @@ Examine.Lucene.Search.LuceneSearchResult.LuceneSearchResult(string! id, float sc
 Examine.Lucene.Search.LuceneSearchResult.ShardIndex.get -> int
 Examine.Lucene.Search.LuceneSearchResults
 Examine.Lucene.Search.LuceneSearchResults.GetEnumerator() -> System.Collections.Generic.IEnumerator<Examine.ISearchResult!>!
-Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult!>! results, int totalItemCount) -> void
 Examine.Lucene.Search.LuceneSearchResults.TotalItemCount.get -> long
 Examine.Lucene.Search.MultiSearchContext
 Examine.Lucene.Search.MultiSearchContext.GetFieldValueType(string! fieldName) -> Examine.Lucene.Indexing.IIndexFieldValueType?
@@ -311,7 +295,6 @@ Examine.Lucene.Search.SearchContext
 Examine.Lucene.Search.SearchContext.GetFieldValueType(string! fieldName) -> Examine.Lucene.Indexing.IIndexFieldValueType!
 Examine.Lucene.Search.SearchContext.GetSearcher() -> Examine.Lucene.Search.ISearcherReference!
 Examine.Lucene.Search.SearchContext.SearchableFields.get -> string![]!
-Examine.Lucene.Search.SearchContext.SearchContext(Lucene.Net.Search.SearcherManager! searcherManager, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection) -> void
 Examine.Lucene.Search.SearcherReference
 Examine.Lucene.Search.SearcherReference.Dispose() -> void
 Examine.Lucene.Search.SearcherReference.IndexSearcher.get -> Lucene.Net.Search.IndexSearcher!
@@ -326,8 +309,6 @@ Examine.LuceneInfo
 Examine.StringExtensions
 override Examine.Lucene.Analyzers.EmailAddressAnalyzer.CreateComponents(string! fieldName, System.IO.TextReader! reader) -> Lucene.Net.Analysis.TokenStreamComponents!
 override Examine.Lucene.Analyzers.PatternAnalyzer.CreateComponents(string! fieldName, System.IO.TextReader! reader) -> Lucene.Net.Analysis.TokenStreamComponents!
-override Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
-override Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
 override Examine.Lucene.Directories.MultiIndexLockFactory.ClearLock(string! lockName) -> void
 override Examine.Lucene.Directories.MultiIndexLockFactory.MakeLock(string! lockName) -> Lucene.Net.Store.Lock!
 override Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
@@ -413,7 +394,6 @@ static Examine.StringExtensions.GenerateHash(this string! str) -> string!
 static Examine.StringExtensions.GenerateMd5(this string! str) -> string!
 static Examine.StringExtensions.GenerateSha1Hash(this string! str) -> string!
 static Examine.StringExtensions.RemoveStopWords(this string! searchText) -> string!
-virtual Examine.Lucene.Directories.DirectoryFactoryBase.Dispose(bool disposing) -> void
 virtual Examine.Lucene.ExamineReplicator.Dispose(bool disposing) -> void
 virtual Examine.Lucene.Indexing.IndexFieldValueTypeBase.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
 virtual Examine.Lucene.Indexing.IndexFieldValueTypeBase.Analyzer.get -> Lucene.Net.Analysis.Analyzer?
@@ -421,10 +401,8 @@ virtual Examine.Lucene.Indexing.IndexFieldValueTypeBase.GetQuery(string! query) 
 virtual Examine.Lucene.Indexing.IndexFieldValueTypeBase.SortableFieldName.get -> string?
 virtual Examine.Lucene.Providers.LuceneIndex.AddDocument(Lucene.Net.Documents.Document! doc, Examine.ValueSet! valueSet) -> void
 virtual Examine.Lucene.Providers.LuceneIndex.CreateFieldValueTypes(System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Lucene.IFieldValueTypeFactory!>? indexValueTypesFactory = null) -> Examine.Lucene.FieldValueTypeCollection!
-virtual Examine.Lucene.Providers.LuceneIndex.CreateIndexWriter(Lucene.Net.Store.Directory? d) -> Lucene.Net.Index.IndexWriter!
 virtual Examine.Lucene.Providers.LuceneIndex.Dispose(bool disposing) -> void
 virtual Examine.Lucene.Providers.LuceneIndex.OnDocumentWriting(Examine.Lucene.DocumentWritingEventArgs! docArgs) -> void
-virtual Examine.Lucene.Providers.LuceneSearcher.Dispose(bool disposing) -> void
 virtual Examine.Lucene.Search.CustomMultiFieldQueryParser.GetFuzzyQueryInternal(string! field, string! termStr, float minSimilarity) -> Lucene.Net.Search.Query!
 virtual Examine.Lucene.Search.CustomMultiFieldQueryParser.GetProximityQueryInternal(string! field, string! queryText, int slop) -> Lucene.Net.Search.Query!
 virtual Examine.Lucene.Search.CustomMultiFieldQueryParser.GetWildcardQueryInternal(string! field, string! termStr) -> Lucene.Net.Search.Query!

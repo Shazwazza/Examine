@@ -30,17 +30,13 @@ namespace Examine
 
         /// <inheritdoc />
         public bool TryGetSearcher(string searcherName,
-#if !NETSTANDARD2_0
             [MaybeNullWhen(false)]
-#endif
             out ISearcher searcher) => 
             (searcher = _searchers.TryGetValue(searcherName, out var s) ? s : null) != null;
 
         /// <inheritdoc />
         public bool TryGetIndex(string indexName,
-#if !NETSTANDARD2_0
             [MaybeNullWhen(false)]
-#endif
             out IIndex index) => 
             (index = _indexers.TryGetValue(indexName, out var i) ? i : null) != null;
 

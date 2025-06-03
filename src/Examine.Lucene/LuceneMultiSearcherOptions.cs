@@ -1,5 +1,4 @@
-using Lucene.Net.Analysis;
-using Lucene.Net.Facet;
+using System;
 
 namespace Examine.Lucene
 {
@@ -9,19 +8,8 @@ namespace Examine.Lucene
     public class LuceneMultiSearcherOptions : LuceneSearcherOptions
     {
         /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="name">Searcher Name</param>
-        /// <param name="indexNames">Index Names to search</param>
-        public LuceneMultiSearcherOptions(string name, string[] indexNames)
-            : base(name)
-        {
-            IndexNames = indexNames;
-        }
-
-        /// <summary>
         /// Index Names to search
         /// </summary>
-        public string[] IndexNames { get; }
+        public string[] IndexNames { get; set; } = Array.Empty<string>();
     }
 }

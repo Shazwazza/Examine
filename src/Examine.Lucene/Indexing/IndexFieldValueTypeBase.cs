@@ -74,9 +74,7 @@ namespace Examine.Lucene.Indexing
         /// <param name="parsedVal"></param>
         /// <returns></returns>        
         protected bool TryConvert<T>(object val,
-#if !NETSTANDARD2_0
             [MaybeNullWhen(false)]
-#endif
             out T parsedVal)
         {
             // TODO: This throws all the time and then logs! 

@@ -27,18 +27,18 @@ namespace Examine.Test
         public TestIndex GetTestIndex(
             Directory d,
             Analyzer analyzer,
-            FieldDefinitionCollection fieldDefinitions = null,
-            IndexDeletionPolicy indexDeletionPolicy = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
+            FieldDefinitionCollection? fieldDefinitions = null,
+            IndexDeletionPolicy? indexDeletionPolicy = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null,
             double nrtTargetMaxStaleSec = 60,
             double nrtTargetMinStaleSec = 1,
             bool nrtEnabled = true,
-            FacetsConfig facetsConfig = null)
+            FacetsConfig? facetsConfig = null)
             => new TestIndex(
                 LoggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
-                    FieldDefinitions = fieldDefinitions,
+                    FieldDefinitions = fieldDefinitions ?? new FieldDefinitionCollection(),
                     DirectoryFactory = GenericDirectoryFactory.FromExternallyManaged(_ => d, null),
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
@@ -66,14 +66,14 @@ namespace Examine.Test
             => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
 
 
-        public TestIndex GetTaxonomyTestIndex(Directory d, Directory taxonomyDirectory, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig facetsConfig = null)
+        public TestIndex GetTaxonomyTestIndex(Directory d, Directory taxonomyDirectory, Analyzer analyzer, FieldDefinitionCollection? fieldDefinitions = null, IndexDeletionPolicy? indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null, FacetsConfig? facetsConfig = null)
         {
             var loggerFactory = CreateLoggerFactory();
             return new TestIndex(
                 loggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
-                    FieldDefinitions = fieldDefinitions,
+                    FieldDefinitions = fieldDefinitions ?? new FieldDefinitionCollection(),
                     DirectoryFactory = GenericDirectoryFactory.FromExternallyManaged(_ => d, _ => taxonomyDirectory),
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,

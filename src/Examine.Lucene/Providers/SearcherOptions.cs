@@ -9,9 +9,9 @@ namespace Examine.Lucene.Providers
     {
         private readonly LuceneSearcherOptions _options;
 
-        public SearcherOptions(string name, Analyzer analyzer, FacetsConfig facetsConfig)
+        public SearcherOptions(Analyzer analyzer, FacetsConfig facetsConfig)
         {
-            _options = new LuceneSearcherOptions(name)
+            _options = new LuceneSearcherOptions
             {
                 Analyzer = analyzer,
                 FacetConfiguration = facetsConfig

@@ -1179,7 +1179,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldValueTypeCollection, new SearcherOptions(this, FieldAnalyzer, _options.FacetsConfig), _options.NrtEnabled);
+            return new LuceneSearcher(name + "Searcher", searcherManager, FieldValueTypeCollection, new SearcherOptions(FieldAnalyzer, _options.FacetsConfig), _options.NrtEnabled);
         }
 
         private LuceneTaxonomySearcher CreateTaxonomySearcher()
@@ -1213,7 +1213,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldValueTypeCollection, new SearcherOptions(this, FieldAnalyzer, _options.FacetsConfig), _options.NrtEnabled);
+            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldValueTypeCollection, new SearcherOptions(FieldAnalyzer, _options.FacetsConfig), _options.NrtEnabled);
         }
 
         /// <summary>

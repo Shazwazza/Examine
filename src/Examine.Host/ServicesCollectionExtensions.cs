@@ -85,7 +85,11 @@ namespace Examine
             string[] indexNames,
             Action<LuceneMultiSearcherOptions>? configuration = null)
         {
-            var config = new LuceneMultiSearcherOptions(name, indexNames);
+            var config = new LuceneMultiSearcherOptions
+            {
+                IndexNames = indexNames
+            };
+
             configuration?.Invoke(config);
 
             // This is the long way to add IOptions but gives us access to the
