@@ -290,7 +290,6 @@ Examine.Lucene.Search.SearchAfterOptions.DocumentId.get -> int
 Examine.Lucene.Search.SearchAfterOptions.DocumentScore.get -> float
 Examine.Lucene.Search.SearchAfterOptions.Fields.get -> object![]?
 Examine.Lucene.Search.SearchAfterOptions.SearchAfterOptions(int documentId, float documentScore, object![]? fields, int shardIndex) -> void
-Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get -> int?
 Examine.Lucene.Search.SearchContext
 Examine.Lucene.Search.SearchContext.GetFieldValueType(string! fieldName) -> Examine.Lucene.Indexing.IIndexFieldValueType!
 Examine.Lucene.Search.SearchContext.GetSearcher() -> Examine.Lucene.Search.ISearcherReference!

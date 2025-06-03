@@ -5,19 +5,17 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Examine.Lucene.Analyzers;
+using Examine.Lucene.Indexing;
+using Examine.Lucene.Providers;
+using Examine.Search;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 using Lucene.Net.Store;
 using NUnit.Framework;
-using Lucene.Net.Index;
-using Examine.Lucene;
-using Examine.Lucene.Providers;
-using System.Threading;
-using Examine.Lucene.Indexing;
-using Examine.Search;
-using Examine.Lucene.Analyzers;
-using System.Diagnostics;
 
 namespace Examine.Test.Examine.Lucene.Index
 {
@@ -38,7 +36,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 var callCount = 0;
                 var waitHandle = new ManualResetEvent(false);
 
-                void OperationComplete(object sender, IndexOperationEventArgs e)
+                void OperationComplete(object? sender, IndexOperationEventArgs e)
                 {
                     callCount++;
                     //signal that we are done
@@ -75,7 +73,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 var callCount = 0;
                 var waitHandle = new ManualResetEvent(false);
 
-                void OperationComplete(object sender, IndexOperationEventArgs e)
+                void OperationComplete(object? sender, IndexOperationEventArgs e)
                 {
                     callCount++;
 
@@ -92,7 +90,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 using (indexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
                 {
                     var tasks = new List<Task>();
-                    for (int i = 0; i < 10; i++)
+                    for (var i = 0; i < 10; i++)
                     {
                         tasks.Add(Task.Run(() => indexer.IndexItem(new ValueSet(i.ToString(), "content",
                             new Dictionary<string, IEnumerable<object>>
@@ -347,8 +345,8 @@ namespace Examine.Test.Examine.Lucene.Index
             using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
-                indexer.TransformingIndexValues += (sender, e) => AddData(sender, e, "newItem1", "value1");
-                indexer.TransformingIndexValues += (sender, e) => RemoveData(sender, e, "item1");
+                indexer.TransformingIndexValues += (sender, e) => AddData(sender!, e, "newItem1", "value1");
+                indexer.TransformingIndexValues += (sender, e) => RemoveData(sender!, e, "item1");
 
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1" }));
@@ -505,7 +503,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 var middleCompletedWaitHandle = new ManualResetEvent(false);
 
                 var opCompleteCount = 0;
-                void OperationComplete(object sender, IndexOperationEventArgs e)
+                void OperationComplete(object? sender, IndexOperationEventArgs e)
                 {
                     Interlocked.Increment(ref opCompleteCount);
 
@@ -530,12 +528,12 @@ namespace Examine.Test.Examine.Lucene.Index
                 {
                     //get a node from the data repo
                     var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
-                        .Root
+                        .Root!
                         .Elements()
                         .First();
 
                     //get the id for th node we're re-indexing.
-                    var id = (int)node.Attribute("id");
+                    var id = (int)node.Attribute("id")!;
 
                     //spawn a bunch of threads to perform some reading
                     var tasks = new List<Task>();
@@ -546,7 +544,7 @@ namespace Examine.Test.Examine.Lucene.Index
                     for (var i = 0; i < ThreadCount; i++)
                     {
                         var indexer = customIndexer;
-                        int docId = i + 1;
+                        var docId = i + 1;
                         tasks.Add(Task.Run(() =>
                         {
                             // mimic a slower machine
@@ -616,7 +614,7 @@ namespace Examine.Test.Examine.Lucene.Index
             {
                 var waitHandle = new ManualResetEvent(false);
 
-                void OperationComplete(object sender, IndexOperationEventArgs e)
+                void OperationComplete(object? sender, IndexOperationEventArgs e)
                 {
                     //signal that we are done
 #pragma warning disable IDE0058 // Expression value is never used
@@ -638,7 +636,7 @@ namespace Examine.Test.Examine.Lucene.Index
                     //get a node from the data repo
                     var idQueue = new ConcurrentQueue<int>(Enumerable.Range(1, 3));
                     var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
-                        .Root
+                        .Root!
                         .Elements()
                         .First();
 
@@ -646,14 +644,14 @@ namespace Examine.Test.Examine.Lucene.Index
                     for (var i = 0; i < idQueue.Count * 20; i++)
                     {
                         //get next id and put it to the back of the list
-                        if (idQueue.TryDequeue(out int docId))
+                        if (idQueue.TryDequeue(out var docId))
                         {
                             idQueue.Enqueue(docId);
 
                             Thread.Sleep(rand.Next(0, 100));
 
                             var cloned = new XElement(node);
-                            cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
+                            cloned.Attribute("id")!.Value = docId.ToString(CultureInfo.InvariantCulture);
                             Console.WriteLine("Indexing {0}", docId);
                             customIndexer.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });
                         }
@@ -707,7 +705,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 Console.WriteLine(msg);
             }
 
-            DirectoryInfo temp = null;
+            DirectoryInfo? temp = null;
             global::Lucene.Net.Store.Directory directory;
             if (inMemory)
             {
@@ -742,10 +740,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 using (var customSearcher = (LuceneSearcher)customIndexer.Searcher)
                 using (customIndexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
                 {
-                    customIndexer.IndexCommitted += (sender, e) =>
-                    {
-                        WriteLog("index committed!!!!!!!!!!!!!");
-                    };
+                    customIndexer.IndexCommitted += (sender, e) => WriteLog("index committed!!!!!!!!!!!!!");
 
                     var waitHandle = new ManualResetEvent(false);
 
@@ -753,7 +748,7 @@ namespace Examine.Test.Examine.Lucene.Index
                     // but currently it seems like we are doing all indexing in a single Task which means we only end up
                     // committing once and then Boom, all searches are available, we want to be able to see search results
                     // more immediately.
-                    void OperationComplete(object sender, IndexOperationEventArgs e)
+                    void OperationComplete(object? sender, IndexOperationEventArgs e)
                     {
                         //signal that we are done
 #pragma warning disable IDE0058 // Expression value is never used
@@ -771,7 +766,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                     //get all nodes
                     var nodes = _contentService.GetPublishedContentByXPath("//*[@isDoc]")
-                        .Root
+                        .Root!
                         .Elements()
                         .ToList();
 
@@ -799,7 +794,7 @@ namespace Examine.Test.Examine.Lucene.Index
                             for (var counter = 0; counter < searchCountPerThread; counter++)
                             {
                                 //get next id and put it to the back of the list
-                                if (idQueue.TryDequeue(out int docId))
+                                if (idQueue.TryDequeue(out var docId))
                                 {
                                     idQueue.Enqueue(docId);
                                     var r = s.CreateQuery().Id(docId.ToString()).Execute();
@@ -823,12 +818,12 @@ namespace Examine.Test.Examine.Lucene.Index
                             for (var i = 0; i < indexCountPerThread; i++)
                             {
                                 //get next id and put it to the back of the list
-                                if (idQueue.TryDequeue(out int docId))
+                                if (idQueue.TryDequeue(out var docId))
                                 {
                                     idQueue.Enqueue(docId);
 
                                     var node = getNode(docId - 1);
-                                    node.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
+                                    node.Attribute("id")!.Value = docId.ToString(CultureInfo.InvariantCulture);
                                     WriteLog(string.Format("Indexing {0}", docId));
                                     ind.IndexItems(new[] { node.ConvertToValueSet(IndexTypes.Content) });
                                     Thread.Sleep(indexThreadWait);

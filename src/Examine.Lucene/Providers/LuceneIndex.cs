@@ -127,7 +127,7 @@ namespace Examine.Lucene.Providers
         private readonly object _taskLocker = new object();
 
         /// <summary>
-        /// Used to aquire the index writer
+        /// Used to acquire the index writer
         /// </summary>
         private readonly object _writerLocker = new object();
 
@@ -136,7 +136,7 @@ namespace Examine.Lucene.Providers
         private bool? _exists;
 
         /// <summary>
-        /// Whether the Taxonomny Index exists.
+        /// Whether the Taxonomy Index exists.
         /// </summary>
         private bool? _taxonomyExists;
 

@@ -33,7 +33,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
             // Here's the Java sample code
             // https://github.com/apache/lucene-solr/blob/branch_4x/lucene/spatial/src/test/org/apache/lucene/spatial/SpatialExample.java
 
-            SpatialContext ctx = SpatialContext.Geo;
+            var ctx = SpatialContext.Geo;
             int maxLevels = 11; //results in sub-meter precision for geohash
             SpatialPrefixTree grid = new GeohashPrefixTree(ctx, maxLevels);
             var strategy = new RecursivePrefixTreeStrategy(grid, GeoLocationFieldName);
@@ -48,7 +48,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
         [Test]
         public void Document_Writing_To_Index_Spatial_Data_And_Search_On_100km_Radius_GetPointVectorStrategy()
         {
-            SpatialContext ctx = SpatialContext.Geo;
+            var ctx = SpatialContext.Geo;
             var strategy = new PointVectorStrategy(ctx, GeoLocationFieldName);
 
             // NOTE: This works without this custom query and only using the filter too
@@ -106,7 +106,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
             var searcher = (LuceneSearcher)indexer.Searcher;
             var searchContext = searcher.GetSearchContext();
 
-            using (ISearcherReference searchRef = searchContext.GetSearcher())
+            using (var searchRef = searchContext.GetSearcher())
             {
                 GetXYFromCoords(lat, lng, out var x, out var y);
 
@@ -159,13 +159,13 @@ namespace Examine.Test.Examine.Lucene.Extensions
 
         private void Indexer_DocumentWriting(DocumentWritingEventArgs e, SpatialContext ctx, SpatialStrategy strategy)
         {
-            double lat = double.Parse(e.ValueSet.Values["lat"].First().ToString());
-            double lng = double.Parse(e.ValueSet.Values["lng"].First().ToString());
+            var lat = double.Parse(e.ValueSet.Values["lat"][0].ToString()!);
+            double lng = double.Parse(e.ValueSet.Values["lng"][0].ToString()!);
 
             GetXYFromCoords(lat, lng, out var x, out var y);
-            IPoint geoPoint = ctx.MakePoint(x, y);
+            var geoPoint = ctx.MakePoint(x, y);
 
-            foreach (Field field in strategy.CreateIndexableFields(geoPoint  as IShape))
+            foreach (var field in strategy.CreateIndexableFields(geoPoint as IShape))
             {
                 e.Document.Add(field);
             }

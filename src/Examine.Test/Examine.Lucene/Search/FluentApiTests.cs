@@ -13,7 +13,6 @@ using Lucene.Net.Facet;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
 
 namespace Examine.Test.Examine.Lucene.Search
 {
@@ -62,7 +61,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Allow_Leading_Wildcards(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -118,9 +117,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results1.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results1.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
-                    Assert.AreEqual(1, facetResults.First().Value);
+                    Assert.AreEqual(2, facetResults!.Count());
+                    Assert.AreEqual(1, facetResults!.First().Value);
                 }
                 else
                 {
@@ -136,7 +136,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void NativeQuery_Single_Word(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -180,9 +180,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
-                    Assert.AreEqual(1, facetResults.Last().Value);
+                    Assert.AreEqual(2, facetResults!.Count());
+                    Assert.AreEqual(1, facetResults!.Last().Value);
                 }
                 else
                 {
@@ -198,7 +199,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Uppercase_Category(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -243,8 +244,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(3, results.TotalItemCount);
-                    Assert.AreEqual(3, facetResults.Count());
+                    Assert.AreEqual(3, facetResults!.Count());
                 }
                 else
                 {
@@ -289,8 +291,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var facetResults = results.GetFacet("nodeName");
 
+                Assert.IsNotNull(facetResults);
                 Assert.AreEqual(3, results.TotalItemCount);
-                Assert.AreEqual(3, facetResults.Count());
+                Assert.AreEqual(3, facetResults!.Count());
             }
         }
 
@@ -335,8 +338,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var facetResults = results.GetFacet("LongValue");
 
+                Assert.IsNotNull(facetResults);
                 Assert.AreEqual(3, results.TotalItemCount);
-                Assert.AreEqual(3, facetResults.Count());
+                Assert.AreEqual(3, facetResults!.Count());
             }
         }
 
@@ -382,8 +386,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var facetResults = results.GetFacet("DoubleValue");
 
+                Assert.IsNotNull(facetResults);
                 Assert.AreEqual(3, results.TotalItemCount);
-                Assert.AreEqual(3, facetResults.Count());
+                Assert.AreEqual(3, facetResults!.Count());
             }
         }
 
@@ -426,8 +431,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var facetResults = results.GetFacet("nodeName");
 
+                Assert.IsNotNull(facetResults);
                 Assert.AreEqual(3, results.TotalItemCount);
-                Assert.AreEqual(3, facetResults.Count());
+                Assert.AreEqual(3, facetResults!.Count());
             }
         }
 
@@ -474,8 +480,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var facetResults = results.GetFacet("LongValue");
 
+                Assert.IsNotNull(facetResults);
                 Assert.AreEqual(3, results.TotalItemCount);
-                Assert.AreEqual(3, facetResults.Count());
+                Assert.AreEqual(3, facetResults!.Count());
             }
         }
 
@@ -523,8 +530,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var facetResults = results.GetFacet("DoubleValue");
 
+                Assert.IsNotNull(facetResults);
                 Assert.AreEqual(3, results.TotalItemCount);
-                Assert.AreEqual(3, facetResults.Count());
+                Assert.AreEqual(3, facetResults!.Count());
             }
         }
 
@@ -533,7 +541,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void NativeQuery_Phrase(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -578,8 +586,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("bodyText");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -595,7 +604,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Managed_Range_Date(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -659,12 +668,13 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResult = numberSortedResult.GetFacet("created");
 
+                    Assert.IsNotNull(facetResult);
                     Assert.AreEqual(2, numberSortedResult.TotalItemCount);
-                    Assert.AreEqual(2, facetResult.Count());
-                    Assert.AreEqual(1, facetResult.First().Value);
-                    Assert.AreEqual("First days", facetResult.First().Label);
-                    Assert.AreEqual(1, facetResult.Last().Value);
-                    Assert.AreEqual("Last days", facetResult.Last().Label);
+                    Assert.AreEqual(2, facetResult!.Count());
+                    Assert.AreEqual(1, facetResult!.First().Value);
+                    Assert.AreEqual("First days", facetResult!.First().Label);
+                    Assert.AreEqual(1, facetResult!.Last().Value);
+                    Assert.AreEqual("Last days", facetResult!.Last().Label);
                 }
                 else
                 {
@@ -680,7 +690,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Managed_Full_Text(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -720,8 +730,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = result.GetFacet("item1");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(4, result.TotalItemCount);
-                    Assert.AreEqual(4, facetResults.Count());
+                    Assert.AreEqual(4, facetResults!.Count());
 
                     Console.WriteLine("Search 1:");
                     foreach (var r in result)
@@ -735,8 +746,9 @@ namespace Examine.Test.Examine.Lucene.Search
                         .Execute();
                     facetResults = result.GetFacet("item1");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, result.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(2, facetResults!.Count());
                     Console.WriteLine("Search 2:");
                     foreach (var r in result)
                     {
@@ -770,7 +782,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Managed_Full_Text_With_Bool(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -809,8 +821,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = result.GetFacet("item1");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, result.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                     Console.WriteLine("Search 1:");
                     foreach (var r in result)
                     {
@@ -824,8 +837,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     facetResults = result.GetFacet("item1");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, result.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(2, facetResults!.Count());
                     Console.WriteLine("Search 2:");
                     foreach (var r in result)
                     {
@@ -863,7 +877,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Not_Managed_Full_Text(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -905,9 +919,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = result.GetFacet("item1");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, result.TotalItemCount);
                     Assert.AreEqual("1", result.ElementAt(0).Id);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
 
                     Console.WriteLine("Search 1:");
                     foreach (var r in result)
@@ -936,7 +951,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Managed_Range_Int(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -959,8 +974,6 @@ namespace Examine.Test.Examine.Lucene.Search
                 analyzer,
                 fieldDefinitionCollection))
             {
-
-
                 indexer.IndexItems(new[]
                 {
                     ValueSet.FromObject(123.ToString(), "content",
@@ -1003,10 +1016,11 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = numberSortedResult.GetFacet("parentID");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, numberSortedResult.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
-                    Assert.AreEqual(0, facetResults.First(result => result.Label == "120-122").Value);
-                    Assert.AreEqual(2, facetResults.First(result => result.Label == "123-125").Value);
+                    Assert.AreEqual(2, facetResults!.Count());
+                    Assert.AreEqual(0, facetResults!.First(result => result.Label == "120-122").Value);
+                    Assert.AreEqual(2, facetResults!.First(result => result.Label == "123-125").Value);
                 }
                 else
                 {
@@ -1022,7 +1036,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Legacy_ParentId(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1084,9 +1098,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = numberSortedResult.GetFacet("parentID");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, numberSortedResult.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(2, facetResults.Facet("123").Value);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(2, facetResults!.Facet("123")!.Value);
                 }
                 else
                 {
@@ -1104,7 +1119,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Grouped_Or_Examiness(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1167,14 +1182,15 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeTypeAlias");
 
+                    Assert.IsNotNull(facetResults);
+
                     foreach (var r in results)
                     {
                         Console.WriteLine($"Id = {r.Id}");
                     }
 
                     Assert.AreEqual(2, results.TotalItemCount);
-
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -1348,7 +1364,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Grouped_Not_Single_Field_Single_Value(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1388,8 +1404,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                 }
                 else
                 {
@@ -1404,7 +1421,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Grouped_Not_Multi_Field_Single_Value(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1446,9 +1463,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(1, facetResults.Facet("my name 2").Value);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(1, facetResults!.Facet("my name 2")!.Value);
                 }
                 else
                 {
@@ -1463,7 +1481,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Grouped_Or_With_Not(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1507,8 +1525,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("headerText");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Facet("header 2").Value);
+                    Assert.AreEqual(1, facetResults!.Facet("header 2")!.Value);
                 }
                 else
                 {
@@ -1523,7 +1542,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void And_Grouped_Not_Single_Value(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1565,8 +1584,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                 }
                 else
                 {
@@ -1581,7 +1601,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void And_Grouped_Not_Multi_Value(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1622,8 +1642,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                 }
                 else
                 {
@@ -1638,7 +1659,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void And_Not_Single_Field(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1697,7 +1718,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void AndNot_Nested(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1741,8 +1762,10 @@ namespace Examine.Test.Examine.Lucene.Search
                     var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
+
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                 }
                 else
                 {
@@ -1757,7 +1780,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void And_Not_Added_Later(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1801,8 +1824,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                 }
                 else
                 {
@@ -1817,7 +1841,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Not_Range(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1863,9 +1887,11 @@ namespace Examine.Test.Examine.Lucene.Search
                         .Execute();
 
                     var facetResults = results.GetFacet("start");
+
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, results.TotalItemCount);
                     Assert.AreEqual(results.First().Id, 1.ToString());
-                    Assert.AreEqual(0, facetResults.Facet("Label").Value);
+                    Assert.AreEqual(0, facetResults!.Facet("Label")!.Value);
                 }
                 else
                 {
@@ -1881,7 +1907,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Match_By_Path(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -1905,8 +1931,6 @@ namespace Examine.Test.Examine.Lucene.Search
                 analyzer,
                 fieldDefinitionCollection))
             {
-
-
                 indexer.IndexItems(new[] {
                     new ValueSet(1.ToString(), "content",
                         new Dictionary<string, object>
@@ -1936,8 +1960,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
                     var results1 = filter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults1 = results1.GetFacet("nodeName");
+
+                    Assert.IsNotNull(facetResults1);
                     Assert.AreEqual(1, results1.TotalItemCount);
-                    Assert.AreEqual(1, facetResults1.Count());
+                    Assert.AreEqual(1, facetResults1!.Count());
                 }
                 else
                 {
@@ -1953,8 +1979,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
                     var results2 = exactfilter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults2 = results2.GetFacet("nodeName");
+
+                    Assert.IsNotNull(facetResults2);
                     Assert.AreEqual(1, results2.TotalItemCount);
-                    Assert.AreEqual(1, facetResults2.Count());
+                    Assert.AreEqual(1, facetResults2!.Count());
                 }
                 else
                 {
@@ -1972,8 +2000,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var results5 = nativeFilter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults5 = results5.GetFacet("nodeName");
+
+                    Assert.IsNotNull(facetResults5);
                     Assert.AreEqual(1, results5.TotalItemCount);
-                    Assert.AreEqual(1, facetResults5.Count());
+                    Assert.AreEqual(1, facetResults5!.Count());
                 }
                 else
                 {
@@ -1989,8 +2019,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
                     var results3 = wildcardfilter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults3 = results3.GetFacet("nodeName");
+
+                    Assert.IsNotNull(facetResults3);
                     Assert.AreEqual(2, results3.TotalItemCount);
-                    Assert.AreEqual(2, facetResults3.Count());
+                    Assert.AreEqual(2, facetResults3!.Count());
                 }
                 else
                 {
@@ -2006,6 +2038,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
                     var results3 = wildcardfilter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults3 = results3.GetFacet("nodeName");
+
                     Assert.AreEqual(0, results3.TotalItemCount);
                     Assert.AreEqual(0, facetResults3?.Count() ?? 0);
                 }
@@ -2024,7 +2057,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Find_By_ParentId(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2067,8 +2100,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -2084,7 +2118,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Find_By_ParentId_Native_Query(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2138,9 +2172,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("parentID");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(2, facetResults.Facet("1139").Value);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(2, facetResults!.Facet("1139")!.Value);
                 }
                 else
                 {
@@ -2156,7 +2191,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Find_By_NodeTypeAlias(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2218,8 +2253,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -2235,7 +2271,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Search_With_Stop_Words(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2299,7 +2335,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Search_Native_Query(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2355,9 +2391,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeTypeAlias");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(2, facetResults.Facet("CWS_Home").Value);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(2, facetResults!.Facet("CWS_Home")!.Value);
                 }
                 else
                 {
@@ -2375,7 +2412,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Find_Only_Image_Media(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2417,9 +2454,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeTypeAlias");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(2, facetResults.Facet("image").Value);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(2, facetResults!.Facet("image")!.Value);
                 }
                 else
                 {
@@ -2435,7 +2473,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Find_Both_Media_And_Content(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2479,8 +2517,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(3, results.TotalItemCount);
-                    Assert.AreEqual(3, facetResults.Count());
+                    Assert.AreEqual(3, facetResults!.Count());
                 }
                 else
                 {
@@ -2496,7 +2535,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Sort_Result_By_Number_Field(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2545,11 +2584,13 @@ namespace Examine.Test.Examine.Lucene.Search
                         .Execute();
 
                     var facetResults = results1.GetFacet("sortOrder");
-                    var facetReuslts2 = results1.GetFacet("parentID");
+                    var facetResults2 = results1.GetFacet("parentID");
 
+                    Assert.IsNotNull(facetResults);
+                    Assert.IsNotNull(facetResults2);
                     Assert.AreEqual(3, results1.Count());
-                    Assert.AreEqual(3, facetResults.Count());
-                    Assert.AreEqual(1, facetReuslts2.Count());
+                    Assert.AreEqual(3, facetResults!.Count());
+                    Assert.AreEqual(1, facetResults2!.Count());
 
                     var results2 = results1.ToArray();
                     double currSort = 0;
@@ -2580,7 +2621,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Sort_Result_By_Date_Field(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2634,11 +2675,13 @@ namespace Examine.Test.Examine.Lucene.Search
                         .Execute();
 
                     var facetResults = results1.GetFacet("updateDate");
-                    var facetReuslts2 = results1.GetFacet("parentID");
+                    var facetResults2 = results1.GetFacet("parentID");
 
+                    Assert.IsNotNull(facetResults);
+                    Assert.IsNotNull(facetResults2);
                     Assert.AreEqual(3, results1.Count());
-                    Assert.AreEqual(3, facetResults.Count());
-                    Assert.AreEqual(1, facetReuslts2.Count());
+                    Assert.AreEqual(3, facetResults!.Count());
+                    Assert.AreEqual(1, facetResults2!.Count());
 
                     var results2 = results1.ToArray();
                     double currSort = 0;
@@ -2669,7 +2712,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Sort_Result_By_Single_Field(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2722,10 +2765,11 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults1 = results1.GetFacet("nodeName");
                     var facetResults2 = results2.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults1);
+                    Assert.IsNotNull(facetResults2);
                     Assert.AreNotEqual(results1.First().Id, results2.First().Id);
-
-                    Assert.AreEqual(3, facetResults1.Count());
-                    Assert.AreEqual(3, facetResults2.Count());
+                    Assert.AreEqual(3, facetResults1!.Count());
+                    Assert.AreEqual(3, facetResults2!.Count());
                 }
                 else
                 {
@@ -2807,8 +2851,10 @@ namespace Examine.Test.Examine.Lucene.Search
                     Assert.AreEqual(4.9, double.Parse(results4[1].Values["field1"]));
                     Assert.AreEqual(5.0, double.Parse(results4[0].Values["field1"]));
 
-                    Assert.AreEqual(6, facetResults1.Count());
-                    Assert.AreEqual(6, facetResults2.Count());
+                    Assert.IsNotNull(facetResults1);
+                    Assert.IsNotNull(facetResults2);
+                    Assert.AreEqual(6, facetResults1!.Count());
+                    Assert.AreEqual(6, facetResults2!.Count());
                 }
                 else
                 {
@@ -2838,7 +2884,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Sort_Result_By_Multiple_Fields(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2897,8 +2943,10 @@ namespace Examine.Test.Examine.Lucene.Search
                     Assert.AreEqual("5", results2[4].Id);
                     Assert.AreEqual("4", results2[5].Id);
 
-                    Assert.AreEqual(6, facetResults.Count());
-                    Assert.AreEqual(2, facetResults2.Count());
+                    Assert.IsNotNull(facetResults);
+                    Assert.IsNotNull(facetResults2);
+                    Assert.AreEqual(6, facetResults!.Count());
+                    Assert.AreEqual(2, facetResults2!.Count());
                 }
                 else
                 {
@@ -2919,7 +2967,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Standard_Results_Sorted_By_Score(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -2962,10 +3010,11 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("bodyText");
 
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.IsNotNull(facetResults);
+                    Assert.AreEqual(2, facetResults!.Count());
 
                     //Assert
-                    for (int i = 0; i < results.TotalItemCount - 1; i++)
+                    for (var i = 0; i < results.TotalItemCount - 1; i++)
                     {
                         var curr = results.ElementAt(i);
                         var next = results.ElementAtOrDefault(i + 1);
@@ -2983,7 +3032,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     var results = sc1.Execute();
 
                     //Assert
-                    for (int i = 0; i < results.TotalItemCount - 1; i++)
+                    for (var i = 0; i < results.TotalItemCount - 1; i++)
                     {
                         var curr = results.ElementAt(i);
                         var next = results.ElementAtOrDefault(i + 1);
@@ -3005,7 +3054,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Skip_Results_Returns_Different_Results(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3049,8 +3098,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults = results.GetFacet("nodeName");
 
                     //Assert
+                    Assert.IsNotNull(facetResults);
                     Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                 }
                 else
                 {
@@ -3068,7 +3118,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Escaping_Includes_All_Words(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3112,10 +3162,11 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults);
                     //Assert
                     //NOTE: The result is 2 because the double space is removed with the analyzer
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -3127,8 +3178,6 @@ namespace Examine.Test.Examine.Lucene.Search
                     Assert.AreEqual(2, results.TotalItemCount);
                 }
             }
-
-
         }
 
         [TestCase(FacetTestType.TaxonomyFacets)]
@@ -3136,7 +3185,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Grouped_And_Examiness(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3185,8 +3234,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults = results.GetFacet("nodeName");
 
                     //Assert
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -3204,7 +3254,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Examiness_Proximity(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3255,8 +3305,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     }
 
                     //Assert
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(3, results.TotalItemCount);
-                    Assert.AreEqual(3, facetResults.Count());
+                    Assert.AreEqual(3, facetResults!.Count());
                 }
                 else
                 {
@@ -3282,7 +3333,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Float_Range_SimpleIndexSet(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3347,12 +3398,14 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults2 = results2.GetFacet("SomeFloat");
 
                     //Assert
+                    Assert.IsNotNull(facetResults1);
+                    Assert.IsNotNull(facetResults2);
                     Assert.AreEqual(3, results1.TotalItemCount);
                     Assert.AreEqual(1, results2.TotalItemCount);
-                    Assert.AreEqual(2, facetResults1.Facet("1").Value);
-                    Assert.AreEqual(1, facetResults1.Facet("2").Value);
-                    Assert.AreEqual(0, facetResults2.Facet("1").Value);
-                    Assert.AreEqual(1, facetResults2.Facet("2").Value);
+                    Assert.AreEqual(2, facetResults1!.Facet("1")!.Value);
+                    Assert.AreEqual(1, facetResults1!.Facet("2")!.Value);
+                    Assert.AreEqual(0, facetResults2!.Facet("1")!.Value);
+                    Assert.AreEqual(1, facetResults2!.Facet("2")!.Value);
                 }
                 else
                 {
@@ -3377,7 +3430,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Number_Range_SimpleIndexSet(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3432,10 +3485,12 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults2 = results2.GetFacet("SomeNumber");
 
                     //Assert
+                    Assert.IsNotNull(facetResults1);
+                    Assert.IsNotNull(facetResults2);
                     Assert.AreEqual(3, results1.TotalItemCount);
                     Assert.AreEqual(1, results2.TotalItemCount);
-                    Assert.AreEqual(1, facetResults1.Count());
-                    Assert.AreEqual(1, facetResults2.Count());
+                    Assert.AreEqual(1, facetResults1!.Count());
+                    Assert.AreEqual(1, facetResults2!.Count());
                 }
                 else
                 {
@@ -3458,7 +3513,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Double_Range_SimpleIndexSet(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3522,12 +3577,14 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults2 = results2.GetFacet("SomeDouble");
 
                     //Assert
+                    Assert.IsNotNull(facetResults1);
+                    Assert.IsNotNull(facetResults2);
                     Assert.AreEqual(3, results1.TotalItemCount);
                     Assert.AreEqual(1, results2.TotalItemCount);
-                    Assert.AreEqual(3, facetResults1.Facet("1").Value);
-                    Assert.AreEqual(0, facetResults1.Facet("2").Value);
-                    Assert.AreEqual(0, facetResults2.Facet("1").Value);
-                    Assert.AreEqual(1, facetResults2.Facet("2").Value);
+                    Assert.AreEqual(3, facetResults1!.Facet("1")!.Value);
+                    Assert.AreEqual(0, facetResults1!.Facet("2")!.Value);
+                    Assert.AreEqual(0, facetResults2!.Facet("1")!.Value);
+                    Assert.AreEqual(1, facetResults2!.Facet("2")!.Value);
                 }
                 else
                 {
@@ -3550,7 +3607,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Long_Range_SimpleIndexSet(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3613,10 +3670,10 @@ namespace Examine.Test.Examine.Lucene.Search
                     //Assert
                     Assert.AreEqual(3, results1.TotalItemCount);
                     Assert.AreEqual(1, results2.TotalItemCount);
-                    Assert.AreEqual(3, facetResults1.Facet("1").Value);
-                    Assert.AreEqual(0, facetResults1.Facet("2").Value);
-                    Assert.AreEqual(0, facetResults2.Facet("1").Value);
-                    Assert.AreEqual(1, facetResults2.Facet("2").Value);
+                    Assert.AreEqual(3, facetResults1!.Facet("1")!.Value);
+                    Assert.AreEqual(0, facetResults1!.Facet("2")!.Value);
+                    Assert.AreEqual(0, facetResults2!.Facet("1")!.Value);
+                    Assert.AreEqual(1, facetResults2!.Facet("2")!.Value);
                 }
                 else
                 {
@@ -3641,7 +3698,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Date_Range_SimpleIndexSet(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3705,10 +3762,10 @@ namespace Examine.Test.Examine.Lucene.Search
                     ////Assert
                     Assert.IsTrue(results.TotalItemCount > 0);
                     Assert.IsTrue(results2.TotalItemCount == 0);
-                    Assert.AreEqual(3, facetResults1.Facet("1").Value);
-                    Assert.AreEqual(0, facetResults1.Facet("2").Value);
-                    Assert.AreEqual(0, facetResults2.Facet("1").Value);
-                    Assert.AreEqual(0, facetResults2.Facet("2").Value);
+                    Assert.AreEqual(3, facetResults1!.Facet("1")!.Value);
+                    Assert.AreEqual(0, facetResults1!.Facet("2")!.Value);
+                    Assert.AreEqual(0, facetResults2!.Facet("1")!.Value);
+                    Assert.AreEqual(0, facetResults2!.Facet("2")!.Value);
                 }
                 else
                 {
@@ -3730,7 +3787,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Fuzzy_Search(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3792,10 +3849,12 @@ namespace Examine.Test.Examine.Lucene.Search
                     }
 
                     ////Assert
+                    Assert.IsNotNull(facetResults1);
+                    Assert.IsNotNull(facetResults2);
                     Assert.AreEqual(2, results.TotalItemCount);
                     Assert.AreEqual(2, results2.TotalItemCount);
-                    Assert.AreEqual(2, facetResults1.Count());
-                    Assert.AreEqual(2, facetResults2.Count());
+                    Assert.AreEqual(2, facetResults1!.Count());
+                    Assert.AreEqual(2, facetResults2!.Count());
                 }
                 else
                 {
@@ -3863,7 +3922,7 @@ namespace Examine.Test.Examine.Lucene.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
-                for (int i = 0; i < 1000; i++)
+                for (var i = 0; i < 1000; i++)
                 {
                     indexer.IndexItems(new[] { ValueSet.FromObject(i.ToString(), "content", new { Content = "hello world" }) });
                 }
@@ -3890,7 +3949,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Inner_Or_Query(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -3940,8 +3999,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults = results.GetFacet("Type");
 
                     //Assert
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                 }
                 else
                 {
@@ -3959,7 +4019,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Inner_And_Query(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -4012,8 +4072,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults = results.GetFacet("Type");
 
                     //Assert
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(2, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                 }
                 else
                 {
@@ -4031,7 +4092,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Inner_Not_Query(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -4084,8 +4145,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults = results.GetFacet("Type");
 
                     //Assert
+                    Assert.IsNotNull(facetResults);
                     Assert.AreEqual(1, results.TotalItemCount);
-                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults!.Count());
                 }
                 else
                 {
@@ -4103,7 +4165,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Complex_Or_Group_Nested_Query(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -4165,13 +4227,13 @@ namespace Examine.Test.Examine.Lucene.Search
                     var facetResults = results.GetFacet("Type");
 
                     //Assert
+                    Assert.IsNotNull(facetResults);
                     foreach (var r in results)
                     {
                         Console.WriteLine($"Result Id: {r.Id}");
                     }
                     Assert.AreEqual(3, results.TotalItemCount);
-
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -4401,7 +4463,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Select_Field(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -4453,8 +4515,8 @@ namespace Examine.Test.Examine.Lucene.Search
                     var keys = results.First().Values.Keys.ToArray();
                     Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
                     Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
-
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.IsNotNull(facetResults);
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -4472,7 +4534,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Select_Fields(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -4523,8 +4585,8 @@ namespace Examine.Test.Examine.Lucene.Search
                     var keys = results.First().Values.Keys.ToArray();
                     Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
                     Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
-
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.IsNotNull(facetResults);
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -4543,7 +4605,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Select_Fields_HashSet(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -4594,8 +4656,8 @@ namespace Examine.Test.Examine.Lucene.Search
                     var keys = results.First().Values.Keys.ToArray();
                     Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
                     Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
-
-                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.IsNotNull(facetResults);
+                    Assert.AreEqual(2, facetResults!.Count());
                 }
                 else
                 {
@@ -4689,7 +4751,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.NoFacets)]
         public void Paging_With_Skip_Take(FacetTestType withFacets)
         {
-            FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -4728,8 +4790,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Arrange
 
                 var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
-                int pageIndex = 0;
-                int pageSize = 2;
+                var pageIndex = 0;
+                var pageSize = 2;
 
                 //Act
                 if (HasFacets(withFacets))
@@ -4739,8 +4801,9 @@ namespace Examine.Test.Examine.Lucene.Search
                         .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize));
                     Assert.AreEqual(2, results.Count());
                     var facetResults = results.GetFacet("writerName");
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(5, facetResults.Facet("administrator").Value);
+                    Assert.IsNotNull(facetResults);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(5, facetResults!.Facet("administrator")!.Value);
 
                     pageIndex++;
 
@@ -4748,8 +4811,9 @@ namespace Examine.Test.Examine.Lucene.Search
                         .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize));
                     Assert.AreEqual(2, results.Count());
                     facetResults = results.GetFacet("writerName");
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(5, facetResults.Facet("administrator").Value);
+                    Assert.IsNotNull(facetResults);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(5, facetResults!.Facet("administrator")!.Value);
 
                     pageIndex++;
 
@@ -4757,8 +4821,9 @@ namespace Examine.Test.Examine.Lucene.Search
                         .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize));
                     Assert.AreEqual(1, results.Count());
                     facetResults = results.GetFacet("writerName");
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(5, facetResults.Facet("administrator").Value);
+                    Assert.IsNotNull(facetResults);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(5, facetResults!.Facet("administrator")!.Value);
 
                     pageIndex++;
 
@@ -4766,8 +4831,9 @@ namespace Examine.Test.Examine.Lucene.Search
                         .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize));
                     Assert.AreEqual(0, results.Count());
                     facetResults = results.GetFacet("writerName");
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(5, facetResults.Facet("administrator").Value);
+                    Assert.IsNotNull(facetResults);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(5, facetResults!.Facet("administrator")!.Value);
                 }
                 else
                 {
@@ -4860,10 +4926,11 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     var facetResults = results.GetFacet("nodeName");
 
+                    Assert.IsNotNull(facetResults, "Facet results should not be null");
                     Assert.AreEqual(indexSize, results.TotalItemCount);
                     Assert.AreEqual(expectedResults, results.Count());
-                    Assert.AreEqual(1, facetResults.Count());
-                    Assert.AreEqual(5, facetResults.Facet("umbraco").Value);
+                    Assert.AreEqual(1, facetResults!.Count());
+                    Assert.AreEqual(5, facetResults!.Facet("umbraco")!.Value);
                 }
                 else
                 {
@@ -4914,10 +4981,11 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.IsTrue(luceneResults1List.Any(x => x.Id == "2"));
 
                 // Second query result continues after result 1 (zero indexed), Takes 1, should not include any of the results before or include the SearchAfter docid / scoreid
-                var searchAfter = new SearchAfterOptions(luceneResults.SearchAfter.DocumentId,
-                    luceneResults.SearchAfter.DocumentScore,
-                    luceneResults.SearchAfter.Fields,
-                    luceneResults.SearchAfter.ShardIndex.Value);
+                var searchAfter = new SearchAfterOptions(
+                    luceneResults.SearchAfter!.DocumentId,
+                    luceneResults.SearchAfter!.DocumentScore,
+                    luceneResults.SearchAfter!.Fields,
+                    luceneResults.SearchAfter!.ShardIndex);
                 var luceneOptions2 = new LuceneQueryOptions(0, 1, searchAfter);
                 var luceneResults2 = sc.ExecuteWithLucene(luceneOptions2);
                 var luceneResults2List = luceneResults2.ToList();
@@ -4927,7 +4995,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.IsFalse(luceneResults2List.Any(x => luceneResults.ToList().Any(y => y.Id == x.Id)), "Results should not overlap");
 
                 // Third query result continues after result 2 (zero indexed), Takes 1
-                var searchAfter2 = new SearchAfterOptions(luceneResults2.SearchAfter.DocumentId, luceneResults2.SearchAfter.DocumentScore, luceneResults2.SearchAfter.Fields, luceneResults2.SearchAfter.ShardIndex.Value);
+                var searchAfter2 = new SearchAfterOptions(luceneResults2.SearchAfter!.DocumentId, luceneResults2.SearchAfter.DocumentScore, luceneResults2.SearchAfter.Fields, luceneResults2.SearchAfter.ShardIndex);
                 var luceneOptions3 = new LuceneQueryOptions(0, 1, searchAfter2);
                 var luceneResults3 = sc.ExecuteWithLucene(luceneOptions3);
                 Assert.IsNotNull(luceneResults3);
@@ -4978,10 +5046,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.IsTrue(luceneResults1List.Any(x => x.Id == "2"));
 
                 // Second query result continues after result 1 (zero indexed), Takes 1, should not include any of the results before or include the SearchAfter docid / scoreid
-                var searchAfter = new SearchAfterOptions(luceneResults.SearchAfter.DocumentId,
+                var searchAfter = new SearchAfterOptions(luceneResults.SearchAfter!.DocumentId,
                     luceneResults.SearchAfter.DocumentScore,
                     luceneResults.SearchAfter.Fields,
-                    luceneResults.SearchAfter.ShardIndex.Value);
+                    luceneResults.SearchAfter.ShardIndex);
                 var luceneOptions2 = new LuceneQueryOptions(0, 1, searchAfter);
                 var luceneResults2 = sc.ExecuteWithLucene(luceneOptions2);
                 var luceneResults2List = luceneResults2.ToList();
@@ -4991,7 +5059,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.IsFalse(luceneResults2List.Any(x => luceneResults.ToList().Any(y => y.Id == x.Id)), "Results should not overlap");
 
                 // Third query result continues after result 2 (zero indexed), Takes 1
-                var searchAfter2 = new SearchAfterOptions(luceneResults2.SearchAfter.DocumentId, luceneResults2.SearchAfter.DocumentScore, luceneResults2.SearchAfter.Fields, luceneResults2.SearchAfter.ShardIndex.Value);
+                var searchAfter2 = new SearchAfterOptions(luceneResults2.SearchAfter!.DocumentId, luceneResults2.SearchAfter.DocumentScore, luceneResults2.SearchAfter.Fields, luceneResults2.SearchAfter.ShardIndex);
                 var luceneOptions3 = new LuceneQueryOptions(0, 1, searchAfter2);
                 var luceneResults3 = sc.ExecuteWithLucene(luceneOptions3);
                 Assert.IsNotNull(luceneResults3);
@@ -5004,11 +5072,12 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(FacetTestType.TaxonomyFacets)] [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
         [TestCase(FacetTestType.NoFacets)]
         public void Range_DateOnly(FacetTestType withFacets)
         {
-           FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection? fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -5068,8 +5137,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.FacetString("created")).Execute();
                     var facetResult = numberSortedResult.GetFacet("created");
 
+                    Assert.IsNotNull(facetResult, "Facet result should not be null");
                     Assert.AreEqual(2, numberSortedResult.TotalItemCount);
-                    Assert.AreEqual(2, facetResult.Count());
+                    Assert.AreEqual(2, facetResult!.Count());
                 }
                 else
                 {
@@ -5206,10 +5276,11 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var facetResults1 = results1.GetFacet("nodeName");
 
+                Assert.IsNotNull(facetResults1);
                 Assert.AreEqual(indexSize, results1.TotalItemCount);
                 Assert.AreEqual(expectedFirstResultCount, results1.Count());
-                Assert.AreEqual(1, facetResults1.Count());
-                Assert.AreEqual(5, facetResults1.Facet("umbraco").Value);
+                Assert.AreEqual(1, facetResults1!.Count());
+                Assert.AreEqual(5, facetResults1!.Facet("umbraco")!.Value);
 
                 Assert.IsNotNull(results1);
 
@@ -5217,10 +5288,11 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var facetResults2 = results2.GetFacet("nodeName");
 
+                Assert.IsNotNull(facetResults2);
                 Assert.AreEqual(indexSize, results2.TotalItemCount);
                 Assert.AreEqual(expectedSecondResultCount, results2.Count());
-                Assert.AreEqual(1, facetResults2.Count());
-                Assert.AreEqual(5, facetResults2.Facet("umbraco").Value);
+                Assert.AreEqual(1, facetResults2!.Count());
+                Assert.AreEqual(5, facetResults2!.Facet("umbraco")!.Value);
                 var firstResults = results1.ToArray();
                 var secondResults = results2.ToArray();
                 Assert.IsFalse(firstResults.Any(x => secondResults.Any(y => y.Id == x.Id)), "The second set of results should not contain the first set of results");
@@ -5248,18 +5320,18 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 indexer.IndexItems(items);
 
-                var taxonomySearcher = indexer.TaxonomySearcher;
+                var taxonomySearcher = indexer.TaxonomySearcher!;
                 var taxonomyCategoryCount = taxonomySearcher.CategoryCount;
 
                 //Arrange
 
                 var sc = taxonomySearcher.CreateQuery("content")
                     .Field("writerName", "administrator")
-                    .WithFacets((Action<IFacetOperations>)(facets =>
+                    .WithFacets(facets =>
                     {
                         facets.FacetString("nodeName");
                         facets.FacetString("taxonomynodeName");
-                    }));
+                    });
 
                 //Act
 
@@ -5267,26 +5339,29 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var facetResults1 = results1.GetFacet("nodeName");
 
+                Assert.IsNotNull(facetResults1);
                 Assert.AreEqual(indexSize, results1.TotalItemCount);
                 Assert.AreEqual(expectedFirstResultCount, results1.Count());
-                Assert.AreEqual(1, facetResults1.Count());
-                Assert.AreEqual(5, facetResults1.Facet("umbraco").Value);
+                Assert.AreEqual(1, facetResults1!.Count());
+                Assert.AreEqual(5, facetResults1!.Facet("umbraco")!.Value);
 
                 Assert.IsNotNull(results1);
 
                 var facetTaxonomyResults1 = results1.GetFacet("taxonomynodeName");
-                Assert.AreEqual(1, facetTaxonomyResults1.Count());
-                Assert.AreEqual(5, facetTaxonomyResults1.Facet("umbraco").Value);
+                Assert.IsNotNull(facetTaxonomyResults1);
+                Assert.AreEqual(1, facetTaxonomyResults1!.Count());
+                Assert.AreEqual(5, facetTaxonomyResults1!.Facet("umbraco")!.Value);
 
                 var results2 = sc.Execute(new LuceneQueryOptions(0, secondTake, results1.SearchAfter));
 
                 var facetResults2 = results2.GetFacet("nodeName");
                 var facetTaxonomyResults2 = results2.GetFacet("taxonomynodeName");
 
+                Assert.IsNotNull(facetResults2);
                 Assert.AreEqual(indexSize, results2.TotalItemCount);
                 Assert.AreEqual(expectedSecondResultCount, results2.Count());
-                Assert.AreEqual(1, facetResults2.Count());
-                Assert.AreEqual(5, facetResults2.Facet("umbraco").Value);
+                Assert.AreEqual(1, facetResults2!.Count());
+                Assert.AreEqual(5, facetResults2!.Facet("umbraco")!.Value);
                 var firstResults = results1.ToArray();
                 var secondResults = results2.ToArray();
                 Assert.IsFalse(firstResults.Any(x => secondResults.Any(y => y.Id == x.Id)), "The second set of results should not contain the first set of results");

@@ -147,6 +147,7 @@ Examine.Lucene.Search.LuceneSearchResults.Facets.get -> System.Collections.Gener
 Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult!>! results, int totalItemCount, System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>! facets, float maxScore, Examine.Lucene.Search.SearchAfterOptions? searchAfterOptions) -> void
 Examine.Lucene.Search.LuceneSearchResults.MaxScore.get -> float
 Examine.Lucene.Search.LuceneSearchResults.SearchAfter.get -> Examine.Lucene.Search.SearchAfterOptions?
+Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get -> int
 Examine.Lucene.Search.SearchContext.SearchContext(Lucene.Net.Search.SearcherManager! searcherManager, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection, bool isNrt) -> void
 Examine.Lucene.Search.TaxonomySearchContext
 Examine.Lucene.Search.TaxonomySearchContext.GetFieldValueType(string! fieldName) -> Examine.Lucene.Indexing.IIndexFieldValueType!

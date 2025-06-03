@@ -215,9 +215,9 @@ namespace Examine.Lucene.Search
             {
                 searchAfterSortFields = searchAfterOptions.Fields;
             }
-            if (searchAfterOptions.ShardIndex != null)
+            if (searchAfterOptions.ShardIndex >= 0)
             {
-                scoreDocAfter = new FieldDoc(searchAfterOptions.DocumentId, searchAfterOptions.DocumentScore, searchAfterSortFields, searchAfterOptions.ShardIndex.Value);
+                scoreDocAfter = new FieldDoc(searchAfterOptions.DocumentId, searchAfterOptions.DocumentScore, searchAfterSortFields, searchAfterOptions.ShardIndex);
             }
             else
             {
