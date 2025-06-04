@@ -92,12 +92,12 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FacetFloat, name => new SingleType(name, true, false, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetDouble, name => new DoubleType(name,true, false, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetLong, name => new Int64Type(name, true, false, loggerFactory, true)},
-                {FieldDefinitionTypes.FacetDateTime, name => new DateTimeType(name, true, true, loggerFactory, DateResolution.MILLISECOND, false)},
-                {FieldDefinitionTypes.FacetDateYear, name => new DateTimeType(name, true, true, loggerFactory, DateResolution.YEAR, false)},
-                {FieldDefinitionTypes.FacetDateMonth, name => new DateTimeType(name, true, true, loggerFactory, DateResolution.MONTH, false)},
-                {FieldDefinitionTypes.FacetDateDay, name => new DateTimeType(name, true, true, loggerFactory, DateResolution.DAY, false)},
-                {FieldDefinitionTypes.FacetDateHour, name => new DateTimeType(name, true, true, loggerFactory, DateResolution.HOUR, false)},
-                {FieldDefinitionTypes.FacetDateMinute, name => new DateTimeType(name, true, true, loggerFactory, DateResolution.MINUTE, false)},
+                {FieldDefinitionTypes.FacetDateTime, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.MILLISECOND, true)},
+                {FieldDefinitionTypes.FacetDateYear, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.YEAR, true)},
+                {FieldDefinitionTypes.FacetDateMonth, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.MONTH, true)},
+                {FieldDefinitionTypes.FacetDateDay, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.DAY, true)},
+                {FieldDefinitionTypes.FacetDateHour, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.HOUR, true)},
+                {FieldDefinitionTypes.FacetDateMinute, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.MINUTE, true)},
                 {FieldDefinitionTypes.FacetFullText, name => new FullTextType(name, true, false, false, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
                 {FieldDefinitionTypes.FacetFullTextSortable, name => new FullTextType(name, true, false,true, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
                 {FieldDefinitionTypes.FacetTaxonomyInteger, name => new Int32Type(name,true,true, loggerFactory, true)},
@@ -112,7 +112,7 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FacetTaxonomyDateMinute, name => new DateTimeType(name, true, taxonomyIndex : true, loggerFactory, DateResolution.MINUTE, true)},
                 {FieldDefinitionTypes.FacetTaxonomyFullText, name => new FullTextType(name, true, true, false, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
                 {FieldDefinitionTypes.FacetTaxonomyFullTextSortable, name => new FullTextType(name, true, true, true, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
-                };
+            };
 
 
         /// <inheritdoc/>

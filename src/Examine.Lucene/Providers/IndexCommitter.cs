@@ -17,14 +17,17 @@ namespace Examine.Lucene.Providers
         private Timer? _timer;
         private readonly object _locker = new object();
         private readonly LuceneIndex _index;
+        private readonly LuceneIndexOptions _indexOptions;
         private readonly CancellationToken _cancellationToken;
         private const int WaitMilliseconds = 1000;
 
         public IndexCommitter(
             LuceneIndex index,
+            LuceneIndexOptions indexOptions,
             CancellationToken cancellationToken)
         {
             _index = index;
+            _indexOptions = indexOptions;
             _cancellationToken = cancellationToken;
         }
 
@@ -39,7 +42,11 @@ namespace Examine.Lucene.Providers
         /// <inheritdoc/>
         public void CommitNow()
         {
-            _index.TaxonomyWriter.Commit();
+            if (_indexOptions.UseTaxonomyIndex)
+            {
+                _index.TaxonomyWriter.Commit();
+            }
+
             _index.IndexWriter.IndexWriter.Commit();
             Committed?.Invoke(this, EventArgs.Empty);
         }

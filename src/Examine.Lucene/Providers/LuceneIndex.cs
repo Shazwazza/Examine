@@ -887,6 +887,7 @@ namespace Examine.Lucene.Providers
             {
                 return IndexWriter.UpdateDocument(term, _options.FacetsConfig.Build(TaxonomyWriter, doc));
             }
+
             return IndexWriter.UpdateDocument(term, _options.FacetsConfig.Build(doc));
         }
 
@@ -1427,7 +1428,7 @@ namespace Examine.Lucene.Providers
 
         private static IIndexCommitter CreateDefaultCommitter(LuceneIndex index)
         {
-            var committer = new IndexCommitter(index, index._cancellationToken);
+            var committer = new IndexCommitter(index, index._options, index._cancellationToken);
             committer.CommitError += (sender, args) => index.OnIndexingError(args);
             committer.Committed += (sender, args) => index.IndexCommitted?.Invoke(index, EventArgs.Empty);
             return committer;

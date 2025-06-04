@@ -215,7 +215,7 @@ namespace Examine.Lucene
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
 
-        private static FSDirectory UnwrapSourceDirectory(Directory dir)
+        private static FSDirectory? UnwrapSourceDirectory(Directory dir)
         {
             if (dir is SyncedFileSystemDirectory syncedDir)
             {
@@ -225,7 +225,7 @@ namespace Examine.Lucene
             return UnwrapDirectory(dir);
         }
 
-        private static FSDirectory UnwrapDirectory(Directory dir)
+        private static FSDirectory? UnwrapDirectory(Directory dir)
         {
             if (dir is FSDirectory fsDir)
             {
@@ -237,7 +237,7 @@ namespace Examine.Lucene
                 return UnwrapSourceDirectory(nrtDir.Delegate);
             }
 
-            throw new InvalidOperationException($"Cannot unwrap directory of type {dir.GetType().Name}. Expected FSDirectory or NRTCachingDirectory.");
+            return null;
         }
     }
 }

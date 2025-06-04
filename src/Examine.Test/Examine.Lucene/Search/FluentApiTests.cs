@@ -2645,8 +2645,6 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Ensure it's set to a date, otherwise it's not sortable
                 fieldDefinitionCollection))
             {
-
-
                 var now = DateTime.Now;
 
                 indexer.IndexItems(new[] {

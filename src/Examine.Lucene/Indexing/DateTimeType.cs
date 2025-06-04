@@ -71,11 +71,12 @@ namespace Examine.Lucene.Indexing
                 var val = DateToLong(parsedVal);
 
                 doc.Add(new Int64Field(FieldName, val, Store ? Field.Store.YES : Field.Store.NO));
-
                 doc.Add(new FacetField(FieldName, parsedPathVal));
                 doc.Add(new NumericDocValuesField(FieldName, val));
+
                 return;
             }
+
             base.AddValue(doc, value);
         }
 
