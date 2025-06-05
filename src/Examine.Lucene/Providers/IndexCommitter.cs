@@ -42,11 +42,7 @@ namespace Examine.Lucene.Providers
         /// <inheritdoc/>
         public void CommitNow()
         {
-            if (_indexOptions.UseTaxonomyIndex)
-            {
-                _index.TaxonomyWriter.Commit();
-            }
-
+            _index.TaxonomyWriter.Commit();
             _index.IndexWriter.IndexWriter.Commit();
             Committed?.Invoke(this, EventArgs.Empty);
         }

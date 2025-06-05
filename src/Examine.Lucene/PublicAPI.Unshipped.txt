@@ -13,7 +13,7 @@ Examine.Lucene.Directories.IDirectoryFactory.CreateTaxonomyDirectory(Examine.Luc
 Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo! localDir, System.IO.DirectoryInfo! mainDir, Examine.Lucene.Directories.ILockFactory! lockFactory, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions) -> void
 Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo! localDir, System.IO.DirectoryInfo! mainDir, Examine.Lucene.Directories.ILockFactory! lockFactory, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions, bool tryFixMainIndexIfCorrupt) -> void
 Examine.Lucene.Directories.TempEnvFileSystemDirectoryFactory.TempEnvFileSystemDirectoryFactory(Examine.Lucene.Directories.IApplicationIdentifier! applicationIdentifier, Examine.Lucene.Directories.ILockFactory! lockFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions) -> void
-Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator!>! replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient!>! clientLogger, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! sourceDirectory, Lucene.Net.Store.Directory! destinationDirectory, System.IO.DirectoryInfo! tempStorage) -> void
+Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator!>! replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient!>! clientLogger, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! sourceDirectory, Lucene.Net.Store.Directory! destinationDirectory, Lucene.Net.Store.Directory! destinationTaxonomyDirectory, System.IO.DirectoryInfo! tempStorage) -> void
 Examine.Lucene.ExamineTaxonomyReplicator
 Examine.Lucene.ExamineTaxonomyReplicator.Dispose() -> void
 Examine.Lucene.ExamineTaxonomyReplicator.ExamineTaxonomyReplicator(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! destinationDirectory, Lucene.Net.Store.Directory! destinationTaxonomyDirectory, System.IO.DirectoryInfo! tempStorage) -> void
@@ -37,8 +37,6 @@ Examine.Lucene.Indexing.SingleType.IsTaxonomyFaceted.get -> bool
 Examine.Lucene.Indexing.SingleType.SingleType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, bool store) -> void
 Examine.Lucene.LuceneIndexOptions.FacetsConfig.get -> Lucene.Net.Facet.FacetsConfig!
 Examine.Lucene.LuceneIndexOptions.FacetsConfig.set -> void
-Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.get -> bool
-Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.set -> void
 Examine.Lucene.LuceneMultiSearcherOptions
 Examine.Lucene.LuceneMultiSearcherOptions.IndexNames.get -> string![]!
 Examine.Lucene.LuceneMultiSearcherOptions.IndexNames.set -> void
@@ -62,9 +60,9 @@ Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetPath(int ordinal) -> Examine
 Examine.Lucene.Providers.LuceneIndex.GetLuceneDirectory() -> Lucene.Net.Store.Directory!
 Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory() -> Lucene.Net.Store.Directory!
 Examine.Lucene.Providers.LuceneIndex.TaxonomyWriter.get -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
-Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string! name, Lucene.Net.Search.SearcherManager! searcherManager, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneSearcherOptions!>! options, bool isNrt) -> void
 Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Collections.Generic.IEnumerable<Examine.IIndex!>! indexes) -> void
 Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher!>!>! searchers) -> void
+Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get -> System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.BaseLuceneSearcher!>!
 Examine.Lucene.Search.FacetDoubleField
 Examine.Lucene.Search.FacetDoubleField.DoubleRanges.get -> Examine.Search.DoubleRange[]!
 Examine.Lucene.Search.FacetDoubleField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
@@ -166,7 +164,6 @@ override Examine.Lucene.Indexing.FullTextType.AddValue(Lucene.Net.Documents.Docu
 override Examine.Lucene.Indexing.Int32Type.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
 override Examine.Lucene.Indexing.Int64Type.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
 override Examine.Lucene.Indexing.SingleType.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
-override Examine.Lucene.Providers.LuceneSearcher.Dispose() -> void
 override Examine.Lucene.Providers.MultiIndexSearcher.Dispose() -> void
 override Examine.Lucene.Search.LuceneBooleanOperation.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
 override Examine.Lucene.Search.LuceneFacetOperation.ToString() -> string!

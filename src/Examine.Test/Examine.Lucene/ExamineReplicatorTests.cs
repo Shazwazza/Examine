@@ -31,8 +31,9 @@ namespace Examine.Test.Examine.Lucene.Sync
 
             using (var mainDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
+            using (var localTaxonomyDir = new RandomIdRAMDirectory())
             using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-            using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, tempStorage))
+            using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, localTaxonomyDir, tempStorage))
             {
                 mainIndex.CreateIndex();
 
@@ -66,8 +67,9 @@ namespace Examine.Test.Examine.Lucene.Sync
 
             using (var mainDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
+            using (var localTaxonomyDir = new RandomIdRAMDirectory())
             using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-            using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, tempStorage))
+            using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, localTaxonomyDir, tempStorage))
             using (var localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 mainIndex.CreateIndex();
@@ -93,10 +95,12 @@ namespace Examine.Test.Examine.Lucene.Sync
             var indexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy());
 
             using (var mainDir = new RandomIdRAMDirectory())
+            using (var mainTaxonomyDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
+            using (var localTaxonomyDir = new RandomIdRAMDirectory())
             {
                 using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-                using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, tempStorage))
+                using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, localTaxonomyDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
                     mainIndex.IndexItems(TestIndex.AllData());
@@ -112,7 +116,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                                 {"item2", new List<object>(new[] {"value2"})}
                             }));
 
-                    using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, localIndex, localDir, mainDir, tempStorage))
+                    using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, localIndex, localDir, mainDir, mainTaxonomyDir, tempStorage))
                     {
                         // replicate back to main, main index must be closed
                         replicator.ReplicateIndex();
@@ -135,10 +139,12 @@ namespace Examine.Test.Examine.Lucene.Sync
             var indexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy());
 
             using (var mainDir = new RandomIdRAMDirectory())
+            using (var mainTaxonomyDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
+            using (var localTaxonomyDir = new RandomIdRAMDirectory())
             {
                 using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-                using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, tempStorage))
+                using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, localTaxonomyDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
                     mainIndex.IndexItems(TestIndex.AllData());
@@ -147,7 +153,7 @@ namespace Examine.Test.Examine.Lucene.Sync
 
                 using (var localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 {
-                    using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, localIndex, localDir, mainDir, tempStorage))
+                    using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, localIndex, localDir, mainDir, mainTaxonomyDir, tempStorage))
                     {
                         // replicate back to main on schedule
                         replicator.StartIndexReplicationOnSchedule(1000);

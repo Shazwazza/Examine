@@ -37,6 +37,7 @@ namespace Examine.Lucene
         /// <param name="sourceIndex">The source index to replicate from.</param>
         /// <param name="sourceDirectory">The source directory of the index.</param>
         /// <param name="destinationDirectory">The destination directory for replication.</param>
+        /// <param name="destinationTaxonomyDirectory"></param>
         /// <param name="tempStorage">The temporary storage directory used during replication.</param>
         public ExamineReplicator(
             ILogger<ExamineReplicator> replicatorLogger,
@@ -44,6 +45,7 @@ namespace Examine.Lucene
             LuceneIndex sourceIndex,
             Directory sourceDirectory,
             Directory destinationDirectory,
+            Directory destinationTaxonomyDirectory,
             DirectoryInfo tempStorage)
         {
             _sourceIndex = sourceIndex;
@@ -56,8 +58,9 @@ namespace Examine.Lucene
                 => new LoggingReplicationClient(
                     clientLogger,
                     _replicator,
-                    new IndexReplicationHandler(
+                    new IndexAndTaxonomyReplicationHandler(
                         destinationDirectory,
+                        destinationTaxonomyDirectory,
                         () =>
                         {
                             // Callback, can be used to notify when replication is done (i.e. to open the index)
@@ -65,12 +68,17 @@ namespace Examine.Lucene
                             {
                                 var sourceDir = UnwrapDirectory(sourceDirectory);
                                 var destDir = UnwrapDirectory(destinationDirectory);
+                                var sourceTaxonomyDir = sourceIndex.GetLuceneTaxonomyDirectory() as FSDirectory;
+                                var destTaxonomyDir = destinationTaxonomyDirectory as FSDirectory;
 
                                 _logger.LogDebug(
-                                    "{IndexName} replication complete from {SourceDirectory} to {DestinationDirectory}",
+                                    "{IndexName} replication complete from {SourceDirectory} to {DestinationDirectory} and Taxonomy {TaxonomySourceDirectory} to {TaxonomyDestinationDirectory}",
                                     sourceIndex.Name,
                                     sourceDir?.Directory.ToString() ?? "InMemory",
-                                    destDir?.Directory.ToString() ?? "InMemory");
+                                    destDir?.Directory.ToString() ?? "InMemory",
+                                    sourceTaxonomyDir?.Directory.ToString() ?? "InMemory",
+                                    destTaxonomyDir?.Directory.ToString() ?? "InMemory"
+                                );
                             }
                         }),
                     new PerSessionDirectoryFactory(tempStorage.FullName)));
@@ -91,10 +99,10 @@ namespace Examine.Lucene
                 _sourceDirectory,
                 _destinationDirectory);
 
-            IndexRevision rev;
+            IndexAndTaxonomyRevision rev;
             try
             {
-                rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+                rev = new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory);
             }
             catch (InvalidOperationException)
             {
@@ -166,7 +174,7 @@ namespace Examine.Lucene
 
             if (!_sourceIndex.IsCancellationRequested)
             {
-                var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+                var rev = new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory);
                 _replicator.Publish(rev);
             }
         }

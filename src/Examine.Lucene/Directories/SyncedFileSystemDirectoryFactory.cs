@@ -78,14 +78,20 @@ namespace Examine.Lucene.Directories
         {
             var mainPath = Path.Combine(_mainDir.FullName, luceneIndex.Name);
             var mainLuceneIndexFolder = new DirectoryInfo(mainPath);
+            var mainPathTaxonomyPath = Path.Combine(_mainDir.FullName, luceneIndex.Name, "taxonomy");
+            var mainLuceneTaxonomyIndexFolder = new DirectoryInfo(mainPathTaxonomyPath);
 
             var localPath = Path.Combine(_localDir.FullName, luceneIndex.Name);
             var localLuceneIndexFolder = new DirectoryInfo(localPath);
+            var localTaxonomyPath = Path.Combine(_localDir.FullName, luceneIndex.Name, "taxonomy");
+            var localLuceneTaxonomyIndexFolder = new DirectoryInfo(localTaxonomyPath);
 
             // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
             var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
 
             var mainLuceneDir = base.CreateDirectory(luceneIndex, forceUnlock);
+            var mainTaxonomyDir = base.CreateTaxonomyDirectory(luceneIndex, forceUnlock);
+
             var localLuceneDir = FSDirectory.Open(
                 localLuceneIndexFolder,
                 LockFactory.GetLockFactory(localLuceneIndexFolder));
@@ -115,7 +121,7 @@ namespace Examine.Lucene.Directories
                     {
                         using (indexWriter!)
                         {
-                            SyncIndex(indexWriter!, true, luceneIndex.Name, mainLuceneIndexFolder, tempDir);
+                            SyncIndex(indexWriter!, true, luceneIndex.Name, mainLuceneIndexFolder, mainLuceneTaxonomyIndexFolder, tempDir);
                             mainResult |= CreateResult.SyncedFromLocal;
                             // we need to check the main index again, as it may have been fixed by the sync
                             mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
@@ -140,7 +146,7 @@ namespace Examine.Lucene.Directories
                     {
                         if (!mainResult.HasFlag(CreateResult.SyncedFromLocal))
                         {
-                            SyncIndex(indexWriter, forceUnlock, luceneIndex.Name, localLuceneIndexFolder, tempDir);
+                            SyncIndex(indexWriter, forceUnlock, luceneIndex.Name, localLuceneIndexFolder, localLuceneTaxonomyIndexFolder, tempDir);
                         }
                     }
                 }
@@ -163,7 +169,7 @@ namespace Examine.Lucene.Directories
                 luceneDir = localLuceneDir;
             }
 
-            directory = new SyncedFileSystemDirectory(_replicatorLogger, _clientLogger, luceneDir, mainLuceneDir, luceneIndex, tempDir);
+            directory = new SyncedFileSystemDirectory(_replicatorLogger, _clientLogger, luceneDir, mainLuceneDir, mainTaxonomyDir, luceneIndex, tempDir);
 
             return mainResult;
         }
@@ -247,14 +253,22 @@ namespace Examine.Lucene.Directories
             }
         }
 
-        private void SyncIndex(IndexWriter sourceIndexWriter, bool forceUnlock, string indexName, DirectoryInfo destinationDirectory, DirectoryInfo tempDir)
+        private void SyncIndex(IndexWriter sourceIndexWriter, bool forceUnlock, string indexName, DirectoryInfo destinationDirectory, DirectoryInfo destinationTaxonomyDirectory, DirectoryInfo tempDir)
         {
             // First, we need to clear the main index. If for some reason it is at the same revision, the syncing won't do anything.
             ClearDirectory(destinationDirectory);
 
             using (var sourceIndex = new LuceneIndex(_loggerFactory, indexName, new TempOptions(), sourceIndexWriter))
             using (var destinationLuceneDirectory = FSDirectory.Open(destinationDirectory, LockFactory.GetLockFactory(destinationDirectory)))
-            using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, sourceIndex, sourceIndexWriter.Directory, destinationLuceneDirectory, tempDir))
+            using (var destinationLuceneTaxonomyDirectory = FSDirectory.Open(destinationDirectory, LockFactory.GetLockFactory(destinationTaxonomyDirectory)))
+            using (var replicator = new ExamineReplicator(
+                _replicatorLogger,
+                _clientLogger,
+                sourceIndex,
+                sourceIndexWriter.Directory,
+                destinationLuceneDirectory,
+                destinationLuceneTaxonomyDirectory,
+                tempDir))
             {
                 if (forceUnlock)
                 {

@@ -103,7 +103,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
             TestIndex indexer, double searchRadius, string idToMatch, Func<SpatialArgs, Query> createQuery, int lat,
             int lng)
         {
-            var searcher = (LuceneSearcher)indexer.Searcher;
+            var searcher = (BaseLuceneSearcher)indexer.Searcher;
             var searchContext = searcher.GetSearchContext();
 
             using (var searchRef = searchContext.GetSearcher())

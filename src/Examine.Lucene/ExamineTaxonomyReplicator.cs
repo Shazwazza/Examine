@@ -62,7 +62,6 @@ namespace Examine.Lucene
                             var sourceDir = sourceIndex.GetLuceneDirectory() as FSDirectory;
                             var destDir = destinationDirectory as FSDirectory;
 
-
                             var sourceTaxonomyDir = sourceIndex.GetLuceneTaxonomyDirectory() as FSDirectory;
                             var destTaxonomyDir = destinationTaxonomyDirectory as FSDirectory;
 

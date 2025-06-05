@@ -152,9 +152,7 @@ Examine.Lucene.Providers.LuceneIndex.RunAsync.get -> bool
 Examine.Lucene.Providers.LuceneIndex.RunAsync.set -> void
 Examine.Lucene.Providers.LuceneIndex.WaitForChanges() -> void
 Examine.Lucene.Providers.LuceneIndex.WithThreadingMode(Examine.Lucene.Providers.IndexThreadingMode mode) -> System.IDisposable!
-Examine.Lucene.Providers.LuceneSearcher
 Examine.Lucene.Providers.MultiIndexSearcher
-Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get -> System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.LuceneSearcher!>!
 Examine.Lucene.Providers.MultiIndexSearcher.SearchersInitialized.get -> bool
 Examine.Lucene.Providers.ValueSetValidatorDelegate
 Examine.Lucene.Providers.ValueSetValidatorDelegate.Validate(Examine.ValueSet! valueSet) -> Examine.ValueSetValidationResult
@@ -350,7 +348,6 @@ override Examine.Lucene.Providers.LuceneIndex.OnIndexingError(Examine.IndexingEr
 override Examine.Lucene.Providers.LuceneIndex.PerformDeleteFromIndex(System.Collections.Generic.IEnumerable<string!>! itemIds, System.Action<Examine.IndexOperationEventArgs!>! onComplete) -> void
 override Examine.Lucene.Providers.LuceneIndex.PerformIndexItems(System.Collections.Generic.IEnumerable<Examine.ValueSet!>! values, System.Action<Examine.IndexOperationEventArgs!>! onComplete) -> void
 override Examine.Lucene.Providers.LuceneIndex.Searcher.get -> Examine.ISearcher!
-override Examine.Lucene.Providers.LuceneSearcher.GetSearchContext() -> Examine.Lucene.Search.ISearchContext!
 override Examine.Lucene.Providers.MultiIndexSearcher.GetSearchContext() -> Examine.Lucene.Search.ISearchContext!
 override Examine.Lucene.Search.CustomMultiFieldQueryParser.GetRangeQuery(string! field, string! part1, string! part2, bool startInclusive, bool endInclusive) -> Lucene.Net.Search.Query!
 override Examine.Lucene.Search.ExamineMultiFieldQueryParser.GetRangeQuery(string! field, string! part1, string! part2, bool startInclusive, bool endInclusive) -> Lucene.Net.Search.Query!

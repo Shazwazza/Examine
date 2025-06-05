@@ -34,7 +34,7 @@ namespace Examine.Lucene.Providers
         ///<summary>
         /// The underlying LuceneSearchers that will be searched across
         ///</summary>
-        public IEnumerable<LuceneSearcher> Searchers => _searchers.Value.OfType<LuceneSearcher>();
+        public IEnumerable<BaseLuceneSearcher> Searchers => _searchers.Value.OfType<BaseLuceneSearcher>();
 
         /// <summary>
         /// Are the searchers initialized

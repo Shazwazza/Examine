@@ -78,8 +78,7 @@ namespace Examine.Test
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
-                    FacetsConfig = facetsConfig ?? new FacetsConfig(),
-                    UseTaxonomyIndex = true
+                    FacetsConfig = facetsConfig ?? new FacetsConfig()
                 }));
         }
 

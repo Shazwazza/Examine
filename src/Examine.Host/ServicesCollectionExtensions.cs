@@ -44,7 +44,6 @@ namespace Examine
                         options.FieldDefinitions = config.FieldDefinitions ?? options.FieldDefinitions;
                         options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
                         options.FacetsConfig = config.FacetsConfig ?? new FacetsConfig();
-                        options.UseTaxonomyIndex = config.UseTaxonomyIndex;
                     }));
 
             return serviceCollection.AddSingleton<IIndex>(services =>
