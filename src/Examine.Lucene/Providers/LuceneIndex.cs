@@ -66,10 +66,12 @@ namespace Examine.Lucene.Providers
             ILoggerFactory loggerFactory,
             string name,
             IOptionsMonitor<LuceneIndexOptions> indexOptions,
-            IndexWriter writer)
+            IndexWriter writer,
+            DirectoryTaxonomyWriter taxonomyWriter)
                : this(loggerFactory, name, indexOptions, CreateDefaultCommitter)
         {
             _writer = new TrackingIndexWriter(writer ?? throw new ArgumentNullException(nameof(writer)));
+            _taxonomyWriter = taxonomyWriter ?? throw new ArgumentNullException(nameof(taxonomyWriter));
             DefaultAnalyzer = writer.Analyzer;
         }
 
@@ -1451,6 +1453,11 @@ namespace Examine.Lucene.Providers
                     if ((_lazyDirectory?.IsValueCreated ?? false) && !_isDirectoryExternallyManaged)
                     {
                         _lazyDirectory.Value.Dispose();
+                    }
+
+                    if ((_lazyTaxonomyDirectory?.IsValueCreated ?? false) && !_isDirectoryExternallyManaged)
+                    {
+                        _lazyTaxonomyDirectory.Value.Dispose();
                     }
                 }
                 _disposedValue = true;

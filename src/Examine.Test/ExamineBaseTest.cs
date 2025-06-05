@@ -25,7 +25,8 @@ namespace Examine.Test
         public virtual void TearDown() => LoggerFactory.Dispose();
 
         public TestIndex GetTestIndex(
-            Directory d,
+            Directory luceneDir,
+            Directory taxonomyDir,
             Analyzer analyzer,
             FieldDefinitionCollection? fieldDefinitions = null,
             IndexDeletionPolicy? indexDeletionPolicy = null,
@@ -39,7 +40,7 @@ namespace Examine.Test
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions ?? new FieldDefinitionCollection(),
-                    DirectoryFactory = GenericDirectoryFactory.FromExternallyManaged(_ => d, null),
+                    DirectoryFactory = GenericDirectoryFactory.FromExternallyManaged(_ => luceneDir, _ => taxonomyDir),
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
@@ -64,23 +65,5 @@ namespace Examine.Test
 
         protected virtual ILoggerFactory CreateLoggerFactory()
             => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
-
-
-        public TestIndex GetTaxonomyTestIndex(Directory d, Directory taxonomyDirectory, Analyzer analyzer, FieldDefinitionCollection? fieldDefinitions = null, IndexDeletionPolicy? indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null, FacetsConfig? facetsConfig = null)
-        {
-            var loggerFactory = CreateLoggerFactory();
-            return new TestIndex(
-                loggerFactory,
-                Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                {
-                    FieldDefinitions = fieldDefinitions ?? new FieldDefinitionCollection(),
-                    DirectoryFactory = GenericDirectoryFactory.FromExternallyManaged(_ => d, _ => taxonomyDirectory),
-                    Analyzer = analyzer,
-                    IndexDeletionPolicy = indexDeletionPolicy,
-                    IndexValueTypesFactory = indexValueTypesFactory,
-                    FacetsConfig = facetsConfig ?? new FacetsConfig()
-                }));
-        }
-
     }
 }

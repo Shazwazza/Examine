@@ -15,7 +15,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new CultureInvariantWhitespaceAnalyzer();
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -49,7 +50,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new CultureInvariantStandardAnalyzer();
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",

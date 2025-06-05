@@ -30,11 +30,13 @@ namespace Examine.Test.Examine.Lucene.Search
             var standardAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             // using the StandardAnalyzer on the indexes means that the default stop words
             // will get stripped from the text before being stored in the index.
-            using (var indexer1 = GetTestIndex(luceneDir1, standardAnalyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, standardAnalyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, standardAnalyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, standardAnalyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
@@ -64,11 +66,13 @@ namespace Examine.Test.Examine.Lucene.Search
             var standardAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             // using the CustomAnalyzer on the indexes means that the custom stop words
             // will get stripped from the text before being stored in the index.
-            using (var indexer1 = GetTestIndex(luceneDir1, customAnalyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, customAnalyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, customAnalyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, customAnalyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
@@ -102,11 +106,13 @@ namespace Examine.Test.Examine.Lucene.Search
             var standardAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             // using the CustomAnalyzer on the indexes means that the custom stop words
             // will get stripped from the text before being stored in the index.
-            using (var indexer1 = GetTestIndex(luceneDir1, customAnalyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, customAnalyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, customAnalyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, customAnalyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
@@ -141,13 +147,17 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             using (var luceneDir3 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir3 = new RandomIdRAMDirectory())
             using (var luceneDir4 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, analyzer))
-            using (var indexer3 = GetTestIndex(luceneDir3, analyzer))
-            using (var indexer4 = GetTestIndex(luceneDir4, analyzer))
+            using (var luceneTaxonomyDir4 = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, analyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, analyzer))
+            using (var indexer3 = GetTestIndex(luceneDir3, luceneTaxonomyDir3, analyzer))
+            using (var indexer4 = GetTestIndex(luceneDir4, luceneTaxonomyDir4, analyzer))
 
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
@@ -184,13 +194,17 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             using (var luceneDir3 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir3 = new RandomIdRAMDirectory())
             using (var luceneDir4 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, analyzer))
-            using (var indexer3 = GetTestIndex(luceneDir3, analyzer))
-            using (var indexer4 = GetTestIndex(luceneDir4, analyzer))
+            using (var luceneTaxonomyDir4 = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, analyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, analyzer))
+            using (var indexer3 = GetTestIndex(luceneDir3, luceneTaxonomyDir3, analyzer))
+            using (var indexer4 = GetTestIndex(luceneDir4, luceneTaxonomyDir4, analyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "hello", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "world", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));

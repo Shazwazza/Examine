@@ -56,8 +56,10 @@ namespace Examine.Test.Examine.Lucene.Analyzers
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 new FieldDefinitionCollection(new FieldDefinition("phone", "phone")),
                 indexValueTypesFactory: valueTypes))

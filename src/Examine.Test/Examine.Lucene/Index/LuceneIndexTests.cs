@@ -112,10 +112,11 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Index_Unlocks_When_Disposed()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             {
                 Assert.IsFalse(IndexWriter.IsLocked(luceneDir));
 
-                using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
                 {
                     indexer.CreateIndex();
                     indexer.IndexItems(TestIndex.AllData());
@@ -131,8 +132,9 @@ namespace Examine.Test.Examine.Lucene.Index
         [Test]
         public void Rebuild_Index()
         {
-            using (var d = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(d, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 indexer.CreateIndex();
                 indexer.IndexItems(TestIndex.AllData());
@@ -148,7 +150,8 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Index_Exists()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 indexer.EnsureIndex(true);
                 Assert.IsTrue(indexer.IndexExists());
@@ -159,7 +162,8 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Can_Add_One_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -180,7 +184,8 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Can_Add_Same_Document_Twice_Without_Duplication()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -204,7 +209,8 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Can_Add_Multiple_Docs()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -228,7 +234,8 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Can_Delete()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 for (var i = 0; i < 10; i++)
                 {
@@ -261,7 +268,8 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Can_Add_Doc_With_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -299,7 +307,8 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Can_Add_Doc_With_Easy_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -342,7 +351,8 @@ namespace Examine.Test.Examine.Lucene.Index
             }
 
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
                 indexer.TransformingIndexValues += (sender, e) => AddData(sender!, e, "newItem1", "value1");
@@ -370,7 +380,8 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Can_Have_Multiple_Values_In_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -409,7 +420,8 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Can_Update_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -437,8 +449,10 @@ namespace Examine.Test.Examine.Lucene.Index
         public void Number_Field()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 new StandardAnalyzer(LuceneInfo.CurrentVersion),
                 new FieldDefinitionCollection(new FieldDefinition("item2", "number"))))
             {
@@ -487,8 +501,8 @@ namespace Examine.Test.Examine.Lucene.Index
 
             const int ThreadCount = 1000;
 
-            using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
             using (var customIndexer = GetTestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.Searcher)
             {

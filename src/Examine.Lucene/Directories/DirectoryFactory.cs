@@ -11,14 +11,14 @@ namespace Examine.Lucene.Directories
     public class GenericDirectoryFactory : IDirectoryFactory
     {
         private readonly Func<string, Directory> _factory;
-        private readonly Func<string, Directory>? _taxonomyDirectoryFactory;
+        private readonly Func<string, Directory> _taxonomyDirectoryFactory;
 
         /// <summary>
         /// Creates an instance of <see cref="GenericDirectoryFactory"/>
         /// </summary>
         public GenericDirectoryFactory(
             Func<string, Directory> factory,
-            Func<string, Directory>? taxonomyDirectoryFactory = null)
+            Func<string, Directory> taxonomyDirectoryFactory)
             : this(false, factory, taxonomyDirectoryFactory)
         {
         }
@@ -26,7 +26,7 @@ namespace Examine.Lucene.Directories
         private GenericDirectoryFactory(
             bool externallyManaged,
             Func<string, Directory> factory,
-            Func<string, Directory>? taxonomyDirectoryFactory = null)
+            Func<string, Directory> taxonomyDirectoryFactory)
         {
             ExternallyManaged = externallyManaged;
             _factory = factory;
@@ -38,7 +38,7 @@ namespace Examine.Lucene.Directories
         /// </summary>
         internal static GenericDirectoryFactory FromExternallyManaged(
             Func<string, Directory> factory,
-            Func<string, Directory>? taxonomyDirectoryFactory = null) =>
+            Func<string, Directory> taxonomyDirectoryFactory) =>
             new(true, factory, taxonomyDirectoryFactory);
 
         /// <summary>
@@ -60,11 +60,6 @@ namespace Examine.Lucene.Directories
         /// <inheritdoc/>
         public Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
-            if (_taxonomyDirectoryFactory is null)
-            {
-                throw new InvalidOperationException("Taxonomy Directory factory is null.");
-            }
-
             var dir = _taxonomyDirectoryFactory(luceneIndex.Name + "taxonomy");
             if (forceUnlock)
             {

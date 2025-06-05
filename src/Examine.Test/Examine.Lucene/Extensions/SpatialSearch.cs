@@ -68,13 +68,14 @@ namespace Examine.Test.Examine.Lucene.Extensions
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             {
                 string id1 = 1.ToString();
                 string id2 = 2.ToString();
                 string id3 = 3.ToString();
                 string id4 = 4.ToString();
 
-                using (var indexer = GetTestIndex(luceneDir, analyzer))
+                using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
                 {
                     indexer.DocumentWriting += (sender, args) => Indexer_DocumentWriting(args, ctx, strategy);
 

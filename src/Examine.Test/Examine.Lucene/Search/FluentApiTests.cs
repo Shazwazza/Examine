@@ -33,7 +33,8 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer, nrtEnabled: false))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir, analyzer, nrtEnabled: false))
             {
                 indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
 
@@ -75,7 +76,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -153,7 +154,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -216,7 +217,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -267,8 +268,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection,
                 facetsConfig:
@@ -307,8 +310,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection,
                 facetsConfig: facetsConfig))
@@ -354,8 +359,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection,
                 facetsConfig:
@@ -404,7 +411,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -448,7 +455,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -498,7 +505,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -558,7 +565,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -620,8 +627,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -705,7 +714,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTaxonomyTestIndex(
+            using (var indexer1 = GetTestIndex(
                 luceneDir1,
                 luceneTaxonomyDir,
                 analyzer,
@@ -797,7 +806,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTaxonomyTestIndex(
+            using (var indexer1 = GetTestIndex(
                 luceneDir1,
                 luceneTaxonomyDir,
                 analyzer,
@@ -892,7 +901,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTaxonomyTestIndex(
+            using (var indexer1 = GetTestIndex(
                 luceneDir1,
                 luceneTaxonomyDir,
                 analyzer,
@@ -968,7 +977,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1053,7 +1062,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1133,7 +1142,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1212,7 +1221,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
 
             {
                 var searcher = indexer.Searcher;
@@ -1262,7 +1272,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
 
             {
                 var searcher = indexer.Searcher;
@@ -1317,7 +1328,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
 
             {
                 var searcher = indexer.Searcher;
@@ -1378,7 +1390,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1434,7 +1446,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1495,7 +1507,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1556,7 +1568,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1615,7 +1627,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1673,7 +1685,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1732,7 +1744,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1794,7 +1806,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1858,7 +1870,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -1925,7 +1937,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2074,7 +2086,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2135,7 +2147,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2208,7 +2220,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2285,7 +2297,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2349,7 +2361,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2426,7 +2438,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2486,7 +2498,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2552,7 +2564,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2638,7 +2650,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2727,7 +2739,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2798,8 +2810,10 @@ namespace Examine.Test.Examine.Lucene.Search
             // See: https://github.com/Shazwazza/Examine/issues/242
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 new FieldDefinitionCollection(new FieldDefinition("field1", fieldType))))
             {
@@ -2903,7 +2917,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -2979,7 +2993,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3066,7 +3080,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3129,7 +3143,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3196,7 +3210,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3265,7 +3279,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3348,7 +3362,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3445,7 +3459,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3528,7 +3542,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3622,7 +3636,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3715,7 +3729,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3799,7 +3813,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new EnglishAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -3883,7 +3897,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -3918,7 +3933,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 for (var i = 0; i < 1000; i++)
                 {
@@ -3960,7 +3976,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -4031,7 +4047,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -4104,7 +4120,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -4177,7 +4193,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -4257,7 +4273,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer))
@@ -4287,7 +4303,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -4319,7 +4336,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -4348,7 +4366,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -4475,7 +4494,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -4545,7 +4564,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -4616,7 +4635,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -4673,7 +4692,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
 
             {
                 indexer.IndexItems(new[] {
@@ -4711,7 +4731,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -4762,7 +4783,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -4899,7 +4920,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -4945,7 +4966,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -5011,7 +5033,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -5091,7 +5114,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 luceneTaxonomyDir,
                 analyzer,
@@ -5153,8 +5176,10 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
             {
@@ -5202,8 +5227,10 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
             {
@@ -5253,7 +5280,12 @@ namespace Examine.Test.Examine.Lucene.Search
             const int indexSize = 5;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))))
             {
                 var items = Enumerable.Range(0, indexSize).Select(x => ValueSet.FromObject(x.ToString(), "content",
                     new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }));
@@ -5307,7 +5339,7 @@ namespace Examine.Test.Examine.Lucene.Search
             facetConfigs.SetIndexFieldName("taxonomynodeName", "taxonomy_nodeName");
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(luceneDir, luceneTaxonomyDir, analyzer, new FieldDefinitionCollection(
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer, new FieldDefinitionCollection(
                 new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText),
                 new FieldDefinition("taxonomynodeName", FieldDefinitionTypes.FacetTaxonomyFullText)
 

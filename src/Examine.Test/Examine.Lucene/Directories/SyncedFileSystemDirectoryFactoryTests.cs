@@ -217,7 +217,9 @@ namespace Examine.Test.Examine.Lucene.Directories
                     TestIndex.TestIndexName,
                     Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                     {
-                        DirectoryFactory = new GenericDirectoryFactory(_ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName)), null),
+                        DirectoryFactory = new GenericDirectoryFactory(
+                            _ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName)),
+                            _ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName, "Taxonomy"))),
                     }));
 
                 var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();

@@ -529,7 +529,8 @@ namespace Examine.Benchmarks
             System.IO.Directory.CreateDirectory(tempPath);
             indexDir = new DirectoryInfo(tempPath);
             var luceneDirectory = FSDirectory.Open(indexDir);
-            var indexer = GetTestIndex(luceneDirectory, analyzer);
+            var luceneTaxonomyDir = FSDirectory.Open(Path.Combine(tempPath, "Taxonomy"));
+            var indexer = GetTestIndex(luceneDirectory, luceneTaxonomyDir, analyzer);
 
             var random = new Random();
             var valueSets = new List<ValueSet>();
