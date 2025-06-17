@@ -378,7 +378,7 @@ namespace Examine.Lucene.Providers
                             //Since we are already inside the writer lock and it is null, we are allowed to 
                             // make this call with out using GetIndexWriter() to do the initialization.
                             _writer ??= CreateIndexWriterWithLockCheck();
-                            _taxonomyWriter ??= CreateTaxonomyWriterInternal();
+                            _taxonomyWriter ??= CreateTaxonomyWriterWithLockCheck();
 
                             //We're forcing an overwrite, 
                             // this means that we need to cancel all operations currently in place,
@@ -974,7 +974,7 @@ namespace Examine.Lucene.Providers
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
         /// <returns></returns>
-        private DirectoryTaxonomyWriter? CreateTaxonomyWriterInternal()
+        private DirectoryTaxonomyWriter? CreateTaxonomyWriterWithLockCheck()
         {
             var dir = GetLuceneTaxonomyDirectory();
 
@@ -1021,6 +1021,7 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Gets the taxonomy writer factory for the current index
         /// </summary>
+        // TODO: Does this really need to be shared?
         internal SnapshotDirectoryTaxonomyIndexWriterFactory SnapshotDirectoryTaxonomyIndexWriterFactory { get; } = new SnapshotDirectoryTaxonomyIndexWriterFactory();
 
         /// <summary>
@@ -1037,7 +1038,7 @@ namespace Examine.Lucene.Providers
                     Monitor.Enter(_writerLocker);
                     try
                     {
-                        _taxonomyWriter ??= CreateTaxonomyWriterInternal();
+                        _taxonomyWriter ??= CreateTaxonomyWriterWithLockCheck();
                     }
                     finally
                     {

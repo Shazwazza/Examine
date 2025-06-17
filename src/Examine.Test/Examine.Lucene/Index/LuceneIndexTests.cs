@@ -13,7 +13,9 @@ using Examine.Lucene.Indexing;
 using Examine.Lucene.Providers;
 using Examine.Search;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Facet.Taxonomy.Directory;
 using Lucene.Net.Index;
+using Lucene.Net.Replicator;
 using Lucene.Net.Store;
 using NUnit.Framework;
 
@@ -29,9 +31,11 @@ namespace Examine.Test.Examine.Lucene.Index
         [Test]
         public void Operation_Complete_Executes_For_Single_Item()
         {
-            using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var indexer = GetTestIndex(writer))
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
+            using (var indexer = GetTestIndex(writer, taxonomyWriter))
             {
                 var callCount = 0;
                 var waitHandle = new ManualResetEvent(false);
@@ -66,9 +70,11 @@ namespace Examine.Test.Examine.Lucene.Index
         [Test]
         public void Operation_Complete_Executes_For_Multiple_Items()
         {
-            using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var indexer = GetTestIndex(writer))
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
+            using (var indexer = GetTestIndex(writer, taxonomyWriter))
             {
                 var callCount = 0;
                 var waitHandle = new ManualResetEvent(false);
@@ -502,8 +508,10 @@ namespace Examine.Test.Examine.Lucene.Index
             const int ThreadCount = 1000;
 
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var customIndexer = GetTestIndex(writer))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
+            using (var customIndexer = GetTestIndex(writer, taxonomyWriter))
             using (var customSearcher = (LuceneSearcher)customIndexer.Searcher)
             {
 
@@ -622,9 +630,11 @@ namespace Examine.Test.Examine.Lucene.Index
         {
             var rand = new Random(DateTime.Now.Second);
 
-            using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var customIndexer = GetTestIndex(writer))
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
+            using (var customIndexer = GetTestIndex(writer, taxonomyWriter))
             {
                 var waitHandle = new ManualResetEvent(false);
 
@@ -720,10 +730,12 @@ namespace Examine.Test.Examine.Lucene.Index
             }
 
             DirectoryInfo? temp = null;
-            global::Lucene.Net.Store.Directory directory;
+            global::Lucene.Net.Store.Directory luceneDir;
+            global::Lucene.Net.Store.Directory luceneTaxonomyDir;
             if (inMemory)
             {
-                directory = new RandomIdRAMDirectory();
+                luceneDir = new RandomIdRAMDirectory();
+                luceneTaxonomyDir = new RandomIdRAMDirectory();
             }
             else
             {
@@ -743,14 +755,16 @@ namespace Examine.Test.Examine.Lucene.Index
                 var tempPath = Path.Combine(tempBasePath, Guid.NewGuid().ToString());
                 System.IO.Directory.CreateDirectory(tempPath);
                 temp = new DirectoryInfo(tempPath);
-                directory = FSDirectory.Open(temp);
+                luceneDir = FSDirectory.Open(temp);
+                luceneTaxonomyDir = FSDirectory.Open(Path.Combine(temp.FullName, "taxonomy"));
             }
             try
             {
-                using (var d = directory)
-                using (var writer = new IndexWriter(d,
-                    new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-                using (var customIndexer = GetTestIndex(writer, nrtTargetMaxStaleSec: 1.0, nrtTargetMinStaleSec: 0.1))
+                using (luceneDir)
+                using (luceneTaxonomyDir)
+                using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
+                using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
+                using (var customIndexer = GetTestIndex(writer, taxonomyWriter, nrtTargetMaxStaleSec: 1.0, nrtTargetMinStaleSec: 0.1))
                 using (var customSearcher = (LuceneSearcher)customIndexer.Searcher)
                 using (customIndexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
                 {

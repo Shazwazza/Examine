@@ -2,13 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Examine.Lucene;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
 using Lucene.Net.Codecs.Lucene46;
+using Lucene.Net.Facet.Taxonomy.Directory;
 using Lucene.Net.Index;
+using Lucene.Net.Replicator;
 using Lucene.Net.Store;
+using Microsoft.AspNetCore.DataProtection.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -16,8 +20,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Directory = Lucene.Net.Store.Directory;
-using Microsoft.AspNetCore.DataProtection.Infrastructure;
-using System.Threading;
 
 namespace Examine.Test.Examine.Lucene.Directories
 {
@@ -281,9 +283,11 @@ namespace Examine.Test.Examine.Lucene.Directories
             logger.LogInformation($"Creating index at {indexPath} with options: corruptIndex: {corruptIndex}, removeSegments: {removeSegments}");
 
             using var luceneDir = FSDirectory.Open(indexPath);
+            using var luceneTaxonomyDir = FSDirectory.Open(Path.Combine(indexPath, "taxonomy"));
 
             using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var indexer = GetTestIndex(writer))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
+            using (var indexer = GetTestIndex(writer, taxonomyWriter))
             using (indexer.WithThreadingMode(IndexThreadingMode.Synchronous))
             {
                 var valueSets = new List<ValueSet>();

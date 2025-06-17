@@ -9,6 +9,7 @@ using Moq;
 using Examine.Lucene.Directories;
 using System.Collections.Generic;
 using Lucene.Net.Facet;
+using Lucene.Net.Facet.Taxonomy.Directory;
 
 namespace Examine.Test
 {
@@ -52,6 +53,7 @@ namespace Examine.Test
 
         public TestIndex GetTestIndex(
             IndexWriter writer,
+            DirectoryTaxonomyWriter taxonomyWriter,
             double nrtTargetMaxStaleSec = 60,
             double nrtTargetMinStaleSec = 1)
             => new TestIndex(
@@ -61,7 +63,8 @@ namespace Examine.Test
                     NrtTargetMaxStaleSec = nrtTargetMaxStaleSec,
                     NrtTargetMinStaleSec = nrtTargetMinStaleSec
                 }),
-                writer);
+                writer,
+                taxonomyWriter);
 
         protected virtual ILoggerFactory CreateLoggerFactory()
             => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
