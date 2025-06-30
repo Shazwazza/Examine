@@ -31,11 +31,12 @@ namespace Examine.Test.Examine.Lucene.Index
         [Test]
         public void Operation_Complete_Executes_For_Single_Item()
         {
+            var taxonomyWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
-            using (var indexer = GetTestIndex(writer, taxonomyWriter))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyWriterFactory, luceneTaxonomyDir))
+            using (var indexer = GetTestIndex(writer, taxonomyWriterFactory))
             {
                 var callCount = 0;
                 var waitHandle = new ManualResetEvent(false);
@@ -70,11 +71,12 @@ namespace Examine.Test.Examine.Lucene.Index
         [Test]
         public void Operation_Complete_Executes_For_Multiple_Items()
         {
+            var taxonomyWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
-            using (var indexer = GetTestIndex(writer, taxonomyWriter))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyWriterFactory, luceneTaxonomyDir))
+            using (var indexer = GetTestIndex(writer, taxonomyWriterFactory))
             {
                 var callCount = 0;
                 var waitHandle = new ManualResetEvent(false);
@@ -507,11 +509,12 @@ namespace Examine.Test.Examine.Lucene.Index
 
             const int ThreadCount = 1000;
 
+            var taxonomyWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
-            using (var customIndexer = GetTestIndex(writer, taxonomyWriter))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyWriterFactory, luceneTaxonomyDir))
+            using (var customIndexer = GetTestIndex(writer, taxonomyWriterFactory))
             using (var customSearcher = (LuceneSearcher)customIndexer.Searcher)
             {
 
@@ -630,11 +633,12 @@ namespace Examine.Test.Examine.Lucene.Index
         {
             var rand = new Random(DateTime.Now.Second);
 
+            var taxonomyWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
-            using (var customIndexer = GetTestIndex(writer, taxonomyWriter))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyWriterFactory, luceneTaxonomyDir))
+            using (var customIndexer = GetTestIndex(writer, taxonomyWriterFactory))
             {
                 var waitHandle = new ManualResetEvent(false);
 
@@ -760,11 +764,12 @@ namespace Examine.Test.Examine.Lucene.Index
             }
             try
             {
+                var taxonomyWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
                 using (luceneDir)
                 using (luceneTaxonomyDir)
                 using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-                using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
-                using (var customIndexer = GetTestIndex(writer, taxonomyWriter, nrtTargetMaxStaleSec: 1.0, nrtTargetMinStaleSec: 0.1))
+                using (var taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyWriterFactory, luceneTaxonomyDir))
+                using (var customIndexer = GetTestIndex(writer, taxonomyWriterFactory, nrtTargetMaxStaleSec: 1.0, nrtTargetMinStaleSec: 0.1))
                 using (var customSearcher = (LuceneSearcher)customIndexer.Searcher)
                 using (customIndexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
                 {

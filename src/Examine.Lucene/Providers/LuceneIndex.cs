@@ -67,11 +67,13 @@ namespace Examine.Lucene.Providers
             string name,
             IOptionsMonitor<LuceneIndexOptions> indexOptions,
             IndexWriter writer,
-            DirectoryTaxonomyWriter taxonomyWriter)
+            SnapshotDirectoryTaxonomyIndexWriterFactory taxonomyWriterFactory)
                : this(loggerFactory, name, indexOptions, CreateDefaultCommitter)
         {
             _writer = new TrackingIndexWriter(writer ?? throw new ArgumentNullException(nameof(writer)));
-            _taxonomyWriter = taxonomyWriter ?? throw new ArgumentNullException(nameof(taxonomyWriter));
+            SnapshotDirectoryTaxonomyIndexWriterFactory = taxonomyWriterFactory ?? throw new ArgumentNullException(nameof(taxonomyWriterFactory));
+            _lazyTaxonomyDirectory = new Lazy<Directory>(() => SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.Directory);
+
             DefaultAnalyzer = writer.Analyzer;
         }
 
@@ -474,6 +476,7 @@ namespace Examine.Lucene.Providers
                     Unlock(dir);
                 }
                 //create the writer (this will overwrite old index files)
+                // TODO: Surely we need to re-create the factory too since it hangs on to the writer :/
                 writer = new DirectoryTaxonomyWriter(dir, OpenMode.CREATE);
             }
             catch (Exception ex)
@@ -998,30 +1001,15 @@ namespace Examine.Lucene.Providers
                 return null;
             }
 
-            var writer = CreateTaxonomyWriter(dir);
-
-            return writer;
-        }
-
-        /// <summary>
-        /// Method that creates the IndexWriter
-        /// </summary>
-        /// <param name="d"></param>
-        /// <returns></returns>
-        protected virtual DirectoryTaxonomyWriter CreateTaxonomyWriter(Directory d)
-        {
-            if (d == null)
-            {
-                ArgumentNullException.ThrowIfNull(nameof(d));
-            }
-
-            return new DirectoryTaxonomyWriter(SnapshotDirectoryTaxonomyIndexWriterFactory, d);
+            return new DirectoryTaxonomyWriter(SnapshotDirectoryTaxonomyIndexWriterFactory, dir);
         }
 
         /// <summary>
         /// Gets the taxonomy writer factory for the current index
         /// </summary>
-        // TODO: Does this really need to be shared?
+        /// <remarks>
+        /// Due to strange lucene APIs, this factory actually hangs on to the index writer underneath and needs to be shared this way.
+        /// </remarks>
         internal SnapshotDirectoryTaxonomyIndexWriterFactory SnapshotDirectoryTaxonomyIndexWriterFactory { get; } = new SnapshotDirectoryTaxonomyIndexWriterFactory();
 
         /// <summary>
@@ -1431,6 +1419,7 @@ namespace Examine.Lucene.Providers
                             OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index", "-1", e));
                         }
                     }
+
                     if (_taxonomyWriter != null)
                     {
                         try

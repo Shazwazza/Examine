@@ -179,7 +179,6 @@ virtual Examine.Lucene.Indexing.Int32Type.ExtractFacets(Examine.Lucene.Search.IF
 virtual Examine.Lucene.Indexing.Int64Type.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
 virtual Examine.Lucene.Indexing.SingleType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
 virtual Examine.Lucene.Providers.LuceneIndex.CreateIndexWriter(Lucene.Net.Store.Directory! d) -> Lucene.Net.Index.IndexWriter!
-virtual Examine.Lucene.Providers.LuceneIndex.CreateTaxonomyWriter(Lucene.Net.Store.Directory! d) -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
 virtual Examine.Lucene.Providers.LuceneIndex.TaxonomySearcher.get -> Examine.Lucene.Providers.ILuceneTaxonomySearcher?
 virtual Examine.Lucene.Providers.LuceneIndex.UpdateLuceneDocument(Lucene.Net.Index.Term! term, Lucene.Net.Documents.Document! doc) -> long?
 virtual Examine.Lucene.Search.LuceneFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed) -> Lucene.Net.Facet.Facets!

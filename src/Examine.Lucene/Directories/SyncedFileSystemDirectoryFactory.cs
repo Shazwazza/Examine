@@ -128,12 +128,13 @@ namespace Examine.Lucene.Directories
                 if (localResult == CreateResult.Init)
                 {
                     // it was read successfully, we can sync back to main
-                    localResult |= TryGetIndexWriters(OpenMode.APPEND, localLuceneDir, localLuceneIndexFolder, localLuceneTaxonomyDir, localLuceneTaxonomyIndexFolder, false, luceneIndex, out var indexWriter, out var taxonomyWriter);
+                    localResult |= TryGetIndexWriters(OpenMode.APPEND, localLuceneDir, localLuceneIndexFolder, localLuceneTaxonomyDir, localLuceneTaxonomyIndexFolder, false, luceneIndex.Name, out var indexWriter, out var taxonomyWriterFactory);
                     if (localResult.HasFlag(CreateResult.OpenedSuccessfully))
                     {
                         using (indexWriter!)
+                        using (taxonomyWriterFactory!.IndexWriter!)
                         {
-                            SyncIndex(indexWriter!, taxonomyWriter!, true, luceneIndex.Name, mainLuceneIndexFolder, mainLuceneTaxonomyIndexFolder, tempDir);
+                            SyncIndex(indexWriter!, taxonomyWriterFactory!, true, luceneIndex.Name, mainLuceneIndexFolder, mainLuceneTaxonomyIndexFolder, tempDir);
                             mainResult |= CreateResult.SyncedFromLocal;
                             // we need to check the main index again, as it may have been fixed by the sync
                             mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
@@ -153,15 +154,15 @@ namespace Examine.Lucene.Directories
                             ? OpenMode.APPEND
                             : OpenMode.CREATE;
 
-                mainResult |= TryGetIndexWriters(openMode, mainLuceneDir, mainLuceneIndexFolder, mainTaxonomyDir, mainLuceneTaxonomyIndexFolder, true, luceneIndex, out var indexWriter, out var taxonomyWriter);
-                if (indexWriter is not null && taxonomyWriter is not null)
+                mainResult |= TryGetIndexWriters(openMode, mainLuceneDir, mainLuceneIndexFolder, mainTaxonomyDir, mainLuceneTaxonomyIndexFolder, true, luceneIndex.Name, out var indexWriter, out var taxonomyWriterFactory);
+                if (indexWriter is not null && taxonomyWriterFactory is not null)
                 {
                     using (indexWriter)
-                    using (taxonomyWriter)
+                    using (taxonomyWriterFactory!.IndexWriter)
                     {
                         if (!mainResult.HasFlag(CreateResult.SyncedFromLocal))
                         {
-                            SyncIndex(indexWriter, taxonomyWriter, forceUnlock, luceneIndex.Name, localLuceneIndexFolder, localLuceneTaxonomyIndexFolder, tempDir);
+                            SyncIndex(indexWriter, taxonomyWriterFactory, forceUnlock, luceneIndex.Name, localLuceneIndexFolder, localLuceneTaxonomyIndexFolder, tempDir);
                         }
                     }
                 }
@@ -218,16 +219,14 @@ namespace Examine.Lucene.Directories
             Directory taxonomyDirectory,
             DirectoryInfo taxonomyDirectoryInfo,
             bool createNewIfCorrupt,
-            LuceneIndex luceneIndex,
+            string indexName,
             out IndexWriter? indexWriter,
-            out DirectoryTaxonomyWriter? directoryTaxonomyWriter)
+            out SnapshotDirectoryTaxonomyIndexWriterFactory? snapshotDirectoryTaxonomyIndexWriterFactory)
         {
-            var indexName = luceneIndex.Name;
-
             try
             {
                 indexWriter = GetIndexWriter(luceneDirectory, openMode);
-                directoryTaxonomyWriter = GetTaxonomyWriter(luceneIndex, taxonomyDirectory, openMode);
+                var directoryTaxonomyWriter = GetTaxonomyWriter(taxonomyDirectory, openMode, out snapshotDirectoryTaxonomyIndexWriterFactory);
 
                 if (openMode == OpenMode.APPEND)
                 {
@@ -256,12 +255,12 @@ namespace Examine.Lucene.Directories
                     ClearDirectory(taxonomyDirectoryInfo);
 
                     indexWriter = GetIndexWriter(luceneDirectory, OpenMode.CREATE);
-                    directoryTaxonomyWriter = GetTaxonomyWriter(luceneIndex, taxonomyDirectory, OpenMode.CREATE);
+                    _ = GetTaxonomyWriter(taxonomyDirectory, OpenMode.CREATE, out snapshotDirectoryTaxonomyIndexWriterFactory);
                 }
                 else
                 {
                     indexWriter = null;
-                    directoryTaxonomyWriter = null;
+                    snapshotDirectoryTaxonomyIndexWriterFactory = null;
                 }
 
                 return CreateResult.CorruptCreatedNew;
@@ -281,7 +280,7 @@ namespace Examine.Lucene.Directories
 
         private void SyncIndex(
             IndexWriter sourceIndexWriter,
-            DirectoryTaxonomyWriter sourceTaxonomyWriter,
+            SnapshotDirectoryTaxonomyIndexWriterFactory sourceTaxonomyWriterFactory,
             bool forceUnlock,
             string indexName,
             DirectoryInfo destinationDirectory,
@@ -290,8 +289,9 @@ namespace Examine.Lucene.Directories
         {
             // First, we need to clear the main index. If for some reason it is at the same revision, the syncing won't do anything.
             ClearDirectory(destinationDirectory);
+            ClearDirectory(destinationTaxonomyDirectory);
 
-            using (var sourceIndex = new LuceneIndex(_loggerFactory, indexName, new TempOptions(), sourceIndexWriter, sourceTaxonomyWriter))
+            using (var sourceIndex = new LuceneIndex(_loggerFactory, indexName, new TempOptions(), sourceIndexWriter, sourceTaxonomyWriterFactory))
             using (var destinationLuceneDirectory = FSDirectory.Open(destinationDirectory, LockFactory.GetLockFactory(destinationDirectory)))
             using (var destinationLuceneTaxonomyDirectory = FSDirectory.Open(destinationDirectory, LockFactory.GetLockFactory(destinationTaxonomyDirectory)))
             using (var replicator = new ExamineReplicator(
@@ -394,14 +394,18 @@ namespace Examine.Lucene.Directories
             return indexWriter;
         }
 
-        private static DirectoryTaxonomyWriter GetTaxonomyWriter(LuceneIndex luceneIndex, Directory d, OpenMode openMode)
+        private static DirectoryTaxonomyWriter GetTaxonomyWriter(Directory d, OpenMode openMode, out SnapshotDirectoryTaxonomyIndexWriterFactory snapshotDirectoryTaxonomyIndexWriterFactory)
         {
             if (d == null)
             {
                 ArgumentNullException.ThrowIfNull(nameof(d));
             }
 
-            return new DirectoryTaxonomyWriter(luceneIndex.SnapshotDirectoryTaxonomyIndexWriterFactory, d, openMode, DirectoryTaxonomyWriter.CreateDefaultTaxonomyWriterCache());
+            // TODO: This API is broken and weird, the SnapshotDirectoryTaxonomyIndexWriterFactory hangs on the to the writer that it creates,
+            // and is needed downstream by the replicator APIs.
+            snapshotDirectoryTaxonomyIndexWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
+            var writer = new DirectoryTaxonomyWriter(snapshotDirectoryTaxonomyIndexWriterFactory, d, openMode, DirectoryTaxonomyWriter.CreateDefaultTaxonomyWriterCache());
+            return writer;
         }
 
         private class TempOptions : IOptionsMonitor<LuceneDirectoryIndexOptions>

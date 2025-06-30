@@ -285,9 +285,10 @@ namespace Examine.Test.Examine.Lucene.Directories
             using var luceneDir = FSDirectory.Open(indexPath);
             using var luceneTaxonomyDir = FSDirectory.Open(Path.Combine(indexPath, "taxonomy"));
 
+            var taxonomyWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
             using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var taxonomyWriter = new DirectoryTaxonomyWriter(new SnapshotDirectoryTaxonomyIndexWriterFactory(), luceneTaxonomyDir))
-            using (var indexer = GetTestIndex(writer, taxonomyWriter))
+            using (var taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyWriterFactory, luceneTaxonomyDir))
+            using (var indexer = GetTestIndex(writer, taxonomyWriterFactory))
             using (indexer.WithThreadingMode(IndexThreadingMode.Synchronous))
             {
                 var valueSets = new List<ValueSet>();

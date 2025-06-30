@@ -1,15 +1,16 @@
-using NUnit.Framework;
-using Lucene.Net.Index;
-using Microsoft.Extensions.Logging;
-using Lucene.Net.Analysis;
-using Directory = Lucene.Net.Store.Directory;
-using Microsoft.Extensions.Options;
-using Examine.Lucene;
-using Moq;
-using Examine.Lucene.Directories;
 using System.Collections.Generic;
+using Examine.Lucene;
+using Examine.Lucene.Directories;
+using Lucene.Net.Analysis;
 using Lucene.Net.Facet;
 using Lucene.Net.Facet.Taxonomy.Directory;
+using Lucene.Net.Index;
+using Lucene.Net.Replicator;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using NUnit.Framework;
+using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Test
 {
@@ -53,7 +54,7 @@ namespace Examine.Test
 
         public TestIndex GetTestIndex(
             IndexWriter writer,
-            DirectoryTaxonomyWriter taxonomyWriter,
+            SnapshotDirectoryTaxonomyIndexWriterFactory taxonomyWriterFactory,
             double nrtTargetMaxStaleSec = 60,
             double nrtTargetMinStaleSec = 1)
             => new TestIndex(
@@ -64,7 +65,7 @@ namespace Examine.Test
                     NrtTargetMinStaleSec = nrtTargetMinStaleSec
                 }),
                 writer,
-                taxonomyWriter);
+                taxonomyWriterFactory);
 
         protected virtual ILoggerFactory CreateLoggerFactory()
             => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
