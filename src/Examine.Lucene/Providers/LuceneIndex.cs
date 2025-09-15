@@ -73,8 +73,8 @@ namespace Examine.Lucene.Providers
             _writer = new TrackingIndexWriter(writer ?? throw new ArgumentNullException(nameof(writer)));
             SnapshotDirectoryTaxonomyIndexWriterFactory = taxonomyWriterFactory ?? throw new ArgumentNullException(nameof(taxonomyWriterFactory));
             _lazyTaxonomyDirectory = new Lazy<Directory>(() => SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.Directory);
-
             DefaultAnalyzer = writer.Analyzer;
+            _isDirectoryExternallyManaged = true;
         }
 
         private LuceneIndex(
