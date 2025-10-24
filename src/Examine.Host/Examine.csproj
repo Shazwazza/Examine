@@ -4,8 +4,6 @@
     <Description>A Lucene.Net search and indexing implementation for Examine</Description>
     <PackageTags>examine lucene lucene.net lucenenet search index</PackageTags>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <Nullable>enable</Nullable>
-    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

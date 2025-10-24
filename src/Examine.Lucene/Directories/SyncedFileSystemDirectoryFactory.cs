@@ -396,10 +396,7 @@ namespace Examine.Lucene.Directories
 
         private static DirectoryTaxonomyWriter GetTaxonomyWriter(Directory d, OpenMode openMode, out SnapshotDirectoryTaxonomyIndexWriterFactory snapshotDirectoryTaxonomyIndexWriterFactory)
         {
-            if (d == null)
-            {
-                ArgumentNullException.ThrowIfNull(nameof(d));
-            }
+            ArgumentNullException.ThrowIfNull(d);
 
             // TODO: This API is broken and weird, the SnapshotDirectoryTaxonomyIndexWriterFactory hangs on the to the writer that it creates,
             // and is needed downstream by the replicator APIs.
