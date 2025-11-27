@@ -24,6 +24,7 @@ namespace Examine.Lucene
         private readonly LuceneIndex _sourceIndex;
         private readonly Directory _sourceDirectory;
         private readonly Directory _destinationDirectory;
+        private readonly Directory _destinationTaxonomyDirectory;
         private readonly Lazy<LoggingReplicationClient> _localReplicationClient;
         private readonly object _locker = new object();
         private bool _started = false;
@@ -51,6 +52,7 @@ namespace Examine.Lucene
             _sourceIndex = sourceIndex;
             _sourceDirectory = sourceDirectory;
             _destinationDirectory = destinationDirectory;
+            _destinationTaxonomyDirectory = destinationTaxonomyDirectory;
             _replicator = new LocalReplicator();
             _logger = replicatorLogger;
 
@@ -92,6 +94,11 @@ namespace Examine.Lucene
             if (IndexWriter.IsLocked(_destinationDirectory))
             {
                 throw new InvalidOperationException("The destination directory is locked");
+            }
+
+            if (IndexWriter.IsLocked(_destinationTaxonomyDirectory))
+            {
+                throw new InvalidOperationException("The destination taxonomy directory is locked");
             }
 
             _logger.LogInformation(

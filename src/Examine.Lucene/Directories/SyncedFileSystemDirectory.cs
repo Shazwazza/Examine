@@ -21,7 +21,14 @@ namespace Examine.Lucene.Directories
             : base(localLuceneDirectory)
         {
             // now create the replicator that will copy from local to main on schedule
-            _replicator = new ExamineReplicator(replicatorLogger, clientLogger, luceneIndex, localLuceneDirectory, mainLuceneDirectory, mainTaxonomyLuceneDirectory, tempDir);
+            _replicator = new ExamineReplicator(
+                replicatorLogger,
+                clientLogger,
+                luceneIndex,
+                localLuceneDirectory,
+                mainLuceneDirectory,
+                mainTaxonomyLuceneDirectory,
+                tempDir);
             LocalLuceneDirectory = localLuceneDirectory;
             MainLuceneDirectory = mainLuceneDirectory;
         }

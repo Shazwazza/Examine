@@ -131,14 +131,20 @@ namespace Examine.Lucene.Directories
                     localResult |= TryGetIndexWriters(OpenMode.APPEND, localLuceneDir, localLuceneIndexFolder, localLuceneTaxonomyDir, localLuceneTaxonomyIndexFolder, false, luceneIndex.Name, out var indexWriter, out var taxonomyWriterFactory);
                     if (localResult.HasFlag(CreateResult.OpenedSuccessfully))
                     {
-                        using (indexWriter!)
-                        using (taxonomyWriterFactory!.IndexWriter!)
+                        using (indexWriter)
+                        using (taxonomyWriterFactory.IndexWriter)
                         {
-                            SyncIndex(indexWriter!, taxonomyWriterFactory!, true, luceneIndex.Name, mainLuceneIndexFolder, mainLuceneTaxonomyIndexFolder, tempDir);
+                            SyncIndex(indexWriter, taxonomyWriterFactory, true, luceneIndex.Name, mainLuceneIndexFolder, mainLuceneTaxonomyIndexFolder, tempDir);
                             mainResult |= CreateResult.SyncedFromLocal;
                             // we need to check the main index again, as it may have been fixed by the sync
                             mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
                             mainTaxonomyIndexExists = DirectoryReader.IndexExists(mainTaxonomyDir);
+
+                            if (mainIndexExists != mainTaxonomyIndexExists)
+                            {
+                                throw new InvalidOperationException(string.Format("search and taxonomy indexes must either both exist or not: index={0} taxo={1}", mainIndexExists, mainTaxonomyIndexExists));
+                            }
+
                             hasMainIndexes = mainIndexExists && mainTaxonomyIndexExists;
                         }
                     }
@@ -220,8 +226,8 @@ namespace Examine.Lucene.Directories
             DirectoryInfo taxonomyDirectoryInfo,
             bool createNewIfCorrupt,
             string indexName,
-            out IndexWriter? indexWriter,
-            out SnapshotDirectoryTaxonomyIndexWriterFactory? snapshotDirectoryTaxonomyIndexWriterFactory)
+            out IndexWriter indexWriter,
+            out SnapshotDirectoryTaxonomyIndexWriterFactory snapshotDirectoryTaxonomyIndexWriterFactory)
         {
             try
             {
@@ -259,8 +265,8 @@ namespace Examine.Lucene.Directories
                 }
                 else
                 {
-                    indexWriter = null;
-                    snapshotDirectoryTaxonomyIndexWriterFactory = null;
+                    indexWriter = null!;
+                    snapshotDirectoryTaxonomyIndexWriterFactory = null!;
                 }
 
                 return CreateResult.CorruptCreatedNew;
@@ -293,7 +299,7 @@ namespace Examine.Lucene.Directories
 
             using (var sourceIndex = new LuceneIndex(_loggerFactory, indexName, new TempOptions(), sourceIndexWriter, sourceTaxonomyWriterFactory))
             using (var destinationLuceneDirectory = FSDirectory.Open(destinationDirectory, LockFactory.GetLockFactory(destinationDirectory)))
-            using (var destinationLuceneTaxonomyDirectory = FSDirectory.Open(destinationDirectory, LockFactory.GetLockFactory(destinationTaxonomyDirectory)))
+            using (var destinationLuceneTaxonomyDirectory = FSDirectory.Open(destinationTaxonomyDirectory, LockFactory.GetLockFactory(destinationTaxonomyDirectory)))
             using (var replicator = new ExamineReplicator(
                 _replicatorLogger,
                 _clientLogger,
@@ -306,6 +312,7 @@ namespace Examine.Lucene.Directories
                 if (forceUnlock)
                 {
                     IndexWriter.Unlock(destinationLuceneDirectory);
+                    IndexWriter.Unlock(destinationLuceneTaxonomyDirectory);
                 }
 
                 // replicate locally.
