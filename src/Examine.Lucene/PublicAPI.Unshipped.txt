@@ -14,11 +14,6 @@ Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDire
 Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo! localDir, System.IO.DirectoryInfo! mainDir, Examine.Lucene.Directories.ILockFactory! lockFactory, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions, bool tryFixMainIndexIfCorrupt) -> void
 Examine.Lucene.Directories.TempEnvFileSystemDirectoryFactory.TempEnvFileSystemDirectoryFactory(Examine.Lucene.Directories.IApplicationIdentifier! applicationIdentifier, Examine.Lucene.Directories.ILockFactory! lockFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions) -> void
 Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator!>! replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient!>! clientLogger, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! sourceDirectory, Lucene.Net.Store.Directory! destinationDirectory, Lucene.Net.Store.Directory! destinationTaxonomyDirectory, System.IO.DirectoryInfo! tempStorage) -> void
-Examine.Lucene.ExamineTaxonomyReplicator
-Examine.Lucene.ExamineTaxonomyReplicator.Dispose() -> void
-Examine.Lucene.ExamineTaxonomyReplicator.ExamineTaxonomyReplicator(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! destinationDirectory, Lucene.Net.Store.Directory! destinationTaxonomyDirectory, System.IO.DirectoryInfo! tempStorage) -> void
-Examine.Lucene.ExamineTaxonomyReplicator.ReplicateIndex() -> void
-Examine.Lucene.ExamineTaxonomyReplicator.StartIndexReplicationOnSchedule(int milliseconds) -> void
 Examine.Lucene.FacetExtensions
 Examine.Lucene.Indexing.DateTimeType.DateTimeType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, Lucene.Net.Documents.DateResolution resolution, bool store) -> void
 Examine.Lucene.Indexing.DateTimeType.IsTaxonomyFaceted.get -> bool
@@ -171,7 +166,6 @@ static Examine.Lucene.FacetExtensions.GetFacet(this Examine.ISearchResults! sear
 static Examine.Lucene.FacetExtensions.GetFacets(this Examine.ISearchResults! searchResults) -> System.Collections.Generic.IEnumerable<Examine.Search.IFacetResult!>!
 static Examine.Lucene.Search.LuceneSearchExtensions.ExecuteWithLucene(this Examine.Search.IQueryExecutor! queryExecutor, Examine.Search.QueryOptions? options = null) -> Examine.Lucene.Search.ILuceneSearchResults!
 virtual Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
-virtual Examine.Lucene.ExamineTaxonomyReplicator.Dispose(bool disposing) -> void
 virtual Examine.Lucene.Indexing.DateTimeType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
 virtual Examine.Lucene.Indexing.DoubleType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
 virtual Examine.Lucene.Indexing.FullTextType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
