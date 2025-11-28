@@ -161,13 +161,6 @@ Examine.Search.BooleanOperation.And = 0 -> Examine.Search.BooleanOperation
 Examine.Search.BooleanOperation.Not = 2 -> Examine.Search.BooleanOperation
 Examine.Search.BooleanOperation.Or = 1 -> Examine.Search.BooleanOperation
 Examine.Search.Examineness
-Examine.Search.Examineness.Boosted = 5 -> Examine.Search.Examineness
-Examine.Search.Examineness.ComplexWildcard = 2 -> Examine.Search.Examineness
-Examine.Search.Examineness.Escaped = 4 -> Examine.Search.Examineness
-Examine.Search.Examineness.Explicit = 3 -> Examine.Search.Examineness
-Examine.Search.Examineness.Fuzzy = 0 -> Examine.Search.Examineness
-Examine.Search.Examineness.Proximity = 6 -> Examine.Search.Examineness
-Examine.Search.Examineness.SimpleWildcard = 1 -> Examine.Search.Examineness
 Examine.Search.ExamineValue
 Examine.Search.ExamineValue.Examineness.get -> Examine.Search.Examineness
 Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string! value) -> void

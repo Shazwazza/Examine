@@ -32,8 +32,16 @@ Examine.Search.DoubleRange.Max.get -> double
 Examine.Search.DoubleRange.MaxInclusive.get -> bool
 Examine.Search.DoubleRange.Min.get -> double
 Examine.Search.DoubleRange.MinInclusive.get -> bool
-Examine.Search.Examineness.Default = 8 -> Examine.Search.Examineness
-Examine.Search.Examineness.Phrase = 7 -> Examine.Search.Examineness
+Examine.Search.Examineness.Boosted = 6 -> Examine.Search.Examineness
+Examine.Search.Examineness.ComplexWildcard = 3 -> Examine.Search.Examineness
+Examine.Search.Examineness.Default = 0 -> Examine.Search.Examineness
+Examine.Search.Examineness.Escaped = 5 -> Examine.Search.Examineness
+Examine.Search.Examineness.Explicit = 4 -> Examine.Search.Examineness
+Examine.Search.Examineness.Fuzzy = 1 -> Examine.Search.Examineness
+Examine.Search.Examineness.Phrase = 8 -> Examine.Search.Examineness
+Examine.Search.Examineness.Proximity = 7 -> Examine.Search.Examineness
+Examine.Search.Examineness.SimpleWildcard = 2 -> Examine.Search.Examineness
+Examine.Search.ExamineValueExtensions
 Examine.Search.FacetLabel
 Examine.Search.FacetLabel.CompareTo(Examine.Search.IFacetLabel? other) -> int
 Examine.Search.FacetLabel.Components.get -> string![]!
@@ -60,6 +68,8 @@ Examine.Search.FloatRange.Max.get -> float
 Examine.Search.FloatRange.MaxInclusive.get -> bool
 Examine.Search.FloatRange.Min.get -> float
 Examine.Search.FloatRange.MinInclusive.get -> bool
+Examine.Search.IExamineValueBoosted
+Examine.Search.IExamineValueBoosted.Boost.get -> float
 Examine.Search.IFaceting
 Examine.Search.IFaceting.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
 Examine.Search.IFacetLabel
@@ -98,6 +108,7 @@ Examine.ValueSet.ValueSet(string! id) -> void
 Examine.ValueSet.ValueSet(string! id, string! category, string! itemType, System.Collections.Generic.IDictionary<string!, System.Collections.Generic.IEnumerable<object!>!>! values) -> void
 static Examine.Search.ExamineValue.Create(Examine.Search.Examineness vagueness, string! value) -> Examine.Search.IExamineValue!
 static Examine.Search.ExamineValue.Create(Examine.Search.Examineness vagueness, string! value, float level) -> Examine.Search.IExamineValue!
+static Examine.Search.ExamineValueExtensions.WithBoost(this Examine.Search.IExamineValue! examineValue, float boost) -> Examine.Search.IExamineValue!
 static Examine.Search.OrderingExtensions.WithFacets(this Examine.Search.IOrdering! ordering, System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
 const Examine.Search.QueryOptions.AbsoluteMaxResults = 10000 -> int
 const Examine.Search.QueryOptions.DefaultMaxResults = 100 -> int

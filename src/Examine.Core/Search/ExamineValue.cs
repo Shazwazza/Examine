@@ -1,5 +1,4 @@
 using System;
-using Examine.Search;
 
 namespace Examine.Search
 {
@@ -34,6 +33,9 @@ namespace Examine.Search
         public static IExamineValue Create(Examineness vagueness, string value, float level)
             => new ExamineValueRecord(value, vagueness, level);
 
+        internal static IExamineValue WithBoost(IExamineValue current, float boost)
+            => new ExamineValueBoostedRecord(current.Value, current.Examineness, current.Level, boost);
+
         /// <inheritdoc/>
         public Examineness Examineness { get; }
 
@@ -44,5 +46,7 @@ namespace Examine.Search
         public float Level { get; }
 
         private readonly record struct ExamineValueRecord(string Value, Examineness Examineness, float Level) : IExamineValue;
+
+        private readonly record struct ExamineValueBoostedRecord(string Value, Examineness Examineness, float Level, float Boost) : IExamineValueBoosted;
     }
 }

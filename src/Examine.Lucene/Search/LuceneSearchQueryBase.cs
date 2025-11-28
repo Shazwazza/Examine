@@ -422,13 +422,8 @@ namespace Examine.Lucene.Search
                     break;
                 case Examineness.SimpleWildcard:
                 case Examineness.ComplexWildcard:
-
                     var searchValue = fieldValue.Value + (fieldValue.Examineness == Examineness.ComplexWildcard ? "*" : "?");
                     queryToAdd = _queryParser.GetWildcardQueryInternal(fieldName, searchValue);
-                    break;
-                case Examineness.Boosted:
-                    queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
-                    queryToAdd?.Boost = fieldValue.Level;
                     break;
                 case Examineness.Proximity:
                     int proximity = Convert.ToInt32(fieldValue.Level);
@@ -448,6 +443,12 @@ namespace Examine.Lucene.Search
                     queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
                     break;
             }
+
+            if (fieldValue is IExamineValueBoosted boostedValue)
+            {
+                queryToAdd.Boost = boostedValue.Boost;
+            }
+
             return queryToAdd;
         }
 
