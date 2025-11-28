@@ -1998,7 +1998,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             //now escape it
             var exactcriteria = searcher.CreateQuery("content");
-            var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
+            var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Phrase());
 
             if (HasFacets(withFacets))
             {
@@ -2241,7 +2241,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var searcher = indexer.Searcher;
 
             var criteria = searcher.CreateQuery("content");
-            var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Escape());
+            var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Phrase());
 
             if (HasFacets(withFacets))
             {
@@ -3095,7 +3095,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var searcher = indexer.Searcher;
 
             //Arrange
-            var sc = searcher.CreateQuery("content").Field("nodeName", "codegarden 09".Escape());
+            var sc = searcher.CreateQuery("content").Field("nodeName", "codegarden 09".Phrase());
 
             Console.WriteLine(sc.ToString());
 

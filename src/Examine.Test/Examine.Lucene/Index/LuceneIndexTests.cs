@@ -615,7 +615,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                 //ensure no data since it's a new index
                 var results = customSearcher.CreateQuery()
-                    .Field("nodeName", ExamineValue.Create(Examineness.Explicit, "Home"))
+                    .Field("nodeName", ExamineValue.Create(Examineness.Default, "Home"))
                     .Execute();
 
                 // there will be less than the thread count because we overwrote it midway through
@@ -695,7 +695,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 //ensure no duplicates
 
                 var customSearcher = (LuceneSearcher)customIndexer.Searcher;
-                var results = customSearcher.CreateQuery().Field("nodeName", ExamineValue.Create(Examineness.Explicit, "Home")).Execute();
+                var results = customSearcher.CreateQuery().Field("nodeName", ExamineValue.Create(Examineness.Default, "Home")).Execute();
 
                 foreach (var r in results)
                 {

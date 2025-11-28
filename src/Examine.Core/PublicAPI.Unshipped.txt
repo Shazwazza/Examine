@@ -32,6 +32,8 @@ Examine.Search.DoubleRange.Max.get -> double
 Examine.Search.DoubleRange.MaxInclusive.get -> bool
 Examine.Search.DoubleRange.Min.get -> double
 Examine.Search.DoubleRange.MinInclusive.get -> bool
+Examine.Search.Examineness.Default = 8 -> Examine.Search.Examineness
+Examine.Search.Examineness.Phrase = 7 -> Examine.Search.Examineness
 Examine.Search.FacetLabel
 Examine.Search.FacetLabel.CompareTo(Examine.Search.IFacetLabel? other) -> int
 Examine.Search.FacetLabel.Components.get -> string![]!
@@ -99,3 +101,4 @@ static Examine.Search.ExamineValue.Create(Examine.Search.Examineness vagueness, 
 static Examine.Search.OrderingExtensions.WithFacets(this Examine.Search.IOrdering! ordering, System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
 const Examine.Search.QueryOptions.AbsoluteMaxResults = 10000 -> int
 const Examine.Search.QueryOptions.DefaultMaxResults = 100 -> int
+static Examine.SearchExtensions.Phrase(this string! s) -> Examine.Search.IExamineValue!

@@ -404,5 +404,4 @@ virtual Examine.Lucene.Search.CustomMultiFieldQueryParser.GetProximityQueryInter
 virtual Examine.Lucene.Search.CustomMultiFieldQueryParser.GetWildcardQueryInternal(string! field, string! termStr) -> Lucene.Net.Search.Query!
 virtual Examine.Lucene.Search.LuceneSearchQuery.OrderBy(params Examine.Search.SortableField[]! fields) -> Examine.Search.IBooleanOperation!
 virtual Examine.Lucene.Search.LuceneSearchQuery.OrderByDescending(params Examine.Search.SortableField[]! fields) -> Examine.Search.IBooleanOperation!
-virtual Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue, bool useQueryParser) -> Lucene.Net.Search.Query?
 virtual Examine.Lucene.Search.MultiSearchSearcherReference.Dispose(bool disposing) -> void

@@ -1,7 +1,8 @@
-﻿
+
+using System;
+
 namespace Examine.Search
 {
-
     /// <summary>
     /// Different ways to match terms
     /// </summary>
@@ -23,13 +24,15 @@ namespace Examine.Search
         ComplexWildcard,
 
         /// <summary>
-        /// A normal phrase query
+        /// A normal field query
         /// </summary>
+        [Obsolete("Use default instead")]
         Explicit,
 
         /// <summary>
         /// Becomes exact match
         /// </summary>
+        [Obsolete("Use phrase instead")]
         Escaped,
 
         /// <summary>
@@ -40,8 +43,16 @@ namespace Examine.Search
         /// <summary>
         /// Searches for terms within a proximity of each other
         /// </summary>
-        Proximity
+        Proximity,
 
+        /// <summary>
+        /// Makes the term a phrase query
+        /// </summary>
+        Phrase,
 
+        /// <summary>
+        /// A normal field query
+        /// </summary>
+        Default
     }
 }

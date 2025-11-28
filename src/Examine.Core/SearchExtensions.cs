@@ -110,8 +110,15 @@ namespace Examine
         /// </summary>
         /// <param name="s">The string to escape.</param>
         /// <returns>An IExamineValue for the required operation</returns>
-        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>        
-        public static IExamineValue Escape(this string s)
+        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
+        [Obsolete("Use Phrase instead")]
+        public static IExamineValue Escape(this string s) => Phrase(s);
+
+        /// <summary>
+        /// Ensures the string is treated as a phrase in Lucene
+        /// </summary>
+        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>   
+        public static IExamineValue Phrase(this string s)
         {
             if (string.IsNullOrWhiteSpace(s))
             {
@@ -122,8 +129,7 @@ namespace Examine
             // inside of LuceneSearchCriteria when we detect Escaped, we use a PhraseQuery which automatically
             // escapes invalid chars.
 
-            return ExamineValue.Create(Examineness.Escaped, s);
+            return ExamineValue.Create(Examineness.Phrase, s);
         }
-
     }
 }

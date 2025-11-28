@@ -57,6 +57,7 @@ Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory() -> Lucene.Net.
 Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Collections.Generic.IEnumerable<Examine.IIndex!>! indexes) -> void
 Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher!>!>! searchers) -> void
 Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get -> System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.BaseLuceneSearcher!>!
+Examine.Lucene.Search.CustomMultiFieldQueryParser.GetPhraseQueryInternal(string! field, string! queryText) -> Lucene.Net.Search.Query!
 Examine.Lucene.Search.FacetDoubleField
 Examine.Lucene.Search.FacetDoubleField.DoubleRanges.get -> Examine.Search.DoubleRange[]!
 Examine.Lucene.Search.FacetDoubleField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
@@ -175,6 +176,7 @@ virtual Examine.Lucene.Providers.LuceneIndex.CreateIndexWriter(Lucene.Net.Store.
 virtual Examine.Lucene.Providers.LuceneIndex.TaxonomySearcher.get -> Examine.Lucene.Providers.ILuceneTaxonomySearcher?
 virtual Examine.Lucene.Providers.LuceneIndex.UpdateLuceneDocument(Lucene.Net.Index.Term! term, Lucene.Net.Documents.Document! doc) -> long?
 virtual Examine.Lucene.Search.LuceneFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed) -> Lucene.Net.Facet.Facets!
+virtual Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue) -> Lucene.Net.Search.Query?
 virtual Examine.Lucene.Search.TaxonomySearcherReference.Dispose(bool disposing) -> void
 Examine.Lucene.LuceneIndexOptions.NrtCacheMaxCachedMB.get -> double
 Examine.Lucene.LuceneIndexOptions.NrtCacheMaxCachedMB.set -> void
