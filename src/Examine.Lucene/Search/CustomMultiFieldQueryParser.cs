@@ -7,28 +7,22 @@ using Lucene.Net.Util;
 
 namespace Examine.Lucene.Search
 {
-
     /// <summary>
     /// We use this to get at the protected methods directly since the new version makes them not public
     /// </summary>
-    public class CustomMultiFieldQueryParser : MultiFieldQueryParser
+    /// <inheritdoc/>
+    public class CustomMultiFieldQueryParser(
+        LuceneVersion matchVersion,
+        string[] fields,
+        Analyzer analyzer) : MultiFieldQueryParser(matchVersion, fields, analyzer)
     {
-        private QueryParser? _keywordAnalyzerQueryParser;
-
-        /// <inheritdoc/>
-        public CustomMultiFieldQueryParser(LuceneVersion matchVersion, string[] fields, Analyzer analyzer)
-            : base(matchVersion, fields, analyzer)
-        {
-            SearchableFields = fields;
-        }
-
         // NOTE: Query parsers are not thread safe so we need to create a new instance here
-        internal QueryParser KeywordAnalyzerQueryParser => _keywordAnalyzerQueryParser ??= new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer());
+        internal QueryParser KeywordAnalyzerQueryParser { get => field ??= new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer()); private set; }
 
         /// <summary>
         /// Fields that are searchable by the query parser
         /// </summary>
-        public string[] SearchableFields { get; }
+        public string[] SearchableFields { get; } = fields;
 
         /// <summary>
         /// Gets a fuzzy query
