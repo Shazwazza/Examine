@@ -342,51 +342,43 @@ namespace Examine.Lucene.Providers
                 return;
             }
 
-            var indexExists = IndexExists();
-            if (!indexExists || forceOverwrite)
+            // NOTE: indexExists will be false if either the main index or the taxonomy index do not exist
+            var indexMissing = !IndexExists();
+            if (indexMissing || forceOverwrite)
             {
-                //if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this 
+                // if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this 
                 // logic to actually execute multiple times
                 if (Monitor.TryEnter(_writerLocker))
                 {
+                    var mainIndexExists = _writer != null || IndexExistsImpl();
+                    var taxonomyIndexExists = _taxonomyWriter != null || TaxonomyIndexExistsImpl();
+
+                    var noIndexesExist = mainIndexExists == taxonomyIndexExists;
+
                     try
                     {
-                        if (!indexExists)
+                        // if force override and at least one index exists
+                        if (!noIndexesExist && forceOverwrite)
                         {
-                            var dir = GetLuceneDirectory();
+                            // it does exists so we'll need to clear it out
                             if (_logger.IsEnabled(LogLevel.Debug))
                             {
-                                _logger.LogDebug("Initializing new index {IndexName}", Name);
+                                _logger.LogDebug("Clearing existing index {IndexName}, main? {mainIndexExists}, tax? {taxonomyIndexExists}", Name, mainIndexExists, taxonomyIndexExists);
                             }
 
-                            //if there's no index, we need to create one
-                            CreateNewIndex(dir);
-
-                            //Now create the taxonomy index
-                            var taxonomyDir = GetLuceneTaxonomyDirectory();
-                            CreateNewTaxonomyIndex(taxonomyDir);
-                        }
-                        else
-                        {
-                            //it does exists so we'll need to clear it out
-                            if (_logger.IsEnabled(LogLevel.Debug))
-                            {
-                                _logger.LogDebug("Clearing existing index {IndexName}", Name);
-                            }
-
-                            //This will happen if the writer hasn't been created/initialized yet which
+                            // This will happen if the writer hasn't been created/initialized yet which
                             // might occur if a rebuild is triggered before any indexing has been triggered.
-                            //In this case we need to initialize a writer and continue as normal.
-                            //Since we are already inside the writer lock and it is null, we are allowed to 
+                            // In this case we need to initialize a writer and continue as normal.
+                            // Since we are already inside the writer lock and it is null, we are allowed to 
                             // make this call with out using GetIndexWriter() to do the initialization.
                             _writer ??= CreateIndexWriterWithLockCheck();
                             _taxonomyWriter ??= CreateTaxonomyWriterWithLockCheck();
 
-                            //We're forcing an overwrite, 
+                            // We're forcing an overwrite, 
                             // this means that we need to cancel all operations currently in place,
                             // clear the queue and delete all of the data in the index.
 
-                            //cancel any operation currently in place
+                            // cancel any operation currently in place
                             _cancellationTokenSource.Cancel();
 
                             // indicates that it was locked, this generally shouldn't happen but we don't want to have unhandled exceptions
@@ -396,11 +388,34 @@ namespace Examine.Lucene.Providers
                                 return;
                             }
 
+                            if (_taxonomyWriter == null)
+                            {
+                                _logger.LogWarning("{IndexName} taxonomy writer was null, exiting", Name);
+                                return;
+                            }
+
                             try
                             {
-                                //remove all of the index data
-                                _latestGen = _writer.DeleteAll();
-                                _committer.CommitNow();
+                                if (mainIndexExists)
+                                {
+                                    //remove all of the index data
+                                    _latestGen = _writer.DeleteAll();
+                                    _committer.CommitNow();
+                                }
+                                else
+                                {
+                                    CreateNewIndex(GetLuceneDirectory());
+                                }
+
+                                if (taxonomyIndexExists && SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter is not null)
+                                {
+                                    SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.DeleteAll();
+                                    SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.Commit();
+                                }
+                                else
+                                {
+                                    CreateNewTaxonomyIndex(GetLuceneTaxonomyDirectory());
+                                }
                             }
                             finally
                             {
@@ -412,6 +427,23 @@ namespace Examine.Lucene.Providers
                                 // the task will remain in a canceled state and nothing will ever run again.
                                 _asyncTask = Task.CompletedTask;
                             }
+                        }
+                        else
+                        {
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("Initializing new index {IndexName}, main? {mainIndexExists}, tax? {taxonomyIndexExists}", Name, mainIndexExists, taxonomyIndexExists);
+                            }
+
+                            if (!mainIndexExists)
+                            {
+                                CreateNewIndex(GetLuceneDirectory());
+                            }
+
+                            if (!taxonomyIndexExists)
+                            {
+                                CreateNewTaxonomyIndex(GetLuceneTaxonomyDirectory());
+                            }   
                         }
                     }
                     finally
@@ -475,9 +507,13 @@ namespace Examine.Lucene.Providers
                     //unlock it!
                     Unlock(dir);
                 }
-                //create the writer (this will overwrite old index files)
-                // TODO: Surely we need to re-create the factory too since it hangs on to the writer :/
+
+                // create the writer (this will overwrite old index files)
                 writer = new DirectoryTaxonomyWriter(dir, OpenMode.CREATE);
+
+                // Required to remove old index files which can be problematic
+                // if they remain in the index folder when replication is attempted.
+                writer.Commit();
             }
             catch (Exception ex)
             {
@@ -991,6 +1027,7 @@ namespace Examine.Lucene.Providers
                     {
                         _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
                     }
+
                     //unlock it!
                     Unlock(dir);
                 }
@@ -1009,13 +1046,14 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <remarks>
         /// Due to strange lucene APIs, this factory actually hangs on to the index writer underneath and needs to be shared this way.
+        /// That same writer is also referenced internally by the DirectoryTaxonomyWriter, but it isn't exposed publicly there.
         /// </remarks>
         internal SnapshotDirectoryTaxonomyIndexWriterFactory SnapshotDirectoryTaxonomyIndexWriterFactory { get; } = new SnapshotDirectoryTaxonomyIndexWriterFactory();
 
         /// <summary>
         /// Gets the taxonomy writer for the current index
         /// </summary>
-        public DirectoryTaxonomyWriter TaxonomyWriter
+        internal DirectoryTaxonomyWriter TaxonomyWriter
         {
             get
             {
@@ -1363,7 +1401,6 @@ namespace Examine.Lucene.Providers
         }
 
         /// <inheritdoc/>
-        // TODO: Why is this obsolete??
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -1425,6 +1462,7 @@ namespace Examine.Lucene.Providers
                         try
                         {
                             // Taxonomy writer must be disposed before index writer
+                            // This disposes its underlying indexwriter which is the same one linked to the Snapshot factory thing.
                             _taxonomyWriter?.Dispose();
                         }
                         catch (Exception e)

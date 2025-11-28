@@ -54,7 +54,6 @@ Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetOrdinal(string! dim, string!
 Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetPath(int ordinal) -> Examine.Search.IFacetLabel!
 Examine.Lucene.Providers.LuceneIndex.GetLuceneDirectory() -> Lucene.Net.Store.Directory!
 Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory() -> Lucene.Net.Store.Directory!
-Examine.Lucene.Providers.LuceneIndex.TaxonomyWriter.get -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
 Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Collections.Generic.IEnumerable<Examine.IIndex!>! indexes) -> void
 Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher!>!>! searchers) -> void
 Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get -> System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.BaseLuceneSearcher!>!

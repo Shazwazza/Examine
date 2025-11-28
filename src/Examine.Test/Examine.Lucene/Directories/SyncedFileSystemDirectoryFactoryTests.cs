@@ -175,21 +175,6 @@ namespace Examine.Test.Examine.Lucene.Directories
         [Test]
         public void Given_CorruptMainIndex_And_HealthyLocalIndex_When_CreatingDirectory_Then_LocalIndexSyncedToMain()
         {
-            /*
-                Examine debugging:
-
-                * We don't clear taxonomy index dir like we do main
-                * Then after syncing the hasMainIndexes is false because mainTaxonomyIndexExists == false
-                * Because that is false, it doesn't re-sync locally
-                * ... but everything says its ok = NotClean|SyncedLocally
-                * Then we do a search on the real index that we're testing
-                  * it will then check if the index exists and it will return false
-                    because the taxonomy index says it doesn't exist. Since its says false,
-	                the call to EnsureIndex will overwrite everything with nothing (i.e. new)
-                * We also have this TODO: // TODO: Surely we need to re-create the factory too since it hangs on to the writer :/
-
-             */
-
             var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
