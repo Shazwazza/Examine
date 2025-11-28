@@ -1,6 +1,12 @@
 <Project>
 
   <PropertyGroup>
+    <TargetFrameworks>net6.0;net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- These are Source link props -->    
     <PublishRepositoryUrl>https://github.com/Shazwazza/Examine</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -27,9 +33,4 @@
     <VersionPrefix>4.0.0</VersionPrefix>
   </PropertyGroup>
   
-  <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
 </Project>

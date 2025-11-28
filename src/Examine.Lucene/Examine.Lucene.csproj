@@ -7,7 +7,6 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="AspExamineManager.cs.bak" />
     <None Remove="PublicAPI.Shipped.txt" />
     <None Remove="PublicAPI.Unshipped.txt" />
   </ItemGroup>
