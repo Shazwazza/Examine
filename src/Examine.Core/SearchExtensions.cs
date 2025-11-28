@@ -21,7 +21,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.SimpleWildcard, s);
+            return ExamineValue.Create(Examineness.SimpleWildcard, s);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.ComplexWildcard, s);
+            return ExamineValue.Create(Examineness.ComplexWildcard, s);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.Fuzzy, s, fuzzieness);
+            return ExamineValue.Create(Examineness.Fuzzy, s, fuzzieness);
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.Boosted, s, boost);
+            return ExamineValue.Create(Examineness.Boosted, s, boost);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.Proximity, s, Convert.ToSingle(proximity));
+            return ExamineValue.Create(Examineness.Proximity, s, Convert.ToSingle(proximity));
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Examine
             // inside of LuceneSearchCriteria when we detect Escaped, we use a PhraseQuery which automatically
             // escapes invalid chars.
 
-            return new ExamineValue(Examineness.Escaped, s);
+            return ExamineValue.Create(Examineness.Escaped, s);
         }
 
     }

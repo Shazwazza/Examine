@@ -38,7 +38,6 @@ namespace Examine.Lucene.Search
         /// Specifies how clauses are to occur in matching documents
         /// </summary>
         protected Occur Occurrence { get; set; }
-        private BooleanOperation _boolOp;
 
         /// <inheritdoc/>
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
@@ -62,11 +61,11 @@ namespace Examine.Lucene.Search
         /// </summary>
         public BooleanOperation BooleanOperation
         {
-            get => _boolOp;
+            get;
             set
             {
-                _boolOp = value;
-                Occurrence = _boolOp.ToLuceneOccurrence();
+                field = value;
+                Occurrence = field.ToLuceneOccurrence();
             }
         }
 
@@ -133,7 +132,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation Field(string fieldName, string fieldValue)
-            => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
+            => FieldInternal(fieldName, ExamineValue.Create(Examineness.Explicit, fieldValue), Occurrence);
 
         /// <inheritdoc/>
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
@@ -141,7 +140,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => GroupedAnd(fields, query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+            => GroupedAnd(fields, query.Select(f => ExamineValue.Create(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[]? fieldVals)
@@ -161,7 +160,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
-            => GroupedOr(fields, query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+            => GroupedOr(fields, query?.Select(f => ExamineValue.Create(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[]? query)
@@ -181,7 +180,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
-            => GroupedNot(fields, query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+            => GroupedNot(fields, query.Select(f => ExamineValue.Create(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
@@ -234,25 +233,25 @@ namespace Examine.Lucene.Search
         protected abstract INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
         INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue)
-            => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
+            => FieldInternal(fieldName, ExamineValue.Create(Examineness.Explicit, fieldValue), Occurrence);
 
         INestedBooleanOperation INestedQuery.Field(string fieldName, IExamineValue fieldValue)
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
+            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
             => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params string[] query)
-            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
+            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
             => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params string[] query)
-            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
             => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query);
@@ -458,10 +457,7 @@ namespace Examine.Lucene.Search
                     if (useQueryParser)
                     {
                         queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
-                        if (queryToAdd != null)
-                        {
-                            queryToAdd.Boost = fieldValue.Level;
-                        }
+                        queryToAdd?.Boost = fieldValue.Level;
                     }
                     else
                     {

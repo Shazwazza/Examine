@@ -94,6 +94,8 @@ Examine.ValueSet.ItemType.get -> string!
 Examine.ValueSet.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Collections.Generic.IReadOnlyList<object!>!>!
 Examine.ValueSet.ValueSet(string! id) -> void
 Examine.ValueSet.ValueSet(string! id, string! category, string! itemType, System.Collections.Generic.IDictionary<string!, System.Collections.Generic.IEnumerable<object!>!>! values) -> void
+static Examine.Search.ExamineValue.Create(Examine.Search.Examineness vagueness, string! value) -> Examine.Search.IExamineValue!
+static Examine.Search.ExamineValue.Create(Examine.Search.Examineness vagueness, string! value, float level) -> Examine.Search.IExamineValue!
 static Examine.Search.OrderingExtensions.WithFacets(this Examine.Search.IOrdering! ordering, System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
 const Examine.Search.QueryOptions.AbsoluteMaxResults = 10000 -> int
 const Examine.Search.QueryOptions.DefaultMaxResults = 100 -> int

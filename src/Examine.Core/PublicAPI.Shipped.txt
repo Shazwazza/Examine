@@ -170,7 +170,6 @@ Examine.Search.Examineness.Proximity = 6 -> Examine.Search.Examineness
 Examine.Search.Examineness.SimpleWildcard = 1 -> Examine.Search.Examineness
 Examine.Search.ExamineValue
 Examine.Search.ExamineValue.Examineness.get -> Examine.Search.Examineness
-Examine.Search.ExamineValue.ExamineValue() -> void
 Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string! value) -> void
 Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string! value, float level) -> void
 Examine.Search.ExamineValue.Level.get -> float
