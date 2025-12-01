@@ -53,6 +53,7 @@ jobs:
           --verbosity normal \
           --framework ${{ matrix.tfm }} \
           --results-directory "${{ github.workspace }}/_TestResults{{ matrix.tfm }}" \
+          -r {{ matrix.tfm }}
           --logger "trx;logfilename=tests.trx" \
           --filter "TestCategory!~Benchmarks"
   
