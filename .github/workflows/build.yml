@@ -50,9 +50,10 @@ jobs:
         dotnet test \
           "${{ env.Test_Proj }}"
           --configuration ${{ env.Configuration }} \
+          --verbosity normal \
           --framework ${{ matrix.tfm }} \
-          --results-directory "${{ github.workspace }}/TestResults_${{ matrix.tfm }}" \
-          --logger "trx;LogFileName=test_results.trx" \
+          --results-directory "${{ github.workspace }}/_TestResults{{ matrix.tfm }}" \
+          --logger "trx;logfilename=tests.trx" \
           --filter "TestCategory!~Benchmarks"
   
     - name: Upload Test Results Artifact
@@ -60,9 +61,10 @@ jobs:
       if: always() # Upload results even if the test run fails
       with:
         name: test-results-${{ matrix.tfm }}
-        path: ${{ github.workspace }}/TestResults_${{ matrix.tfm }}/test_results.trx
+        path: ${{ github.workspace }}/_TestResults{{ matrix.tfm }}/tests.trx
 
   build:
+    needs: test-matrix
     runs-on: ubuntu-latest
 
     env:
