@@ -498,6 +498,7 @@ namespace Examine.Test.Examine.Lucene.Index
             // capture the original console out
             var consoleOut = TestContext.Out;
 
+#if DEBUG
             void WriteLog(string msg)
             {
                 // reset console out to the orig, this is required because we suppress
@@ -506,6 +507,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 Console.SetOut(consoleOut);
                 Console.WriteLine(msg);
             }
+#endif
 
             const int ThreadCount = 1000;
 
