@@ -52,8 +52,8 @@ jobs:
           --configuration ${{ env.Configuration }} \
           --verbosity normal \
           --framework ${{ matrix.tfm }} \
-          --results-directory "${{ github.workspace }}/_TestResults{{ matrix.tfm }}" \
-          -r {{ matrix.tfm }}
+          --results-directory "${{ github.workspace }}/_TestResults${{ matrix.tfm }}" \
+          -r ${{ matrix.tfm }}
           --logger "trx;logfilename=tests.trx" \
           --filter "TestCategory!~Benchmarks"
   
@@ -62,7 +62,7 @@ jobs:
       if: always() # Upload results even if the test run fails
       with:
         name: test-results-${{ matrix.tfm }}
-        path: ${{ github.workspace }}/_TestResults{{ matrix.tfm }}/tests.trx
+        path: ${{ github.workspace }}/_TestResults${{ matrix.tfm }}/tests.trx
 
   build:
     needs: test-matrix
