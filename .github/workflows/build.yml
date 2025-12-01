@@ -51,7 +51,7 @@ jobs:
           "${{ env.Test_Proj }}"
           --configuration ${{ env.Configuration }} \
           --framework ${{ matrix.tfm }} \
-          --results-directory "TestResults_${{ matrix.tfm }}" \
+          --results-directory "${{ github.workspace }}/TestResults_${{ matrix.tfm }}" \
           --logger "trx;LogFileName=test_results.trx" \
           --filter "TestCategory!~Benchmarks"
   
@@ -60,7 +60,7 @@ jobs:
       if: always() # Upload results even if the test run fails
       with:
         name: test-results-${{ matrix.tfm }}
-        path: ./TestResults_${{ matrix.tfm }}/test_results.trx
+        path: ${{ github.workspace }}/TestResults_${{ matrix.tfm }}/test_results.trx
 
   build:
     runs-on: ubuntu-latest
