@@ -164,6 +164,75 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(2, searchResults.Select(x => x.Score).Distinct().Count());
             }
         }
+
+        [TestCase("spec", "special", Examineness.ComplexWildcard)]
+        [TestCase("specia", "special", Examineness.SimpleWildcard)]
+        [TestCase("spec", "Details are in the spec", Examineness.Default)]
+        [TestCase("special offer", "on special offer", Examineness.Phrase)]
+        [TestCase("helpng", "lend a helping hand", Examineness.Fuzzy)]
+        [TestCase("special offer", "on special offer", Examineness.Proximity)]
+        public void Given_AnyExaminess_When_Boosted_Then_BoostIsUsed(
+            string searchTerm,
+            string indexValue,
+            Examineness examineness)
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using var luceneDir = new RandomIdRAMDirectory();
+            using var luceneTaxonomyDir = new RandomIdRAMDirectory();
+            using var indexer = GetTestIndex(
+                       luceneDir,
+                       luceneTaxonomyDir,
+                       analyzer);
+            indexer.IndexItems(Enumerable
+                .Range(1, 10)
+                .Select(id => ValueSet.FromObject(
+                        id.ToString(),
+                        "cOntent",
+                        new
+                        {
+                            fieldOne = id == 3 ? indexValue : "common",
+                            fieldTwo = id == 2 ? indexValue : "common",
+                            fieldThree = id == 4 ? indexValue : "common",
+                            fieldFour = id == 1 ? indexValue : "common",
+                        }
+                    )
+                )
+            );
+
+            var searcher = indexer.Searcher;
+
+            var fieldOneValue = ExamineValue.Create(examineness, searchTerm).WithBoost(6f);
+            var fieldTwoValue = ExamineValue.Create(examineness, searchTerm).WithBoost(4f);
+            var fieldThreeValue = ExamineValue.Create(examineness, searchTerm).WithBoost(2f);
+            var fieldFourValue = ExamineValue.Create(examineness, searchTerm).WithBoost(1f);
+            var query = searcher
+                .CreateQuery("cOntent")
+                .Group(group => group
+                    .Field("fieldOne", fieldOneValue)
+                    .Or()
+                    .Field("fieldTwo", fieldTwoValue)
+                    .Or()
+                    .Field("fieldThree", fieldThreeValue)
+                    .Or()
+                    .Field("fieldFour", fieldFourValue)
+                );
+
+            Console.WriteLine(query.ToString());
+
+            var results = query.Execute();
+            Assert.AreEqual(4, results.TotalItemCount);
+
+            var searchResults = results.ToArray();
+            Assert.AreEqual(4, searchResults.Length);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual("3", searchResults[0].Id);
+                Assert.AreEqual("2", searchResults[1].Id);
+                Assert.AreEqual("4", searchResults[2].Id);
+                Assert.AreEqual("1", searchResults[3].Id);
+            });
+        }
+
         [Test]
         public void Multiple_Searches()
         {

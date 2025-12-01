@@ -83,7 +83,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return ExamineValue.Create(Examineness.Boosted, s, boost);
+            return ExamineValue.Create(Examineness.Default, s).WithBoost(boost);
         }
 
         /// <summary>

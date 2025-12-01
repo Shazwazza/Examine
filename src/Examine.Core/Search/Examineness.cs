@@ -43,7 +43,7 @@ namespace Examine.Search
         /// <summary>
         /// Makes the term rank differently than normal
         /// </summary>
-        /// TODO: Should be obsolete
+        [Obsolete("No longer used, use WithBoost instead.")]
         Boosted = 6,
 
         /// <summary>
