@@ -61,6 +61,14 @@ namespace Examine.Benchmarks
         //        writer);
 
         protected virtual ILoggerFactory CreateLoggerFactory()
-            => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            => Microsoft.Extensions.Logging.LoggerFactory.Create(
+                builder => builder.AddConsole()
+                    .SetMinimumLevel(
+#if DEBUG
+                        LogLevel.Debug
+#else
+                        LogLevel.Information
+#endif
+                    ));
     }
 }

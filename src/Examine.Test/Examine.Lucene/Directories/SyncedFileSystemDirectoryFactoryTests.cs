@@ -43,7 +43,13 @@ namespace Examine.Test.Examine.Lucene.Directories
 
                 var builder = Host.CreateApplicationBuilder();
                 builder.Logging.AddConsole();
-                builder.Logging.SetMinimumLevel(LogLevel.Debug);
+                builder.Logging.SetMinimumLevel(
+#if DEBUG
+                        LogLevel.Debug
+#else
+                        LogLevel.Information
+#endif
+                    );
 
                 var services = builder.Services;
 

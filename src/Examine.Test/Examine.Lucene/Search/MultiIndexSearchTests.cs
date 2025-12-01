@@ -6,6 +6,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Analysis.Util;
 using Lucene.Net.Facet;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
@@ -16,6 +17,13 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class MultiIndexSearchTests : ExamineBaseTest
     {
+        private readonly ILogger _logger;
+
+        public MultiIndexSearchTests()
+        {
+            _logger = LoggerFactory.CreateLogger<MultiIndexSearchTests>();
+        }
+
         public static CharArraySet StopWords { get; } = new CharArraySet(LuceneInfo.CurrentVersion, new[]
             {
                 "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into",
@@ -183,7 +191,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(4, result.TotalItemCount);
                 foreach (var r in result)
                 {
-                    Console.WriteLine("Score = " + r.Score);
+                    _logger.LogDebug("Score = " + r.Score);
                 }
             }
         }

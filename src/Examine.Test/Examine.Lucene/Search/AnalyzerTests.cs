@@ -3,6 +3,8 @@ using System.Linq;
 using System.Text;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Providers;
+using Examine.Test.Examine.Lucene.Directories;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
 namespace Examine.Test.Examine.Lucene.Search
@@ -10,6 +12,13 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class AnalyzerTests : ExamineBaseTest
     {
+        private readonly ILogger _logger;
+
+        public AnalyzerTests()
+        {
+            _logger = LoggerFactory.CreateLogger<AnalyzerTests>();
+        }
+
         [Test]
         public void Given_CultureInvariantWhitespaceAnalyzer_When_SearchingBothCharVariants_Then_BothAreFound()
         {
@@ -98,7 +107,8 @@ namespace Examine.Test.Examine.Lucene.Search
                         sb.Append(", ");
                     }                    
                 }
-                Console.WriteLine(sb.ToString());
+
+                _logger.LogDebug(sb.ToString());
             }
         }
     }

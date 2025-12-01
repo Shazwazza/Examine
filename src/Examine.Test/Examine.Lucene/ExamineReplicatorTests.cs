@@ -12,7 +12,15 @@ namespace Examine.Test.Examine.Lucene.Sync
     [TestFixture]
     public class ExamineReplicatorTests : ExamineBaseTest
     {
-        private readonly ILoggerFactory _loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(x => x.AddConsole().SetMinimumLevel(LogLevel.Debug));
+        private readonly ILoggerFactory _loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(
+            x => x.AddConsole()
+                .SetMinimumLevel(
+#if DEBUG
+                    LogLevel.Debug
+#else
+                    LogLevel.Information
+#endif
+                ));
 
         private readonly ILogger<ExamineReplicator> _replicatorLogger;
         private readonly ILogger<LoggingReplicationClient> _clientLogger;

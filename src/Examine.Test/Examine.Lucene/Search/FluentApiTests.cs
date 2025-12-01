@@ -7,11 +7,13 @@ using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Examine.Search;
+using Examine.Test.Examine.Lucene.Index;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
 namespace Examine.Test.Examine.Lucene.Search
@@ -20,6 +22,13 @@ namespace Examine.Test.Examine.Lucene.Search
     [Parallelizable(ParallelScope.All)]
     public class FluentApiTests : ExamineBaseTest
     {
+        private readonly ILogger _logger;
+
+        public FluentApiTests()
+        {
+            _logger = LoggerFactory.CreateLogger<FluentApiTests>();
+        }
+
         public enum FacetTestType
         {
             NoFacets,
@@ -56,14 +65,14 @@ namespace Examine.Test.Examine.Lucene.Search
                 .Or()
                 .NativeQuery($"bodyText:middle");
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             var results = query.Execute();
             var searchResults = results.ToArray();
 
             foreach (var result in searchResults)
             {
-                Console.WriteLine($"id: {result.Id}, Score: {result.Score}");
+                _logger.LogDebug($"id: {result.Id}, Score: {result.Score}");
             }
 
             Assert.AreEqual(4, results.TotalItemCount);
@@ -130,14 +139,14 @@ namespace Examine.Test.Examine.Lucene.Search
                 .Or()
                 .NativeQuery($"bodyText:wonderw*{(boost ? "^20" : "")}");
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             var results = query.Execute();
             var searchResults = results.ToArray();
 
             foreach (var result in searchResults)
             {
-                Console.WriteLine($"id: {result.Id}, Score: {result.Score}");
+                _logger.LogDebug($"id: {result.Id}, Score: {result.Score}");
             }
 
             Assert.AreEqual(4, results.TotalItemCount);
@@ -217,7 +226,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     .Field("fieldFour", fieldFourValue)
                 );
 
-            Console.WriteLine(query.ToString());
+            _logger.LogDebug(query.ToString());
 
             var results = query.Execute();
             Assert.AreEqual(4, results.TotalItemCount);
@@ -248,13 +257,13 @@ namespace Examine.Test.Examine.Lucene.Search
             var result = searcher.Search("darkness");
             foreach (var r in result)
             {
-                Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
             }
 
             result = searcher.Search("total darkness");
             foreach (var r in result)
             {
-                Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
             }
         }
 
@@ -367,7 +376,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var query = searcher.CreateQuery("content").NativeQuery("sydney");
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -422,7 +431,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var query = searcher.CreateQuery("cOntent").All();
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -471,7 +480,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var searcher = indexer.Searcher;
             var query = searcher.CreateQuery("cOntent").All();
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
@@ -512,8 +521,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var query = searcher.CreateQuery("cOntent").All();
 
-            Console.WriteLine(query);
-
+            _logger.LogDebug(query.ToString());
 
             var results = query.WithFacets(facets => facets.FacetLongRange("LongValue",
             [
@@ -560,8 +568,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var query = searcher.CreateQuery("cOntent").All();
 
-            Console.WriteLine(query);
-
+            _logger.LogDebug(query.ToString());
 
             var results = query.WithFacets(factes => factes.FacetDoubleRange("DoubleValue",
             [
@@ -608,8 +615,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var query = searcher.CreateQuery("cOntent").All();
 
-            Console.WriteLine(query);
-
+            _logger.LogDebug(query.ToString());
 
             var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
@@ -650,8 +656,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var query = searcher.CreateQuery("cOntent").All();
 
-            Console.WriteLine(query);
-
+            _logger.LogDebug(query.ToString());
 
             var results = query.WithFacets(facets => facets.FacetLongRange("LongValue",
             [
@@ -698,8 +703,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var query = searcher.CreateQuery("cOntent").All();
 
-            Console.WriteLine(query);
-
+            _logger.LogDebug(query.ToString());
 
             var results = query.WithFacets(factes => factes.FacetDoubleRange("DoubleValue",
             [
@@ -748,7 +752,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var query = searcher.CreateQuery("content").NativeQuery("\"town called\"");
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
             Assert.AreEqual("{ Category: content, LuceneQuery: +(nodeName:\"town called\" bodyText:\"town called\") }", query.ToString());
 
             if (HasFacets(withFacets))
@@ -896,10 +900,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(4, result.TotalItemCount);
                 Assert.AreEqual(4, facetResults!.Count());
 
-                Console.WriteLine("Search 1:");
+                _logger.LogDebug("Search 1:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
 
                 result = searcher.CreateQuery()
@@ -911,10 +915,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.IsNotNull(facetResults);
                 Assert.AreEqual(2, result.TotalItemCount);
                 Assert.AreEqual(2, facetResults!.Count());
-                Console.WriteLine("Search 2:");
+                _logger.LogDebug("Search 2:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
             }
             else
@@ -922,18 +926,18 @@ namespace Examine.Test.Examine.Lucene.Search
                 var result = searcher.Search("darkness");
 
                 Assert.AreEqual(4, result.TotalItemCount);
-                Console.WriteLine("Search 1:");
+                _logger.LogDebug("Search 1:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
 
                 result = searcher.Search("total darkness");
                 Assert.AreEqual(2, result.TotalItemCount);
-                Console.WriteLine("Search 2:");
+                _logger.LogDebug("Search 2:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
             }
         }
@@ -973,7 +977,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var searcher = indexer1.Searcher;
 
             var qry = searcher.CreateQuery().ManagedQuery("darkness").And().Field("item1", "value1");
-            Console.WriteLine(qry);
+            _logger.LogDebug(qry.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -984,15 +988,15 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.IsNotNull(facetResults);
                 Assert.AreEqual(1, result.TotalItemCount);
                 Assert.AreEqual(1, facetResults!.Count());
-                Console.WriteLine("Search 1:");
+                _logger.LogDebug("Search 1:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
 
                 qry = searcher.CreateQuery().ManagedQuery("darkness")
                     .And(query => query.Field("item1", "value1").Or().Field("item1", "value2"), BooleanOperation.Or);
-                Console.WriteLine(qry);
+                _logger.LogDebug(qry.ToString());
                 result = qry.WithFacets(facets => facets.FacetString("item1")).Execute();
 
                 facetResults = result.GetFacet("item1");
@@ -1000,10 +1004,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.IsNotNull(facetResults);
                 Assert.AreEqual(2, result.TotalItemCount);
                 Assert.AreEqual(2, facetResults!.Count());
-                Console.WriteLine("Search 2:");
+                _logger.LogDebug("Search 2:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
             }
             else
@@ -1011,22 +1015,22 @@ namespace Examine.Test.Examine.Lucene.Search
                 var result = qry.Execute();
 
                 Assert.AreEqual(1, result.TotalItemCount);
-                Console.WriteLine("Search 1:");
+                _logger.LogDebug("Search 1:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
 
                 qry = searcher.CreateQuery().ManagedQuery("darkness")
                     .And(query => query.Field("item1", "value1").Or().Field("item1", "value2"), BooleanOperation.Or);
-                Console.WriteLine(qry);
+                _logger.LogDebug(qry.ToString());
                 result = qry.Execute();
 
                 Assert.AreEqual(2, result.TotalItemCount);
-                Console.WriteLine("Search 2:");
+                _logger.LogDebug("Search 2:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
             }
         }
@@ -1069,7 +1073,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 .Field("item1", "value1")
                 .Not().ManagedQuery("darkness");
 
-            Console.WriteLine(qry);
+            _logger.LogDebug(qry.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -1082,10 +1086,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual("1", result.ElementAt(0).Id);
                 Assert.AreEqual(1, facetResults!.Count());
 
-                Console.WriteLine("Search 1:");
+                _logger.LogDebug("Search 1:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
             }
             else
@@ -1095,10 +1099,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(1, result.TotalItemCount);
                 Assert.AreEqual("1", result.ElementAt(0).Id);
 
-                Console.WriteLine("Search 1:");
+                _logger.LogDebug("Search 1:");
                 foreach (var r in result)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    _logger.LogDebug($"Id = {r.Id}, Score = {r.Score}");
                 }
             }
         }
@@ -1312,7 +1316,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 ["nodeTypeAlias", "nodeName"],
                 ["CWS_Home".Boost(10), "About".MultipleCharacterWildcard()]);
 
-            Console.WriteLine(filter);
+            _logger.LogDebug(filter.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -1324,7 +1328,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 foreach (var r in results)
                 {
-                    Console.WriteLine($"Id = {r.Id}");
+                    _logger.LogDebug($"Id = {r.Id}");
                 }
 
                 Assert.AreEqual(2, results.TotalItemCount);
@@ -1336,7 +1340,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 foreach (var r in results)
                 {
-                    Console.WriteLine($"Id = {r.Id}");
+                    _logger.LogDebug($"Id = {r.Id}");
                 }
 
                 Assert.AreEqual(2, results.TotalItemCount);
@@ -1352,39 +1356,39 @@ namespace Examine.Test.Examine.Lucene.Search
             using var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer);
             var searcher = indexer.Searcher;
 
-            Console.WriteLine("GROUPED OR - SINGLE FIELD, MULTI VAL");
+            _logger.LogDebug("GROUPED OR - SINGLE FIELD, MULTI VAL");
             var criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedOr(new[] { "id" }.ToList(), ["1", "2", "3"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3)", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED OR - MULTI FIELD, MULTI VAL");
+            _logger.LogDebug("GROUPED OR - MULTI FIELD, MULTI VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), ["1", "2", "3"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3)", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED OR - MULTI FIELD, EQUAL MULTI VAL");
+            _logger.LogDebug("GROUPED OR - MULTI FIELD, EQUAL MULTI VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedOr(new[] { "id", "parentID", "blahID" }.ToList(), ["1", "2", "3"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3 blahID:1 blahID:2 blahID:3)", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED OR - MULTI FIELD, SINGLE VAL");
+            _logger.LogDebug("GROUPED OR - MULTI FIELD, SINGLE VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), ["1"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 parentID:1)", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED OR - SINGLE FIELD, SINGLE VAL");
+            _logger.LogDebug("GROUPED OR - SINGLE FIELD, SINGLE VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedOr(new[] { "id" }.ToList(), ["1"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1)", criteria.Query.ToString());
 
 
@@ -1400,43 +1404,43 @@ namespace Examine.Test.Examine.Lucene.Search
             var searcher = indexer.Searcher;
             //new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
-            Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
+            _logger.LogDebug("GROUPED AND - SINGLE FIELD, MULTI VAL");
             var criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedAnd(new[] { "id" }.ToList(), ["1", "2", "3"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             //We used to assert this, but it must be allowed to do an add on the same field multiple times
             //Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +id:2 +id:3)", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
+            _logger.LogDebug("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), ["1", "2", "3"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             //The field/value array lengths are equal so we will match the key/value pairs
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED AND - MULTI FIELD, MULTI VAL");
+            _logger.LogDebug("GROUPED AND - MULTI FIELD, MULTI VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), ["1", "2", "3"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             //There are more than one field and there are more values than fields, in this case we align the key/value pairs
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2)", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED AND - MULTI FIELD, SINGLE VAL");
+            _logger.LogDebug("GROUPED AND - MULTI FIELD, SINGLE VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), ["1"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:1)", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED AND - SINGLE FIELD, SINGLE VAL");
+            _logger.LogDebug("GROUPED AND - SINGLE FIELD, SINGLE VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedAnd(new[] { "id" }.ToList(), ["1"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
         }
 
@@ -1452,39 +1456,39 @@ namespace Examine.Test.Examine.Lucene.Search
             using var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer);
             var searcher = indexer.Searcher;
 
-            Console.WriteLine("GROUPED NOT - SINGLE FIELD, MULTI VAL");
+            _logger.LogDebug("GROUPED NOT - SINGLE FIELD, MULTI VAL");
             var criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedNot(new[] { "id" }.ToList(), ["1", "2", "3"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -id:2 -id:3", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED NOT - MULTI FIELD, MULTI VAL");
+            _logger.LogDebug("GROUPED NOT - MULTI FIELD, MULTI VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), ["1", "2", "3"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED NOT - MULTI FIELD, EQUAL MULTI VAL");
+            _logger.LogDebug("GROUPED NOT - MULTI FIELD, EQUAL MULTI VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedNot(new[] { "id", "parentID", "blahID" }.ToList(), ["1", "2", "3"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3 -blahID:1 -blahID:2 -blahID:3", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED NOT - MULTI FIELD, SINGLE VAL");
+            _logger.LogDebug("GROUPED NOT - MULTI FIELD, SINGLE VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), ["1"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -parentID:1", criteria.Query.ToString());
 
-            Console.WriteLine("GROUPED NOT - SINGLE FIELD, SINGLE VAL");
+            _logger.LogDebug("GROUPED NOT - SINGLE FIELD, SINGLE VAL");
             criteria = (LuceneSearchQuery)searcher.CreateQuery();
             _ = criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
             _ = criteria.GroupedNot(new[] { "id" }.ToList(), ["1"]).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1", criteria.Query.ToString());
         }
 
@@ -1524,7 +1528,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var query = (LuceneSearchQuery)searcher.CreateQuery("content");
             _ = query.GroupedNot(["umbracoNaviHide"], 1.ToString());
-            Console.WriteLine(query.Query);
+            _logger.LogDebug(query.Query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -1581,7 +1585,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var searcher = indexer.Searcher;
 
             var query = searcher.CreateQuery("content").GroupedNot(["umbracoNaviHide", "show"], 1.ToString());
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -1698,7 +1702,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 .And().GroupedOr(["bodyText"], ["ficus", "ipsum"])
                 .And().GroupedNot(["umbracoNaviHide"], [1.ToString()]);
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -1755,7 +1759,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 .And().GroupedOr(["bodyText"], ["ficus", "ipsum"])
                 .And().GroupedNot(["umbracoNaviHide"], [1.ToString(), 2.ToString()]);
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -1811,7 +1815,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 .And().GroupedOr(["bodyText"], ["ficus", "ipsum"])
                 .Not().Field("umbracoNaviHide", 1.ToString());
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -1871,7 +1875,7 @@ namespace Examine.Test.Examine.Lucene.Search
             // TODO: This results in { Category: content, LuceneQuery: +nodeName:name +(bodyText:ficus bodyText:ipsum) -(+umbracoNaviHide:1) }
             // Which I don't think is right with the -(+ syntax but it still seems to work.
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -1931,7 +1935,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             // Results in { Category: content, LuceneQuery: +nodeName:name -umbracoNaviHide:1 -umbracoNaviHide:2 }
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -1982,7 +1986,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 .Field("nodeName", "name")
                 .Not().Field("start", 200);
 
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -2087,7 +2091,7 @@ namespace Examine.Test.Examine.Lucene.Search
             //now try with native
             var nativeCriteria = searcher.CreateQuery();
             var nativeFilter = nativeCriteria.NativeQuery("__Path:\\-1,123,456,789");
-            Console.WriteLine(nativeFilter);
+            _logger.LogDebug(nativeFilter.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -2373,7 +2377,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var filter = criteria.Field("bodyText", "into")
                 .Or().Field("nodeName", "into");
 
-            Console.WriteLine(filter);
+            _logger.LogDebug(filter.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -3166,7 +3170,7 @@ namespace Examine.Test.Examine.Lucene.Search
             //Arrange
             var sc = searcher.CreateQuery("content").Field("nodeName", "codegarden 09".Phrase());
 
-            Console.WriteLine(sc.ToString());
+            _logger.LogDebug(sc.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -3310,7 +3314,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 foreach (var r in results)
                 {
-                    Console.WriteLine($"Id = {r.Id}");
+                    _logger.LogDebug($"Id = {r.Id}");
                 }
 
                 //Assert
@@ -3325,7 +3329,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 foreach (var r in results)
                 {
-                    Console.WriteLine($"Id = {r.Id}");
+                    _logger.LogDebug($"Id = {r.Id}");
                 }
 
                 //Assert
@@ -3788,8 +3792,8 @@ namespace Examine.Test.Examine.Lucene.Search
             var criteria2 = searcher.CreateQuery();
             var filter2 = criteria2.Field("Content", "thought".Fuzzy());
 
-            Console.WriteLine(filter);
-            Console.WriteLine(filter2);
+            _logger.LogDebug(filter.ToString());
+            _logger.LogDebug(filter2.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -3802,12 +3806,12 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 foreach (var r in results)
                 {
-                    Console.WriteLine($"Result Id: {r.Id}");
+                    _logger.LogDebug($"Result Id: {r.Id}");
                 }
 
                 foreach (var r in results2)
                 {
-                    Console.WriteLine($"Result2 Id: {r.Id}");
+                    _logger.LogDebug($"Result2 Id: {r.Id}");
                 }
 
                 ////Assert
@@ -3826,12 +3830,12 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 foreach (var r in results)
                 {
-                    Console.WriteLine($"Result Id: {r.Id}");
+                    _logger.LogDebug($"Result Id: {r.Id}");
                 }
 
                 foreach (var r in results2)
                 {
-                    Console.WriteLine($"Result2 Id: {r.Id}");
+                    _logger.LogDebug($"Result2 Id: {r.Id}");
                 }
 
                 ////Assert
@@ -4168,7 +4172,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     // required so that the type2 query is required
                     BooleanOperation.And);
 
-            Console.WriteLine(filter);
+            _logger.LogDebug(filter.ToString());
 
             if (HasFacets(withFacets))
             {
@@ -4182,7 +4186,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.IsNotNull(facetResults);
                 foreach (var r in results)
                 {
-                    Console.WriteLine($"Result Id: {r.Id}");
+                    _logger.LogDebug($"Result Id: {r.Id}");
                 }
                 Assert.AreEqual(3, results.TotalItemCount);
                 Assert.AreEqual(2, facetResults!.Count());
@@ -4195,7 +4199,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Assert
                 foreach (var r in results)
                 {
-                    Console.WriteLine($"Result Id: {r.Id}");
+                    _logger.LogDebug($"Result Id: {r.Id}");
                 }
                 Assert.AreEqual(3, results.TotalItemCount);
             }
@@ -4229,7 +4233,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 _ = criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true));
             }
 
-            Console.WriteLine(criteria.Query);
+            _logger.LogDebug(criteria.Query.ToString());
             Assert.AreEqual("+hello:world +numTest:[4 TO 5]", criteria.Query.ToString());
         }
 
@@ -4256,7 +4260,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var searcher = indexer.Searcher;
 
             var query = searcher.CreateQuery("content").ManagedQuery("hello");
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             var results = query.Execute();
 
@@ -4283,7 +4287,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var searcher = indexer.Searcher;
 
             var query = searcher.CreateQuery().Id(2.ToString());
-            Console.WriteLine(query);
+            _logger.LogDebug(query.ToString());
 
             var results = query.Execute();
 
@@ -4327,7 +4331,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     var results = examineQuery.Execute();
 
                     //Assert
-                    Console.WriteLine(results.TotalItemCount + ", Thread: " + Thread.CurrentThread.ManagedThreadId);
+                    _logger.LogDebug(results.TotalItemCount + ", Thread: " + Thread.CurrentThread.ManagedThreadId);
                     Assert.AreEqual(2, results.TotalItemCount);
                 }))
                 .ToArray();

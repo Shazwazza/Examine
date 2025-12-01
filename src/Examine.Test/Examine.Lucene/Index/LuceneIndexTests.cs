@@ -12,11 +12,13 @@ using Examine.Lucene.Analyzers;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Providers;
 using Examine.Search;
+using Examine.Test.Examine.Lucene.Directories;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet.Taxonomy.Directory;
 using Lucene.Net.Index;
 using Lucene.Net.Replicator;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
 namespace Examine.Test.Examine.Lucene.Index
@@ -28,6 +30,13 @@ namespace Examine.Test.Examine.Lucene.Index
     [TestFixture]
     public class LuceneIndexTests : ExamineBaseTest
     {
+        private readonly ILogger _logger;
+
+        public LuceneIndexTests()
+        {
+            _logger = LoggerFactory.CreateLogger<LuceneIndexTests>();
+        }
+
         [Test]
         public void Operation_Complete_Executes_For_Single_Item()
         {
@@ -682,7 +691,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                             var cloned = new XElement(node);
                             cloned.Attribute("id")!.Value = docId.ToString(CultureInfo.InvariantCulture);
-                            Console.WriteLine("Indexing {0}", docId);
+                            _logger.LogDebug("Indexing {DocId}", docId);
                             customIndexer.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });
                         }
                     }
@@ -701,7 +710,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                 foreach (var r in results)
                 {
-                    Console.WriteLine($"Result Id: {r.Id}");
+                    _logger.LogDebug("Result Id: {ResultId}", r.Id);
                 }
 
                 Assert.AreEqual(3, results.Count());
@@ -728,11 +737,13 @@ namespace Examine.Test.Examine.Lucene.Index
 
             void WriteLog(string msg)
             {
+#if DEBUG
                 // reset console out to the orig, this is required because we suppress
                 // ExecutionContext which is how this is flowed in Nunit so needed when logging
                 // in OperationComplete
                 Console.SetOut(consoleOut);
-                Console.WriteLine(msg);
+                Console.WriteLine(msg); 
+#endif
             }
 
             DirectoryInfo? temp = null;
@@ -926,7 +937,7 @@ namespace Examine.Test.Examine.Lucene.Index
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Could not delete temp folder {0}", ex);
+                        _logger.LogError(ex, "Could not delete temp folder");
                     }
                 }
             }

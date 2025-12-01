@@ -1,12 +1,13 @@
 using System;
 using System.Linq;
-using Lucene.Net.Analysis.Standard;
-using NUnit.Framework;
-using Examine.Lucene.Providers;
-using Lucene.Net.Facet;
-using Moq;
-using Microsoft.Extensions.Options;
 using Examine.Lucene;
+using Examine.Lucene.Providers;
+using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Facet;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using NUnit.Framework;
 
 namespace Examine.Test.Examine.Lucene.Search
 {
@@ -14,6 +15,13 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class MultiIndexSearch : ExamineBaseTest
     {
+        private readonly ILogger _logger;
+
+        public MultiIndexSearch()
+        {
+            _logger = LoggerFactory.CreateLogger<MultiIndexSearch>();
+        }
+
         [Test]
         public void MultiIndex_Simple_Search()
         {
@@ -57,7 +65,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(4, result.TotalItemCount);
                 foreach (var r in result)
                 {
-                    Console.WriteLine("Score = " + r.Score);
+                    _logger.LogDebug("Score = " + r.Score);
                 }
             }
         }
