@@ -97,20 +97,12 @@ jobs:
 
     - name: Determine Version
       uses: gittools/actions/gitversion/execute@v3.0.3
-    
-    - name: Install dependencies
-      run: dotnet restore ${{ env.Solution_File }}
-    
-    - name: Build
-      run: dotnet build ${{ env.Solution_File }} --configuration ${{ env.Configuration }} --no-restore
 
     - name: Pack
-      if: success()
-      # This will do a rebuild
+      # This will do a full ebuild
       run: |
         dotnet pack ${{ env.Solution_File }} \
           --configuration ${{ env.Configuration }} \
-          --no-restore \
           -p:PackageVersion=${{ env.GitVersion_SemVer }} \
           -p:AssemblyVersion=${{ env.GitVersion_AssemblySemVer }} \
           -p:FileVersion=${{ env.GitVersion_AssemblySemFileVer }} \
