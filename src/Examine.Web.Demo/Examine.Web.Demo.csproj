@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bogus" Version="35.5.1" />
+    <PackageReference Include="Bogus" Version="35.6.5" />
     <Compile Remove="Data\IndexService.Facets.cs" />
   </ItemGroup>
 

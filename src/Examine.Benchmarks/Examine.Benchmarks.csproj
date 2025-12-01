@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -9,6 +9,7 @@
     <OutputType>Exe</OutputType>
     <!-- Used to test Nuget targeted benchmarks -->
     <LocalBuild>true</LocalBuild>
+    <ExaminePackageVersion Condition="'$(SciVersion)' == ''">3.0.1</ExaminePackageVersion>
     <DefineConstants Condition="$(LocalBuild) != 'false'">$(DefineConstants);LocalBuild</DefineConstants>
   </PropertyGroup>
 
@@ -17,13 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-    <PackageReference Include="Moq" Version="4.20.70" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-    <PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageReference Include="System.Formats.Asn1" Version="10.0.0" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
     <!-- Will be imported when running different Nuget targeted benchmarks -->
-    <PackageReference Condition="$(LocalBuild) == 'false'" Include="Examine" Version="3.0.1" />
+    <PackageReference Condition="$(LocalBuild) == 'false'" Include="Examine" Version="$(ExaminePackageVersion)" />
   </ItemGroup>
 
 </Project>
