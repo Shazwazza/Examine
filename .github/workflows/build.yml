@@ -60,7 +60,7 @@ jobs:
           --filter "TestCategory!~Benchmarks"
   
     - name: Upload Test Results Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always() # Upload results even if the test run fails
       with:
         name: test-results-${{ matrix.tfm }}
