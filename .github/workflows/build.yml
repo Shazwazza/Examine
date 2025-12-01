@@ -20,18 +20,62 @@ on:
       - 'hotfix/*'
 
 jobs:
-  build:
+  test-matrix:
+    runs-on: ubuntu-latest
+    env:
+      Test_Proj: src/Examine.Test/Examine.Test.csproj
+      Configuration: Release
+    strategy:
+      matrix:
+        dotnet-version: ['6.0.x', '8.0.x', '9.0.x', '10.0.x']
+        # Define TFM (Target Framework Moniker) specifically for the 'dotnet test --framework' command
+        tfm: ['net6.0', 'net8.0', 'net9.0', 'net10.0']
+        # Combine them into pairs to ensure correct mapping in run step:
+        include:
+          - dotnet-version: '6.0.x'
+            tfm: 'net6.0'
+          - dotnet-version: '8.0.x'
+            tfm: 'net8.0'
+          - dotnet-version: '9.0.x'
+            tfm: 'net9.0'
+          - dotnet-version: '10.0.x'
+            tfm: 'net10.0'
+  
+    steps:
+    - uses: actions/checkout@v4
+  
+    - name: Setup .NET SDK ${{ matrix.dotnet-version }}
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ matrix.dotnet-version }}
 
+    - name: Run Tests for TFM ${{ matrix.tfm }}
+      run: |
+        dotnet test \
+          "${{ env.Test_Proj }}"
+          --configuration ${{ env.Configuration }} \
+          --framework ${{ matrix.tfm }} \
+          --results-directory "TestResults_${{ matrix.tfm }}" \
+          --logger "trx;LogFileName=test_results.trx" \
+          --filter "TestCategory!~Benchmarks"
+  
+    - name: Upload Test Results Artifact
+      uses: actions/upload-artifact@v3
+      if: always() # Upload results even if the test run fails
+      with:
+        name: test-results-${{ matrix.tfm }}
+        path: ./TestResults_${{ matrix.tfm }}/test_results.trx
+
+  build:
     runs-on: ubuntu-latest
 
     env:
       Solution_File: src/Examine.sln
-      Test_Proj: src/Examine.Test/Examine.Test.csproj
       Configuration: Release
-      
+    
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -44,11 +88,7 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: |
-          6.0.x
-          8.0.x
-          9.0.x
-          10.0.x
+        dotnet-version: ${{ matrix.dotnet-version }}
 
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v3.0.3
@@ -63,16 +103,6 @@ jobs:
     
     - name: Build
       run: dotnet build ${{ env.Solution_File }} --configuration ${{ env.Configuration }} --no-restore
-    
-    - name: Test
-      run: dotnet test "${{ env.Test_Proj }}" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx" --filter "TestCategory!~Benchmarks"
-
-    - name: Upload test results
-      uses: actions/upload-artifact@v4  # upload test results
-      if: success() || failure()        # run this step even if previous step failed
-      with:
-        name: examine-test-results
-        path:  ${{ github.workspace }}/_TestResults/tests.trx
 
     - name: Pack
       if: success()
