@@ -69,6 +69,14 @@ jobs:
         name: test-results-${{ matrix.tfm }}
         path: ${{ github.workspace }}/_TestResults/${{ matrix.tfm }}/tests.trx
 
+    - name: Test Report
+      uses: dorny/test-reporter@v2
+      if: ${{ !cancelled() }}       # run this step even if previous step failed
+      with:
+        name: Publish Tests
+        path: ${{ github.workspace }}/_TestResults/**/*.trx
+        reporter: dotnet-trx
+
   build:
     needs: test-matrix
     runs-on: ubuntu-latest
