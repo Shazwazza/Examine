@@ -12,14 +12,14 @@ namespace Examine.Search
         /// </summary>
         /// <param name="label"></param>
         /// <returns></returns>
-        IFacetValue? Facet(string label);
+        public IFacetValue? Facet(string label);
 
         /// <summary>
-        /// Trys to get a facet value for a label
+        /// Try to get a facet value for a label
         /// </summary>
         /// <param name="label"></param>
         /// <param name="facetValue"></param>
         /// <returns></returns>
-        bool TryGetFacet(string label, out IFacetValue? facetValue);
+        public bool TryGetFacet(string label, out IFacetValue? facetValue);
     }
 }

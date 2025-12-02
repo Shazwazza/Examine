@@ -12,7 +12,7 @@ namespace Examine.Test
     /// </summary>
     public class TestContentService
     {
-        private XDocument _xDoc;
+        private XDocument? _xDoc;
 
         /// <summary>
         /// Return the XDocument containing the xml from the umbraco.config xml file
@@ -32,7 +32,7 @@ namespace Examine.Test
             }
 
             var xdoc = XDocument.Parse("<content></content>");
-            xdoc.Root.Add(_xDoc.XPathSelectElements(xpath));
+            xdoc.Root!.Add(_xDoc.XPathSelectElements(xpath));
 
             return xdoc;
         }

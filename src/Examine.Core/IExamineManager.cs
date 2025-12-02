@@ -15,7 +15,7 @@ namespace Examine
         /// <remarks>
         /// This returns all config based indexes and indexers registered in code
         /// </remarks>
-        IEnumerable<IIndex> Indexes { get; }
+        public IEnumerable<IIndex> Indexes { get; }
 
         /// <summary>
         /// Gets a list of all manually configured search providers
@@ -23,12 +23,12 @@ namespace Examine
         /// <remarks>
         /// This returns only those searchers explicitly registered with AddExamineSearcher or config based searchers
         /// </remarks>
-        IEnumerable<ISearcher> RegisteredSearchers { get; }
+        public IEnumerable<ISearcher> RegisteredSearchers { get; }
 
         /// <summary>
         /// Disposes the <see cref="IExamineManager"/>
         /// </summary>
-        void Dispose();
+        public void Dispose();
 
         /// <summary>
         /// Returns an indexer by name
@@ -36,10 +36,8 @@ namespace Examine
         /// <param name="indexName"></param>
         /// <param name="index"></param>
         /// <returns>true if the index was found by name</returns>
-        bool TryGetIndex(string indexName,
-#if !NETSTANDARD2_0
+        public bool TryGetIndex(string indexName,
             [MaybeNullWhen(false)]
-#endif
             out IIndex index);
 
         /// <summary>
@@ -50,11 +48,9 @@ namespace Examine
         /// <returns>
         /// true if the searcher was found by name
         /// </returns>
-        bool TryGetSearcher(string searcherName,
-#if !NETSTANDARD2_0
+        public bool TryGetSearcher(string searcherName,
             [MaybeNullWhen(false)]
-#endif
-        out ISearcher searcher);
+            out ISearcher searcher);
 
     }
 }

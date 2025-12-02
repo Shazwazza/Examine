@@ -16,7 +16,8 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -32,10 +33,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = (LuceneSearcher)indexer.Searcher;
                 IndexReader reader;
 
-                ISearchContext searchContext = searcher.GetSearchContext();
-                using (ISearcherReference searchRef = searchContext.GetSearcher())
+                var searchContext = searcher.GetSearchContext();
+                using (var searchRef = searchContext.GetSearcher())
                 {
-                    IndexSearcher luceneSearcher = searchRef.IndexSearcher;
+                    var luceneSearcher = searchRef.IndexSearcher;
 
                     reader = luceneSearcher.IndexReader;
 

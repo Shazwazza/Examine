@@ -3,7 +3,7 @@ namespace Examine
     /// <summary>
     /// Represents a value set validation result
     /// </summary>
-    public struct ValueSetValidationResult
+    public readonly struct ValueSetValidationResult
     {
         /// <inheritdoc/>
         public ValueSetValidationResult(ValueSetValidationStatus status, ValueSet valueSet)

@@ -1,4 +1,6 @@
 using Lucene.Net.Facet;
+using Examine.Lucene.Directories;
+using Examine.Lucene.Providers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Examine.Web.Demo
@@ -10,9 +12,9 @@ namespace Examine.Web.Demo
     {
         public static IServiceCollection CreateIndexes(this IServiceCollection services)
         {
-            services.AddExamineLuceneIndex("MyIndex");
+            services.AddExamineLuceneIndex<LuceneIndex, SyncedFileSystemDirectoryFactory>("MyIndex");
 
-            services.AddExamineLuceneIndex("SyncedIndex");
+            services.AddExamineLuceneIndex<LuceneIndex, SyncedFileSystemDirectoryFactory>("SyncedIndex");
 
             var taxonomyFacetIndexFacetsConfig = new FacetsConfig();
             taxonomyFacetIndexFacetsConfig.SetIndexFieldName("AddressState", "AddressState");
@@ -38,7 +40,7 @@ namespace Examine.Web.Demo
             services.AddExamineLuceneMultiSearcher(
                 "MultiIndexSearcher",
                 new[] { "MyIndex", "SyncedIndex", "FacetIndex" },
-                opt=> opt.FacetConfiguration = new FacetsConfig());
+                opt => opt.FacetConfiguration = new FacetsConfig());
 
             services.ConfigureOptions<ConfigureIndexOptions>();
 

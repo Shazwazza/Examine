@@ -1,75 +1,122 @@
-using System;
 using Examine.Lucene.Search;
-using Lucene.Net.Search;
-using Lucene.Net.Analysis;
-using Lucene.Net.Facet;
+using Examine.Search;
+using Lucene.Net.Facet.Taxonomy;
+using Lucene.Net.Index;
+using Microsoft.Extensions.Options;
 
 namespace Examine.Lucene.Providers
 {
-
-    ///<summary>
-    /// Standard object used to search a Lucene index
-    ///</summary>
-    public class LuceneSearcher : BaseLuceneSearcher, IDisposable
+    /// <summary>
+    /// A searcher for taxonomy indexes
+    /// </summary>
+    internal class LuceneSearcher : BaseLuceneSearcher, ILuceneTaxonomySearcher
     {
-        private readonly SearcherManager _searcherManager;
+        private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly bool _isNrt;
         private bool _disposedValue;
-
-
-        /// <summary>
-        /// Constructor allowing for creating a NRT instance based on a given writer
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="searcherManager"></param>
-        /// <param name="analyzer"></param>
-        /// <param name="fieldValueTypeCollection"></param>
-        [Obsolete("To remove in Examine V5")]
-        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
-            : base(name, analyzer)
-        {
-            _searcherManager = searcherManager;
-            _fieldValueTypeCollection = fieldValueTypeCollection;
-        }
+        private volatile ITaxonomySearchContext? _searchContext;
 
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="searcherManager"></param>
-        /// <param name="analyzer"></param>
-        /// <param name="fieldValueTypeCollection"></param>
-        /// <param name="facetsConfig"></param>
-        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig)
-            : base(name, analyzer, facetsConfig)
+        public LuceneSearcher(string name, SearcherTaxonomyManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, IOptionsMonitor<LuceneSearcherOptions> options, bool isNrt)
+            : base(name, options)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
+            _isNrt = isNrt;
         }
 
         /// <inheritdoc/>
         public override ISearchContext GetSearchContext()
-            => new SearchContext(_searcherManager, _fieldValueTypeCollection);
+        {
+            // Don't create a new search context unless something has changed
+            var isCurrent = IsSearcherCurrent(_searcherManager);
+            if (_searchContext is null || !isCurrent)
+            {
+                _searchContext = new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection, _isNrt);
+            }
 
-        /// <inheritdoc/>
-        [Obsolete("To remove in Examine v5")]
-        protected new virtual void Dispose(bool disposing)
+            return _searchContext;
+        }
+
+        /// <summary>
+        /// Gets the Taxonomy SearchContext
+        /// </summary>
+        /// <returns></returns>
+        public virtual ITaxonomySearchContext GetTaxonomySearchContext()
+        {
+            // Don't create a new search context unless something has changed
+            var isCurrent = IsSearcherCurrent(_searcherManager);
+            if (_searchContext is null || !isCurrent)
+            {
+                _searchContext = new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection, _isNrt);
+            }
+
+            return _searchContext;
+        }
+
+        /// <inheritdoc />
+        public override void Dispose()
         {
             if (!_disposedValue)
             {
-                if (disposing)
-                {
-                    _searcherManager.Dispose();
-                }
-
+                _searcherManager.Dispose();
                 _disposedValue = true;
             }
-            base.Dispose(disposing);
+            ;
         }
 
         /// <inheritdoc/>
-        [Obsolete("To remove in Examine V5 - IDisposable is implemented in base class")]
-        public new void Dispose() => Dispose(true);
+        public int CategoryCount
+        {
+            get
+            {
+                var taxonomyReader = GetTaxonomySearchContext().GetTaxonomyAndSearcher().TaxonomyReader;
+                return taxonomyReader.Count;
+            }
+        }
+
+        /// <inheritdoc/>
+        public int GetOrdinal(string dimension, string[] path)
+        {
+            var taxonomyReader = GetTaxonomySearchContext().GetTaxonomyAndSearcher().TaxonomyReader;
+            return taxonomyReader.GetOrdinal(dimension, path);
+        }
+
+
+        /// <inheritdoc/>
+        public IFacetLabel GetPath(int ordinal)
+        {
+            var taxonomyReader = GetTaxonomySearchContext().GetTaxonomyAndSearcher().TaxonomyReader;
+            var facetLabel = taxonomyReader.GetPath(ordinal);
+            var examineFacetLabel = new LuceneFacetLabel(facetLabel);
+            return examineFacetLabel;
+        }
+
+        //
+        // Summary:
+        //     Returns true if no changes have occured since this searcher ie. reader was opened,
+        //     otherwise false.
+        private bool IsSearcherCurrent(SearcherTaxonomyManager searcherTaxonomyManager)
+        {
+            var indexSearcher = searcherTaxonomyManager.Acquire();
+            try
+            {
+                var indexReader = indexSearcher.Searcher.IndexReader;
+                //if (Debugging.AssertsEnabled)
+                //{
+                //    Debugging.Assert(indexReader is DirectoryReader, "searcher's IndexReader should be a DirectoryReader, but got {0}", indexReader);
+                //}
+
+                return ((DirectoryReader)indexReader).IsCurrent();
+            }
+            finally
+            {
+                searcherTaxonomyManager.Release(indexSearcher);
+            }
+        }
     }
 }
 

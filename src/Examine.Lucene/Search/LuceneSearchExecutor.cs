@@ -9,6 +9,7 @@ using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Util;
 using LuceneFacetResult = Lucene.Net.Facet.FacetResult;
 
 namespace Examine.Lucene.Search
@@ -40,21 +41,6 @@ namespace Examine.Lucene.Search
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
             _facetFields = facetFields;
             _facetsConfig = facetsConfig;
-        }
-
-        private int MaxDoc
-        {
-            get
-            {
-                if (_maxDoc == null)
-                {
-                    using (var searcher = _searchContext.GetSearcher())
-                    {
-                        _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
-                    }
-                }
-                return _maxDoc.Value;
-            }
         }
 
         /// <summary>
@@ -92,10 +78,6 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var maxResults = Math.Min((_options.Skip + 1) * _options.Take, MaxDoc);
-            maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
-            int numHits = maxResults;
-
             var sortFields = _sortField as SortField[] ?? _sortField.ToArray();
             Sort? sort = null;
             FieldDoc? scoreDocAfter = null;
@@ -103,11 +85,20 @@ namespace Examine.Lucene.Search
 
             using (var searcher = _searchContext.GetSearcher())
             {
+                var maxSkipTakeDataSetSize = _luceneQueryOptions?.AutoCalculateSkipTakeMaxResults ?? false
+                    ? GetMaxDoc()
+                    : _luceneQueryOptions?.SkipTakeMaxResults ?? QueryOptions.AbsoluteMaxResults;
+
+                var maxResults = Math.Min((_options.Skip + 1) * _options.Take, maxSkipTakeDataSetSize);
+                maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
+                int numHits = maxResults;
+
                 if (sortFields.Length > 0)
                 {
                     sort = new Sort(sortFields);
                     sort.Rewrite(searcher.IndexSearcher);
                 }
+
                 if (_luceneQueryOptions != null && _luceneQueryOptions.SearchAfter != null)
                 {
                     //The document to find results after.
@@ -125,7 +116,7 @@ namespace Examine.Lucene.Search
                 if (sortFields.Length > 0)
                 {
                     bool fillFields = true;
-                    topDocsCollector = TopFieldCollector.Create(sort, numHits, scoreDocAfter, fillFields, trackDocScores, trackMaxScore, false);
+                    topDocsCollector = TopFieldCollector.Create(sort!, numHits, scoreDocAfter, fillFields, trackDocScores, trackMaxScore, false);
                 }
                 else
                 {
@@ -178,10 +169,16 @@ namespace Examine.Lucene.Search
 
                 var totalItemCount = topDocs.TotalHits;
 
-                var results = new List<ISearchResult>(topDocs.ScoreDocs.Length);
-                for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
+                var results = new List<LuceneSearchResult>(topDocs.ScoreDocs.Length);
+
+                // TODO: Order by Doc Id for improved perf??
+                // Our benchmarks show this is isn't a significant performance improvement,
+                // but they could be wrong. Sorting by DocId here could only be done if there
+                // are no sort options.
+                // See https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
+                foreach (var scoreDoc in topDocs.ScoreDocs)
                 {
-                    var result = GetSearchResult(i, topDocs, searcher.IndexSearcher);
+                    var result = GetSearchResult(scoreDoc, searcher.IndexSearcher);
                     if (result != null)
                     {
                         results.Add(result);
@@ -195,6 +192,20 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <summary>
+        /// Used to calculate the total number of documents in the index.
+        /// </summary>
+        private int GetMaxDoc()
+        {
+            if (_maxDoc == null)
+            {
+                using var searcher = _searchContext.GetSearcher();
+                _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
+            }
+
+            return _maxDoc.Value;
+        }
+
         private static FieldDoc GetScoreDocAfter(SearchAfterOptions searchAfterOptions)
         {
             FieldDoc scoreDocAfter;
@@ -204,9 +215,9 @@ namespace Examine.Lucene.Search
             {
                 searchAfterSortFields = searchAfterOptions.Fields;
             }
-            if (searchAfterOptions.ShardIndex != null)
+            if (searchAfterOptions.ShardIndex >= 0)
             {
-                scoreDocAfter = new FieldDoc(searchAfterOptions.DocumentId, searchAfterOptions.DocumentScore, searchAfterSortFields, searchAfterOptions.ShardIndex.Value);
+                scoreDocAfter = new FieldDoc(searchAfterOptions.DocumentId, searchAfterOptions.DocumentScore, searchAfterSortFields, searchAfterOptions.ShardIndex);
             }
             else
             {
@@ -216,7 +227,7 @@ namespace Examine.Lucene.Search
             return scoreDocAfter;
         }
 
-        private static SearchAfterOptions? GetSearchAfterOptions(TopDocs topDocs)
+        internal static SearchAfterOptions? GetSearchAfterOptions(TopDocs topDocs)
         {
             if (topDocs.TotalHits > 0)
             {
@@ -229,6 +240,7 @@ namespace Examine.Lucene.Search
                     return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, new object[0], scoreDoc.ShardIndex);
                 }
             }
+
             return null;
         }
 
@@ -266,18 +278,8 @@ namespace Examine.Lucene.Search
             return facets;
         }
 
-        private LuceneSearchResult? GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
+        private LuceneSearchResult GetSearchResult(ScoreDoc scoreDoc, IndexSearcher luceneSearcher)
         {
-            // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
-            // and from that one place "i" is always less than the size of this collection. 
-            // but we'll error check here anyways
-            if (topDocs.ScoreDocs.Length < index)
-            {
-                return null;
-            }
-
-            var scoreDoc = topDocs.ScoreDocs[index];
-
             var docId = scoreDoc.Doc;
             Document doc;
             if (_fieldsToLoad != null)
@@ -288,6 +290,7 @@ namespace Examine.Lucene.Search
             {
                 doc = luceneSearcher.Doc(docId);
             }
+
             var score = scoreDoc.Score;
             var shardIndex = scoreDoc.ShardIndex;
             var result = CreateSearchResult(doc, score, shardIndex);
@@ -301,7 +304,7 @@ namespace Examine.Lucene.Search
         /// <param name="score">The score.</param>
         /// <param name="shardIndex"></param>
         /// <returns>A populated search result object</returns>
-        private LuceneSearchResult CreateSearchResult(Document doc, float score, int shardIndex)
+        internal static LuceneSearchResult CreateSearchResult(Document doc, float score, int shardIndex)
         {
             var id = doc.Get("id");
 
@@ -312,12 +315,12 @@ namespace Examine.Lucene.Search
 
             var searchResult = new LuceneSearchResult(id, score, () =>
             {
-                //we can use lucene to find out the fields which have been stored for this particular document
+                //we can use Lucene to find out the fields which have been stored for this particular document
                 var fields = doc.Fields;
 
                 var resultVals = new Dictionary<string, List<string>>();
 
-                foreach (var field in fields.Cast<Field>())
+                foreach (var field in fields)
                 {
                     var fieldName = field.Name;
                     var values = doc.GetValues(fieldName);

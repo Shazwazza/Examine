@@ -1,10 +1,15 @@
 using System;
 using System.Linq;
+using Examine.Lucene;
 using Examine.Lucene.Providers;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
-using NUnit.Framework;
 using Lucene.Net.Analysis.Util;
 using Lucene.Net.Facet;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using NUnit.Framework;
 
 namespace Examine.Test.Examine.Lucene.Search
 {
@@ -12,6 +17,13 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class MultiIndexSearchTests : ExamineBaseTest
     {
+        private readonly ILogger _logger;
+
+        public MultiIndexSearchTests()
+        {
+            _logger = LoggerFactory.CreateLogger<MultiIndexSearchTests>();
+        }
+
         public static CharArraySet StopWords { get; } = new CharArraySet(LuceneInfo.CurrentVersion, new[]
             {
                 "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into",
@@ -26,19 +38,27 @@ namespace Examine.Test.Examine.Lucene.Search
             var standardAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             // using the StandardAnalyzer on the indexes means that the default stop words
             // will get stripped from the text before being stored in the index.
-            using (var indexer1 = GetTestIndex(luceneDir1, standardAnalyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, standardAnalyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, standardAnalyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, standardAnalyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
 
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions
+                {
+                    IndexNames = [indexer1.Name, indexer2.Name],
+                    Analyzer = customAnalyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
                 var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2 },
-                    new FacetsConfig(),
-                    customAnalyzer);
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2 });
 
                 // Even though the custom analyzer doesn't have a stop word of 'will'
                 // it will still return nothing because the word has been stripped during indexing.
@@ -54,21 +74,29 @@ namespace Examine.Test.Examine.Lucene.Search
             var standardAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             // using the CustomAnalyzer on the indexes means that the custom stop words
             // will get stripped from the text before being stored in the index.
-            using (var indexer1 = GetTestIndex(luceneDir1, customAnalyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, customAnalyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, customAnalyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, customAnalyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
 
-                var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2 },
-                    new FacetsConfig(),
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions
+                {
+                    IndexNames = [indexer1.Name, indexer2.Name],
                     // The Analyzer here is used for query parsing values when 
                     // non ManagedQuery queries are executed.
-                    standardAnalyzer);
+                    Analyzer = standardAnalyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
+                var searcher = new MultiIndexSearcher("testSearcher",
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2 });
 
                 // A text search like this will use a ManagedQuery which means it will
                 // use the analyzer assigned to each field to parse the query
@@ -86,21 +114,29 @@ namespace Examine.Test.Examine.Lucene.Search
             var standardAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             // using the CustomAnalyzer on the indexes means that the custom stop words
             // will get stripped from the text before being stored in the index.
-            using (var indexer1 = GetTestIndex(luceneDir1, customAnalyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, customAnalyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, customAnalyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, customAnalyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
 
-                var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2 },
-                    new FacetsConfig(),
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions
+                {
+                    IndexNames = [indexer1.Name, indexer2.Name],
                     // The Analyzer here is used for query parsing values when 
                     // non ManagedQuery queries are executed.
-                    standardAnalyzer);
+                    Analyzer = standardAnalyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
+                var searcher = new MultiIndexSearcher("testSearcher",
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2 });
 
                 var result = searcher
                         .CreateQuery("content")
@@ -119,13 +155,17 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             using (var luceneDir3 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir3 = new RandomIdRAMDirectory())
             using (var luceneDir4 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, analyzer))
-            using (var indexer3 = GetTestIndex(luceneDir3, analyzer))
-            using (var indexer4 = GetTestIndex(luceneDir4, analyzer))
+            using (var luceneTaxonomyDir4 = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, analyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, analyzer))
+            using (var indexer3 = GetTestIndex(luceneDir3, luceneTaxonomyDir3, analyzer))
+            using (var indexer4 = GetTestIndex(luceneDir4, luceneTaxonomyDir4, analyzer))
 
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
@@ -135,17 +175,23 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions
+                {
+                    IndexNames = [indexer1.Name, indexer2.Name, indexer3.Name, indexer4.Name],
+                    Analyzer = analyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
                 var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1, indexer2, indexer3, indexer4 },
-                    new FacetsConfig(),
-                    analyzer);
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2, indexer3, indexer4 });
 
                 var result = searcher.Search("darkness");
 
                 Assert.AreEqual(4, result.TotalItemCount);
                 foreach (var r in result)
                 {
-                    Console.WriteLine("Score = " + r.Score);
+                    _logger.LogDebug("Score = " + r.Score);
                 }
             }
         }
@@ -156,13 +202,17 @@ namespace Examine.Test.Examine.Lucene.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir2 = new RandomIdRAMDirectory())
             using (var luceneDir3 = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir3 = new RandomIdRAMDirectory())
             using (var luceneDir4 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
-            using (var indexer2 = GetTestIndex(luceneDir2, analyzer))
-            using (var indexer3 = GetTestIndex(luceneDir3, analyzer))
-            using (var indexer4 = GetTestIndex(luceneDir4, analyzer))
+            using (var luceneTaxonomyDir4 = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTestIndex(luceneDir1, luceneTaxonomyDir1, analyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, luceneTaxonomyDir2, analyzer))
+            using (var indexer3 = GetTestIndex(luceneDir3, luceneTaxonomyDir3, analyzer))
+            using (var indexer4 = GetTestIndex(luceneDir4, luceneTaxonomyDir4, analyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "hello", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "world", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -171,11 +221,17 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
 
+                var luceneMultiSearcherOptions = new LuceneMultiSearcherOptions
+                {
+                    IndexNames = [indexer1.Name, indexer2.Name, indexer3.Name, indexer4.Name],
+                    Analyzer = analyzer,
+                    FacetConfiguration = new FacetsConfig()
+                };
+
                 var searcher = new MultiIndexSearcher(
                     "testSearcher",
-                    new[] { indexer1, indexer2, indexer3, indexer4 },
-                    new FacetsConfig(),
-                    analyzer);
+                    Mock.Of<IOptionsMonitor<LuceneMultiSearcherOptions>>(x => x.Get(It.IsAny<string>()) == luceneMultiSearcherOptions),
+                    new[] { indexer1, indexer2, indexer3, indexer4 });
 
                 var searchContext = searcher.GetSearchContext();
                 var result = searchContext.SearchableFields;

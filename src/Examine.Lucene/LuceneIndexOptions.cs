@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet;
@@ -13,6 +11,34 @@ namespace Examine.Lucene
     /// </summary>
     public class LuceneIndexOptions : IndexOptions
     {
+        /// <summary>  
+        /// Gets or sets whether Near Real-Time (NRT) indexing is enabled.  
+        /// </summary>  
+        public bool NrtEnabled { get; set; } = true;
+
+        /// <summary>  
+        /// Gets or sets the maximum stale seconds for Near Real-Time (NRT) indexing.  
+        /// This defines the upper limit of staleness for NRT indexing operations.  
+        /// </summary>  
+        public double NrtTargetMaxStaleSec { get; set; } = 60.0;
+
+        /// <summary>  
+        /// Gets or sets the minimum stale seconds for Near Real-Time (NRT) indexing.  
+        /// This defines the lower limit of staleness for NRT indexing operations.  
+        /// </summary>  
+        public double NrtTargetMinStaleSec { get; set; } = 1.0;
+
+        /// <summary>  
+        /// Gets or sets the maximum merge size in megabytes for the Near Real-Time (NRT) cache.  
+        /// This defines the upper limit of memory usage for merging operations in the NRT cache.  
+        /// </summary>  
+        public double NrtCacheMaxMergeSizeMB { get; set; } = 5.0;
+
+        /// <summary>  
+        /// Gets or sets the maximum cached size in megabytes for the Near Real-Time (NRT) cache.  
+        /// This defines the upper limit of memory usage for cached data in the NRT cache.  
+        /// </summary>  
+        public double NrtCacheMaxCachedMB { get; set; } = 60.0;
         /// <summary>
         /// THe index deletion policy
         /// </summary>
@@ -37,10 +63,5 @@ namespace Examine.Lucene
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </summary>
         public IReadOnlyDictionary<string, IFieldValueTypeFactory>? IndexValueTypesFactory { get; set; }
-
-        /// <summary>
-        /// Gets or Sets whether to use a Taxonomy Index
-        /// </summary>
-        public bool UseTaxonomyIndex { get; set; }
     }
 }

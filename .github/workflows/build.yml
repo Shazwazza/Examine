@@ -7,6 +7,8 @@ on:
       - 'master'
       - 'dev'
       - 'release/*'
+      - 'support/*'
+      - 'hotfix/*'
     tags: 
       - 'v*'
   pull_request:
@@ -14,20 +16,78 @@ on:
       - 'master'
       - 'dev'
       - 'release/*'
+      - 'support/*'
+      - 'hotfix/*'
 
 jobs:
-  build:
+  test-matrix:
+    runs-on: ubuntu-latest
+    env:
+      Test_Proj: src/Examine.Test/Examine.Test.csproj
+      Configuration: Release
+    strategy:
+      matrix:
+        include:
+          - dotnet-version: '8.0.x'
+            tfm: 'net8.0'
+          - dotnet-version: '9.0.x'
+            tfm: 'net9.0'
+          - dotnet-version: '10.0.x'
+            tfm: 'net10.0'
+  
+    steps:
+    - uses: actions/checkout@v4
+  
+    - name: Setup .NET SDK ${{ matrix.dotnet-version }}
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ matrix.dotnet-version }}
 
+    - name: Build Tests for TFM ${{ matrix.tfm }}
+      run: |
+        dotnet build \
+          "${{ env.Test_Proj }}" \
+          --configuration ${{ env.Configuration }} \
+          --framework ${{ matrix.tfm }}
+
+    - name: Run Tests for TFM ${{ matrix.tfm }}
+      run: |
+        dotnet test \
+          "${{ env.Test_Proj }}" \
+          --configuration ${{ env.Configuration }} \
+          --verbosity normal \
+          --framework ${{ matrix.tfm }} \
+          --no-build \
+          --results-directory "${{ github.workspace }}/_TestResults/${{ matrix.tfm }}" \
+          --logger "trx;logfilename=tests.trx" \
+          --filter "TestCategory!~Benchmarks"
+  
+    - name: Upload Test Results Artifact
+      uses: actions/upload-artifact@v4
+      if: always() # Upload results even if the test run fails
+      with:
+        name: test-results-${{ matrix.tfm }}
+        path: ${{ github.workspace }}/_TestResults/${{ matrix.tfm }}/tests.trx
+
+    - name: Test Report
+      uses: dorny/test-reporter@v2
+      if: ${{ !cancelled() }}       # run this step even if previous step failed
+      with:
+        name: Publish Tests
+        path: ${{ github.workspace }}/_TestResults/**/*.trx
+        reporter: dotnet-trx
+
+  build:
+    needs: test-matrix
     runs-on: ubuntu-latest
 
     env:
       Solution_File: src/Examine.sln
-      Test_Proj: src/Examine.Test/Examine.Test.csproj
       Configuration: Release
-      
+    
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -40,42 +100,21 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: | 
-          5.0.x
-          6.0.x
-          7.0.x
+        dotnet-version: ${{ matrix.dotnet-version }}
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.9
+      uses: gittools/actions/gitversion/setup@v3.0.3
       with:
-        versionSpec: '5.x'
+        versionSpec: '6.0.x'
 
     - name: Determine Version
-      uses: gittools/actions/gitversion/execute@v0.9.9
-    
-    - name: Install dependencies
-      run: dotnet restore ${{ env.Solution_File }}
-    
-    - name: Build
-      run: dotnet build ${{ env.Solution_File }} --configuration ${{ env.Configuration }} --no-restore
-    
-    - name: Test
-      run: dotnet test "${{ env.Test_Proj }}" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx"
-
-    - name: Upload test results
-      uses: actions/upload-artifact@v2  # upload test results
-      if: success() || failure()        # run this step even if previous step failed
-      with:
-        name: examine-test-results
-        path:  ${{ github.workspace }}/_TestResults/tests.trx
+      uses: gittools/actions/gitversion/execute@v3.0.3
 
     - name: Pack
-      if: success()
-      # This will do a rebuild
+      # This will do a full ebuild
       run: |
         dotnet pack ${{ env.Solution_File }} \
           --configuration ${{ env.Configuration }} \
-          --no-restore \
           -p:PackageVersion=${{ env.GitVersion_SemVer }} \
           -p:AssemblyVersion=${{ env.GitVersion_AssemblySemVer }} \
           -p:FileVersion=${{ env.GitVersion_AssemblySemFileVer }} \
@@ -85,7 +124,7 @@ jobs:
           --output=${{ github.workspace }}/_NugetOutput
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2  # upload nuget
+      uses: actions/upload-artifact@v4  # upload nuget
       if: success()
       with:
         name: examine-nuget-${{ env.GitVersion_SemVer }}

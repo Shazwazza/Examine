@@ -27,7 +27,6 @@ const Examine.FieldDefinitionTypes.Integer = "int" -> string!
 const Examine.FieldDefinitionTypes.InvariantCultureIgnoreCase = "invariantcultureignorecase" -> string!
 const Examine.FieldDefinitionTypes.Long = "long" -> string!
 const Examine.FieldDefinitionTypes.Raw = "raw" -> string!
-const Examine.Search.QueryOptions.DefaultMaxResults = 500 -> int
 Examine.BaseIndexProvider
 Examine.BaseIndexProvider.BaseIndexProvider(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.IndexOptions!>! indexOptions) -> void
 Examine.BaseIndexProvider.DeleteFromIndex(System.Collections.Generic.IEnumerable<string!>! itemIds) -> void
@@ -162,16 +161,8 @@ Examine.Search.BooleanOperation.And = 0 -> Examine.Search.BooleanOperation
 Examine.Search.BooleanOperation.Not = 2 -> Examine.Search.BooleanOperation
 Examine.Search.BooleanOperation.Or = 1 -> Examine.Search.BooleanOperation
 Examine.Search.Examineness
-Examine.Search.Examineness.Boosted = 5 -> Examine.Search.Examineness
-Examine.Search.Examineness.ComplexWildcard = 2 -> Examine.Search.Examineness
-Examine.Search.Examineness.Escaped = 4 -> Examine.Search.Examineness
-Examine.Search.Examineness.Explicit = 3 -> Examine.Search.Examineness
-Examine.Search.Examineness.Fuzzy = 0 -> Examine.Search.Examineness
-Examine.Search.Examineness.Proximity = 6 -> Examine.Search.Examineness
-Examine.Search.Examineness.SimpleWildcard = 1 -> Examine.Search.Examineness
 Examine.Search.ExamineValue
 Examine.Search.ExamineValue.Examineness.get -> Examine.Search.Examineness
-Examine.Search.ExamineValue.ExamineValue() -> void
 Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string! value) -> void
 Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string! value, float level) -> void
 Examine.Search.ExamineValue.Level.get -> float
@@ -259,18 +250,13 @@ Examine.SearchResult.this[int resultIndex].get -> System.Collections.Generic.Key
 Examine.SearchResult.this[string! key].get -> string?
 Examine.SearchResult.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
 Examine.ValueSet
-Examine.ValueSet.Category.get -> string?
 Examine.ValueSet.Clone() -> Examine.ValueSet!
 Examine.ValueSet.GetValue(string! key) -> object?
 Examine.ValueSet.GetValues(string! key) -> System.Collections.Generic.IEnumerable<object!>!
 Examine.ValueSet.Id.get -> string!
-Examine.ValueSet.ItemType.get -> string?
-Examine.ValueSet.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Collections.Generic.IReadOnlyList<object!>!>?
-Examine.ValueSet.ValueSet(string! id) -> void
 Examine.ValueSet.ValueSet(string! id, string! category, string! itemType, System.Collections.Generic.IDictionary<string!, object!>! values) -> void
 Examine.ValueSet.ValueSet(string! id, string! category, System.Collections.Generic.IDictionary<string!, object!>! values) -> void
 Examine.ValueSet.ValueSet(string! id, string! category, System.Collections.Generic.IDictionary<string!, System.Collections.Generic.IEnumerable<object!>!>! values) -> void
-Examine.ValueSet.ValueSet(string! id, string? category, string? itemType, System.Collections.Generic.IDictionary<string!, System.Collections.Generic.IEnumerable<object!>!>! values) -> void
 Examine.ValueSetValidationResult
 Examine.ValueSetValidationResult.Status.get -> Examine.ValueSetValidationStatus
 Examine.ValueSetValidationResult.ValueSet.get -> Examine.ValueSet!

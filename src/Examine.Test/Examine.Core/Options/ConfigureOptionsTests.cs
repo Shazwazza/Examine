@@ -36,7 +36,7 @@ namespace Examine.Test.Examine.Core.Options
 
         private class MyIndexOptions : IConfigureNamedOptions<LuceneDirectoryIndexOptions>
         {
-            public void Configure(string name, LuceneDirectoryIndexOptions options)
+            public void Configure(string? name, LuceneDirectoryIndexOptions options)
             {
                 if (name != "TestIndex")
                 {
@@ -74,7 +74,7 @@ namespace Examine.Test.Examine.Core.Options
                 var luceneIndex = index as LuceneIndex;
                 Assert.IsNotNull(luceneIndex);
 
-                using (luceneIndex.WithThreadingMode(IndexThreadingMode.Synchronous))
+                using (luceneIndex!.WithThreadingMode(IndexThreadingMode.Synchronous))
                 {
                     luceneIndex.CreateIndex();
                     luceneIndex.IndexItem(

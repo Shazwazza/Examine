@@ -13,12 +13,10 @@ namespace Examine.Lucene.Search
     {
         private readonly Func<Query> _factory;
 
-        private Query? _wrapped;
-
         /// <summary>
         /// The wrapped query
         /// </summary>
-        public Query Wrapped => _wrapped ??= _factory();
+        public Query Wrapped { get => field ??= _factory(); private set; }
 
         /// <inheritdoc/>
         public LateBoundQuery(Func<Query> factory)

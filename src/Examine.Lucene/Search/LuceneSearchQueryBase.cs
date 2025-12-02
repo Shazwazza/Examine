@@ -38,7 +38,6 @@ namespace Examine.Lucene.Search
         /// Specifies how clauses are to occur in matching documents
         /// </summary>
         protected Occur Occurrence { get; set; }
-        private BooleanOperation _boolOp;
 
         /// <inheritdoc/>
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
@@ -62,11 +61,11 @@ namespace Examine.Lucene.Search
         /// </summary>
         public BooleanOperation BooleanOperation
         {
-            get => _boolOp;
+            get;
             set
             {
-                _boolOp = value;
-                Occurrence = _boolOp.ToLuceneOccurrence();
+                field = value;
+                Occurrence = field.ToLuceneOccurrence();
             }
         }
 
@@ -133,7 +132,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation Field(string fieldName, string fieldValue)
-            => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
+            => FieldInternal(fieldName, ExamineValue.Create(Examineness.Default, fieldValue), Occurrence);
 
         /// <inheritdoc/>
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
@@ -141,7 +140,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => GroupedAnd(fields, query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+            => GroupedAnd(fields, query.Select(f => ExamineValue.Create(Examineness.Default, f)).Cast<IExamineValue>().ToArray());
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[]? fieldVals)
@@ -161,7 +160,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
-            => GroupedOr(fields, query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+            => GroupedOr(fields, query?.Select(f => ExamineValue.Create(Examineness.Default, f)).Cast<IExamineValue>().ToArray());
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[]? query)
@@ -181,7 +180,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
-            => GroupedNot(fields, query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+            => GroupedNot(fields, query.Select(f => ExamineValue.Create(Examineness.Default, f)).Cast<IExamineValue>().ToArray());
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
@@ -234,25 +233,25 @@ namespace Examine.Lucene.Search
         protected abstract INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
         INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue)
-            => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
+            => FieldInternal(fieldName, ExamineValue.Create(Examineness.Default, fieldValue), Occurrence);
 
         INestedBooleanOperation INestedQuery.Field(string fieldName, IExamineValue fieldValue)
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
+            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Default, f)).Cast<IExamineValue>().ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
             => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params string[] query)
-            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
+            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Default, f)).Cast<IExamineValue>().ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
             => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params string[] query)
-            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).Cast<IExamineValue>().ToArray());
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
             => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query);
@@ -281,13 +280,7 @@ namespace Examine.Lucene.Search
                 throw new ArgumentNullException(nameof(fieldValue));
             }
 
-            return FieldInternal(fieldName, fieldValue, occurrence, true);
-        }
-
-        /// <inheritdoc/>
-        private LuceneBooleanOperationBase FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence, bool useQueryParser)
-        {
-            var queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
+            var queryToAdd = GetFieldInternalQuery(fieldName, fieldValue);
 
             if (queryToAdd != null)
             {
@@ -403,9 +396,8 @@ namespace Examine.Lucene.Search
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="fieldValue"></param>
-        /// <param name="useQueryParser">True to use the query parser to parse the search text, otherwise, manually create the queries</param>
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
-        protected virtual Query? GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
+        protected virtual Query? GetFieldInternalQuery(string fieldName, IExamineValue fieldValue)
         {
             if (string.IsNullOrEmpty(fieldName))
             {
@@ -423,127 +415,41 @@ namespace Examine.Lucene.Search
             }
 
             Query? queryToAdd;
-
             switch (fieldValue.Examineness)
             {
                 case Examineness.Fuzzy:
-                    if (useQueryParser)
-                    {
-                        queryToAdd = _queryParser.GetFuzzyQueryInternal(fieldName, fieldValue.Value, fieldValue.Level);
-                    }
-                    else
-                    {
-                        //REFERENCE: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Fuzzy%20Searches
-                        var proxQuery = fieldName + ":" + fieldValue.Value + "~" + Convert.ToInt32(fieldValue.Level);
-                        queryToAdd = ParseRawQuery(proxQuery);
-                    }
+                    queryToAdd = _queryParser.GetFuzzyQueryInternal(fieldName, fieldValue.Value, fieldValue.Level);
                     break;
                 case Examineness.SimpleWildcard:
                 case Examineness.ComplexWildcard:
-
                     var searchValue = fieldValue.Value + (fieldValue.Examineness == Examineness.ComplexWildcard ? "*" : "?");
-
-                    if (useQueryParser)
-                    {
-                        queryToAdd = _queryParser.GetWildcardQueryInternal(fieldName, searchValue);
-                    }
-                    else
-                    {
-                        //REFERENCE: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Wildcard%20Searches
-                        var proxQuery = fieldName + ":" + searchValue;
-                        queryToAdd = ParseRawQuery(proxQuery);
-                    }
-                    break;
-                case Examineness.Boosted:
-                    if (useQueryParser)
-                    {
-                        queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
-                        if (queryToAdd != null)
-                        {
-                            queryToAdd.Boost = fieldValue.Level;
-                        }
-                    }
-                    else
-                    {
-                        //REFERENCE: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Boosting%20a%20Term
-                        var proxQuery = fieldName + ":\"" + fieldValue.Value + "\"^" + Convert.ToInt32(fieldValue.Level).ToString();
-                        queryToAdd = ParseRawQuery(proxQuery);
-                    }
+                    queryToAdd = _queryParser.GetWildcardQueryInternal(fieldName, searchValue);
                     break;
                 case Examineness.Proximity:
                     int proximity = Convert.ToInt32(fieldValue.Level);
-                    if (useQueryParser)
-                    {
-                        queryToAdd = _queryParser.GetProximityQueryInternal(fieldName, fieldValue.Value, proximity);
-                    }
-                    else
-                    {
-                        var qry = fieldName + ":\"" + fieldValue.Value + "\"~" + proximity;
-                        queryToAdd = ParseRawQuery(qry);
-                    }
+                    queryToAdd = _queryParser.GetProximityQueryInternal(fieldName, fieldValue.Value, proximity);
                     break;
+#pragma warning disable CS0618 // Type or member is obsolete
                 case Examineness.Escaped:
-
-                    //This uses the KeywordAnalyzer to parse the 'phrase'
-                    //var stdQuery = fieldName + ":" + fieldValue.Value;
-
-                    //NOTE: We used to just use this but it's more accurate/exact with the below usage of phrase query
-                    //queryToAdd = ParseRawQuery(stdQuery);
-
-                    //This uses the PhraseQuery to parse the phrase, the results seem identical
-                    queryToAdd = CreatePhraseQuery(fieldName, fieldValue.Value);
-
+#pragma warning restore CS0618 // Type or member is obsolete
+                case Examineness.Phrase:
+                    queryToAdd = _queryParser.GetPhraseQueryInternal(fieldName, fieldValue.Value);
                     break;
+#pragma warning disable CS0618 // Type or member is obsolete
                 case Examineness.Explicit:
+#pragma warning restore CS0618 // Type or member is obsolete
+                case Examineness.Default:
                 default:
-                    if (useQueryParser)
-                    {
-                        queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
-                    }
-                    else
-                    {
-                        //standard query 
-                        var proxQuery = fieldName + ":" + fieldValue.Value;
-                        queryToAdd = ParseRawQuery(proxQuery);
-                    }
+                    queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
                     break;
             }
-            return queryToAdd;
-        }
 
-        /// <summary>
-        /// This parses a raw query into a non-tokenized query.
-        /// not analyzing/tokenizing the search string
-        /// </summary>
-        /// <remarks>
-        /// Currently this is done by just using the keyword analyzer which doesn't parse special chars, whitespace, etc..
-        /// however there may be a better way to acheive this, or could manually parse into a boolean query
-        /// using TermQueries.
-        /// </remarks>
-        /// <param name="rawQuery"></param>
-        /// <returns></returns>
-        private Query ParseRawQuery(string rawQuery)
-            => CustomMultiFieldQueryParser.KeywordAnalyzerQueryParser.Parse(rawQuery);
-
-        /// <summary>
-        /// Uses a PhraseQuery to build a 'raw/exact' match
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="txt"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// The result of this seems to be better than the above since it does not include results that contain part of the phrase.
-        /// For example, 'codegarden 090' would be matched against the search term 'codegarden 09' with the above, whereas when using the 
-        /// PhraseQuery this is not the case
-        /// </remarks>
-        private static Query CreatePhraseQuery(string field, string txt)
-        {
-            var phraseQuery = new PhraseQuery { Slop = 0 };
-            foreach (var val in txt.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            if (fieldValue is IExamineValueBoosted boostedValue)
             {
-                phraseQuery.Add(new Term(field, val));
+                queryToAdd.Boost = boostedValue.Boost;
             }
-            return phraseQuery;
+
+            return queryToAdd;
         }
 
         /// <summary>
@@ -584,8 +490,8 @@ namespace Examine.Lucene.Search
         /// 
         /// </remarks>   
         private BooleanQuery GetMultiFieldQuery(
-            IReadOnlyList<string> fields,
-            IReadOnlyList<IExamineValue> fieldVals,
+            string[] fields,
+            IExamineValue[] fieldVals,
             Occur occurance,
             bool matchAllCombinations = false)
         {
@@ -595,13 +501,13 @@ namespace Examine.Lucene.Search
             //if there's only one field defined then we will match all combinations
             //if matchAllCombinations is explicitly specified, or there's no way that the key/value pairs can be aligned,
             //we will have to match all combinations
-            if (fields.Count == 1 || matchAllCombinations || fieldVals.Count < fields.Count)
+            if (fields.Length == 1 || matchAllCombinations || fieldVals.Length < fields.Length)
             {
                 foreach (var f in fields)
                 {
                     foreach (var val in fieldVals)
                     {
-                        var q = GetFieldInternalQuery(f, val, true);
+                        var q = GetFieldInternalQuery(f, val);
                         if (q != null)
                         {
                             qry.Add(q, occurance);
@@ -612,10 +518,10 @@ namespace Examine.Lucene.Search
             }
 
             //This will align the key value pairs:            
-            for (int i = 0; i < fields.Count; i++)
+            for (int i = 0; i < fields.Length; i++)
             {
                 var queryVal = fieldVals[i];
-                var q = GetFieldInternalQuery(fields[i], queryVal, true);
+                var q = GetFieldInternalQuery(fields[i], queryVal);
                 if (q != null)
                 {
                     qry.Add(q, occurance);

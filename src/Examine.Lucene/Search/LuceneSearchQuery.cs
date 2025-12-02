@@ -41,7 +41,7 @@ namespace Examine.Lucene.Search
             _facetsConfig = facetsConfig;
         }
 
-        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer, LuceneSearchOptions searchOptions)
+        private static ExamineMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer, LuceneSearchOptions searchOptions)
         {
             var parser = new ExamineMultiFieldQueryParser(searchContext, LuceneInfo.CurrentVersion, analyzer);
 
@@ -191,7 +191,6 @@ namespace Examine.Lucene.Search
                             inner.Add(q, Occur.SHOULD);
                         }
                     }
-#if !NETSTANDARD2_0 && !NETSTANDARD2_1
                     else if(typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
                     {
                         var minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
@@ -207,7 +206,6 @@ namespace Examine.Lucene.Search
                             inner.Add(q, Occur.SHOULD);
                         }
                     }
-#endif
                     else
                     {
                         throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
@@ -245,13 +243,15 @@ namespace Examine.Lucene.Search
                     return EmptySearchResults.Instance;
                 }
 
+                // TODO: Use a Filter for category, not a query
+                // https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
                 query = new BooleanQuery
                 {
                     // prefix the category field query as a must
-                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), true), Occur.MUST }
+                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, ExamineValue.Create(Examineness.Default, Category)), Occur.MUST }
                 };
 
-                // add the ones that we're already existing
+                // add the ones that were already existing
                 foreach (var c in existingClauses)
                 {
                     query.Add(c);
