@@ -43,13 +43,21 @@ jobs:
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
 
+    - name: Build Tests for TFM ${{ matrix.tfm }}
+      run: |
+        dotnet build \
+          "${{ env.Test_Proj }}" \
+          --configuration ${{ env.Configuration }} \
+          --framework ${{ matrix.tfm }}
+
     - name: Run Tests for TFM ${{ matrix.tfm }}
       run: |
         dotnet test \
-          "${{ env.Test_Proj }}"
+          "${{ env.Test_Proj }}" \
           --configuration ${{ env.Configuration }} \
           --verbosity normal \
           --framework ${{ matrix.tfm }} \
+          --no-build \
           --results-directory "${{ github.workspace }}/_TestResults/${{ matrix.tfm }}" \
           --logger "trx;logfilename=tests.trx" \
           --filter "TestCategory!~Benchmarks"
