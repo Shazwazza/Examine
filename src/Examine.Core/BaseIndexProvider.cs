@@ -65,7 +65,7 @@ namespace Examine
         /// <remarks>
         /// Items will have been validated at this stage
         /// </remarks>
-        protected abstract void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete);
+        protected abstract void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs>? onComplete);
 
         /// <summary>
         /// Deletes an index item by id
@@ -75,7 +75,7 @@ namespace Examine
         /// Called by the implementor once the items have been indexed
         /// </param>
         protected abstract void PerformDeleteFromIndex(IEnumerable<string> itemIds,
-            Action<IndexOperationEventArgs> onComplete);
+            Action<IndexOperationEventArgs>? onComplete);
 
         #region IIndex members
 

@@ -345,8 +345,6 @@ override Examine.Lucene.Providers.ErrorCheckingScoringBooleanQueryRewrite.Rewrit
 override Examine.Lucene.Providers.LuceneIndex.CreateIndex() -> void
 override Examine.Lucene.Providers.LuceneIndex.IndexExists() -> bool
 override Examine.Lucene.Providers.LuceneIndex.OnIndexingError(Examine.IndexingErrorEventArgs! e) -> void
-override Examine.Lucene.Providers.LuceneIndex.PerformDeleteFromIndex(System.Collections.Generic.IEnumerable<string!>! itemIds, System.Action<Examine.IndexOperationEventArgs!>! onComplete) -> void
-override Examine.Lucene.Providers.LuceneIndex.PerformIndexItems(System.Collections.Generic.IEnumerable<Examine.ValueSet!>! values, System.Action<Examine.IndexOperationEventArgs!>! onComplete) -> void
 override Examine.Lucene.Providers.LuceneIndex.Searcher.get -> Examine.ISearcher!
 override Examine.Lucene.Providers.MultiIndexSearcher.GetSearchContext() -> Examine.Lucene.Search.ISearchContext!
 override Examine.Lucene.Search.CustomMultiFieldQueryParser.GetRangeQuery(string! field, string! part1, string! part2, bool startInclusive, bool endInclusive) -> Lucene.Net.Search.Query!

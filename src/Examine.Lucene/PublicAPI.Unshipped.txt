@@ -159,6 +159,8 @@ override Examine.Lucene.Indexing.FullTextType.AddValue(Lucene.Net.Documents.Docu
 override Examine.Lucene.Indexing.Int32Type.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
 override Examine.Lucene.Indexing.Int64Type.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
 override Examine.Lucene.Indexing.SingleType.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
+override Examine.Lucene.Providers.LuceneIndex.PerformDeleteFromIndex(System.Collections.Generic.IEnumerable<string!>! itemIds, System.Action<Examine.IndexOperationEventArgs!>? onComplete) -> void
+override Examine.Lucene.Providers.LuceneIndex.PerformIndexItems(System.Collections.Generic.IEnumerable<Examine.ValueSet!>! values, System.Action<Examine.IndexOperationEventArgs!>? onComplete) -> void
 override Examine.Lucene.Providers.MultiIndexSearcher.Dispose() -> void
 override Examine.Lucene.Search.LuceneBooleanOperation.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
 override Examine.Lucene.Search.LuceneFacetOperation.ToString() -> string!

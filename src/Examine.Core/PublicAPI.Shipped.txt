@@ -1,8 +1,6 @@
 #nullable enable
 abstract Examine.BaseIndexProvider.CreateIndex() -> void
 abstract Examine.BaseIndexProvider.IndexExists() -> bool
-abstract Examine.BaseIndexProvider.PerformDeleteFromIndex(System.Collections.Generic.IEnumerable<string!>! itemIds, System.Action<Examine.IndexOperationEventArgs!>! onComplete) -> void
-abstract Examine.BaseIndexProvider.PerformIndexItems(System.Collections.Generic.IEnumerable<Examine.ValueSet!>! values, System.Action<Examine.IndexOperationEventArgs!>! onComplete) -> void
 abstract Examine.BaseIndexProvider.Searcher.get -> Examine.ISearcher!
 abstract Examine.BaseSearchProvider.CreateQuery(string? category = null, Examine.Search.BooleanOperation defaultOperation = Examine.Search.BooleanOperation.And) -> Examine.Search.IQuery!
 abstract Examine.BaseSearchProvider.Search(string! searchText, Examine.Search.QueryOptions? options = null) -> Examine.ISearchResults!

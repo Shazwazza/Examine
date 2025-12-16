@@ -1,4 +1,6 @@
 #nullable enable
+abstract Examine.BaseIndexProvider.PerformDeleteFromIndex(System.Collections.Generic.IEnumerable<string!>! itemIds, System.Action<Examine.IndexOperationEventArgs!>? onComplete) -> void
+abstract Examine.BaseIndexProvider.PerformIndexItems(System.Collections.Generic.IEnumerable<Examine.ValueSet!>! values, System.Action<Examine.IndexOperationEventArgs!>? onComplete) -> void
 const Examine.ExamineFieldNames.DefaultFacetsName = "$facets" -> string!
 const Examine.FieldDefinitionTypes.FacetDateDay = "facetdate.day" -> string!
 const Examine.FieldDefinitionTypes.FacetDateHour = "facetdate.hour" -> string!

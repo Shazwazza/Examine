@@ -247,7 +247,7 @@ namespace Examine.Lucene.Providers
         #region Provider implementation
 
         /// <inheritdoc/>
-        protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete)
+        protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs>? onComplete)
         {
             // need to lock, we don't want to issue any node writing if there's an index rebuild occuring
             lock (_writerLocker)
@@ -549,7 +549,7 @@ namespace Examine.Lucene.Providers
         /// </remarks>
         /// <param name="itemIds">ID of the node to delete</param>
         /// <param name="onComplete"></param>
-        protected override void PerformDeleteFromIndex(IEnumerable<string> itemIds, Action<IndexOperationEventArgs> onComplete)
+        protected override void PerformDeleteFromIndex(IEnumerable<string> itemIds, Action<IndexOperationEventArgs>? onComplete)
         {
             // need to lock, we don't want to issue any node writing if there's an index rebuild occuring
             lock (_writerLocker)
@@ -1227,7 +1227,7 @@ namespace Examine.Lucene.Providers
             return true;
         }
 
-        private void QueueTask(Func<int> op, Action<IndexOperationEventArgs> onComplete, CancellationToken currentToken)
+        private void QueueTask(Func<int> op, Action<IndexOperationEventArgs>? onComplete, CancellationToken currentToken)
         {
             using (ExecutionContext.SuppressFlow())
             {
