@@ -110,6 +110,13 @@ jobs:
 
     - name: Determine Version
       uses: gittools/actions/gitversion/execute@v4.2.0
+      with:
+        overrideConfig: |
+          next-version=4.0.0-beta.3
+
+    - run: |
+        echo "FullSemVer (env.GitVersion_FullSemVer) : ${{ env.GitVersion_FullSemVer }}"
+      name: Display GitVersion variables (with prefix)
 
     - name: Pack
       # This will do a full ebuild
