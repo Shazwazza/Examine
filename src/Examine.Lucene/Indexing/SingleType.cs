@@ -8,7 +8,6 @@ using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
-using static Lucene.Net.Queries.Function.ValueSources.MultiFunction;
 
 namespace Examine.Lucene.Indexing
 {
@@ -61,7 +60,7 @@ namespace Examine.Lucene.Indexing
                     return;
                 }
 
-                doc.Add(new DoubleField(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+                doc.Add(new SingleField(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
                 doc.Add(new FacetField(FieldName, parsedPathVal));
                 doc.Add(new SingleDocValuesField(FieldName, parsedVal));
@@ -78,7 +77,7 @@ namespace Examine.Lucene.Indexing
                 return;
             }
 
-            doc.Add(new DoubleField(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+            doc.Add(new SingleField(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
             if (_isFacetable && _taxonomyIndex)
             {
@@ -98,7 +97,7 @@ namespace Examine.Lucene.Indexing
         /// <inheritdoc/>
         public override Query GetQuery(float? lower, float? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
-            return NumericRangeQuery.NewDoubleRange(FieldName,
+            return NumericRangeQuery.NewSingleRange(FieldName,
                 lower ?? float.MinValue,
                 upper ?? float.MaxValue, lowerInclusive, upperInclusive);
         }
