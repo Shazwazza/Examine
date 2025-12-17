@@ -11,49 +11,49 @@ namespace Examine.Search
         /// <summary>
         /// A normal field query
         /// </summary>
-        Default = 0,
+        Default = 100,
 
         /// <summary>
         /// Matches terms using 'fuzzy' logic
         /// </summary>
-        Fuzzy = 1,
+        Fuzzy = 0,
 
         /// <summary>
         /// Wildcard matching a single character
         /// </summary>
-        SimpleWildcard = 2,
+        SimpleWildcard = 1,
 
         /// <summary>
         /// Wildcard matching multiple characters
         /// </summary>
-        ComplexWildcard = 3,
+        ComplexWildcard = 2,
 
         /// <summary>
         /// A normal field query
         /// </summary>
         [Obsolete("Use default instead")]
-        Explicit = 4,
+        Explicit = 3,
 
         /// <summary>
         /// Becomes exact match
         /// </summary>
         [Obsolete("Use phrase instead")]
-        Escaped = 5,
+        Escaped = 4,
 
         /// <summary>
         /// Makes the term rank differently than normal
         /// </summary>
         [Obsolete("No longer used, use WithBoost instead.")]
-        Boosted = 6,
+        Boosted = 5,
 
         /// <summary>
         /// Searches for terms within a proximity of each other
         /// </summary>
-        Proximity = 7,
+        Proximity = 6,
 
         /// <summary>
         /// Makes the term a phrase query
         /// </summary>
-        Phrase = 8
+        Phrase = 7
     }
 }

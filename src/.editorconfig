@@ -86,7 +86,7 @@ indent_style = tab
 ##########################################
 
 # [*.{cs,csx,cake,vb,vbx}]
-file_header_template = Copyright (c) Umbraco.\nSee LICENSE for more details.
+file_header_template = Copyright (c) Shannon Deminick.\nSee LICENSE for more details.
 
 # SA1636: File header copyright text should match
 # Justification: .editorconfig supports file headers. If this is changed to a value other than "none", a stylecop.json file will need to added to the project.
@@ -100,6 +100,17 @@ file_header_template = Copyright (c) Umbraco.\nSee LICENSE for more details.
 # .NET Code Style Settings
 # https://docs.microsoft.com/visualstudio/ide/editorconfig-language-conventions#net-code-style-settings
 [*.{cs,csx,cake,vb,vbx}]
+
+# Roslyn.Diagnostic.Analyzers
+dotnet_diagnostic.RS0016.severity = warning     # Do not have undeclared API
+dotnet_diagnostic.RS0017.severity = warning     # API is declared but not public
+dotnet_diagnostic.RS0022.severity = warning     # Constructor make noninheritable base class inheritable
+dotnet_diagnostic.RS0024.severity = warning     # The contents of the public API files are invalid:
+dotnet_diagnostic.RS0025.severity = warning     # Do not duplicate symbols in public API files
+dotnet_diagnostic.RS0026.severity = warning     # Do not add multiple public overloads with optional parameters
+dotnet_diagnostic.RS0027.severity = none        # Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+dotnet_diagnostic.RS0036.severity = none        # Symbol is missing nullability annotations
+
 # "this." and "Me." qualifiers
 # https://docs.microsoft.com/visualstudio/ide/editorconfig-language-conventions#this-and-me
 dotnet_style_qualification_for_field = false:suggestion
@@ -315,48 +326,6 @@ dotnet_naming_symbols.other_public_protected_fields_group.applicable_kinds      
 dotnet_naming_rule.other_public_protected_fields_disallowed_rule.symbols             = other_public_protected_fields_group
 dotnet_naming_rule.other_public_protected_fields_disallowed_rule.style = disallowed_style
 dotnet_naming_rule.other_public_protected_fields_disallowed_rule.severity = error
-
-##########################################
-# StyleCop Field Naming Rules
-# Naming rules for fields follow the StyleCop analyzers
-# This does not override any rules using disallowed_style above
-# https://github.com/DotNetAnalyzers/StyleCopAnalyzers
-##########################################
-
-# All constant fields must be PascalCase
-# https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1303.md
-dotnet_naming_symbols.stylecop_constant_fields_group.applicable_accessibilities = public, internal, protected_internal, protected, private_protected, private
-dotnet_naming_symbols.stylecop_constant_fields_group.required_modifiers         = const
-dotnet_naming_symbols.stylecop_constant_fields_group.applicable_kinds           = field
-dotnet_naming_rule.stylecop_constant_fields_must_be_pascal_case_rule.symbols    = stylecop_constant_fields_group
-dotnet_naming_rule.stylecop_constant_fields_must_be_pascal_case_rule.style = pascal_case_style
-dotnet_naming_rule.stylecop_constant_fields_must_be_pascal_case_rule.severity = warning
-
-# All static readonly fields must be PascalCase
-# Ajusted to ignore private fields.
-# https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1311.md
-dotnet_naming_symbols.stylecop_static_readonly_fields_group.applicable_accessibilities = public, internal, protected_internal, protected, private_protected
-dotnet_naming_symbols.stylecop_static_readonly_fields_group.required_modifiers         = static, readonly
-dotnet_naming_symbols.stylecop_static_readonly_fields_group.applicable_kinds           = field
-dotnet_naming_rule.stylecop_static_readonly_fields_must_be_pascal_case_rule.symbols    = stylecop_static_readonly_fields_group
-dotnet_naming_rule.stylecop_static_readonly_fields_must_be_pascal_case_rule.style = pascal_case_style
-dotnet_naming_rule.stylecop_static_readonly_fields_must_be_pascal_case_rule.severity = warning
-
-# No non-private instance fields are allowed
-# https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1401.md
-dotnet_naming_symbols.stylecop_fields_must_be_private_group.applicable_accessibilities = public, internal, protected_internal, protected, private_protected
-dotnet_naming_symbols.stylecop_fields_must_be_private_group.applicable_kinds           = field
-dotnet_naming_rule.stylecop_instance_fields_must_be_private_rule.symbols               = stylecop_fields_must_be_private_group
-dotnet_naming_rule.stylecop_instance_fields_must_be_private_rule.style = disallowed_style
-dotnet_naming_rule.stylecop_instance_fields_must_be_private_rule.severity = error
-
-# Local variables must be camelCase
-# https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1312.md
-dotnet_naming_symbols.stylecop_local_fields_group.applicable_accessibilities = local
-dotnet_naming_symbols.stylecop_local_fields_group.applicable_kinds           = local
-dotnet_naming_rule.stylecop_local_fields_must_be_camel_case_rule.symbols     = stylecop_local_fields_group
-dotnet_naming_rule.stylecop_local_fields_must_be_camel_case_rule.style = camel_case_style
-dotnet_naming_rule.stylecop_local_fields_must_be_camel_case_rule.severity = silent
 
 # This rule should never fire.  However, it's included for at least two purposes:
 # First, it helps to understand, reason about, and root-case certain types of issues, such as bugs in .editorconfig parsers.

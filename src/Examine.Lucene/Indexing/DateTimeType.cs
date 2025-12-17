@@ -44,7 +44,7 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
-        // [Obsolete("To be removed in Examine V5")] // TODO: Why?
+        [Obsolete("Use ctor with all parameters instead.")]
         public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true)
             : this(fieldName, false, false, logger, resolution, store)
         {

@@ -31,7 +31,7 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
-        // [Obsolete("To be removed in Examine V5")] // TODO: Why?
+        [Obsolete("Use ctor with all parameters instead.")]
         public SingleType(string fieldName, ILoggerFactory logger, bool store = true)
             : this(fieldName, false, false, logger, store)
         {

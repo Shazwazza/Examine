@@ -63,7 +63,7 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        // [Obsolete("To be removed in Examine V5")] // TODO: Why?
+        [Obsolete("Use ctor with all parameters instead.")]
         public FullTextType(string fieldName, ILoggerFactory logger, Analyzer? analyzer = null, bool sortable = false)
             : this(fieldName, false, false, sortable, logger, analyzer ?? new CultureInvariantStandardAnalyzer())
         {
