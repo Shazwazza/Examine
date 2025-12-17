@@ -6,7 +6,10 @@ using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Facet;
+using Lucene.Net.Index;
+using Lucene.Net.Queries;
 using Lucene.Net.Search;
+using static Lucene.Net.Util.OfflineSorter;
 
 namespace Examine.Lucene.Search
 {
@@ -258,7 +261,14 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields, _facetsConfig);
+            // capture local
+            Filter? filter = Filter;
+            if (filter is BooleanFilter boolFilter && boolFilter.Clauses.Count == 0)
+            {
+                filter = null;
+            }
+
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields,_facetsConfig, filter);
 
             var pagesResults = executor.Execute();
 
@@ -442,6 +452,16 @@ namespace Examine.Lucene.Search
                 return _facetsConfig.DimConfigs[field].IsHierarchical;
             }
             return false;
+        }
+
+        /// <inheritdoc/>
+        public override IQuery WithFilter(Action<IFilter> filter)
+        {
+            var lfilter = new LuceneSearchFilteringOperation(this);
+            filter.Invoke(lfilter);
+            var op = CreateOp();
+            var queryOp = op.And();
+            return queryOp;
         }
     }
 }
