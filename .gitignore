@@ -4,7 +4,6 @@ _ReSharper*
 [Dd]ebug/
 [Rr]elease/
 x64/
-build/
 [Bb]in/
 [Oo]bj/
 *ReSharper.user
