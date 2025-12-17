@@ -38,6 +38,17 @@ param(
     [string]$OutputPath
 )
 
+# Ensure UTF-8 encoding for emojis/Unicode
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
+
+# IMPORTANT: Avoid emoji literals directly in the script file.
+# Windows PowerShell 5.1 can read .ps1 files as ANSI when there's no BOM, which corrupts emojis.
+# Build emojis/arrows from codepoints so they are always correct at runtime.
+$EmojiWarning = ([string][char]0x26A0) + ([string][char]0xFE0F) # ⚠️ (warning + variation selector)
+$EmojiCheck   = ([string][char]0x2705)                          # ✅
+$Arrow        = ([string][char]0x2192)                          # →
+
 # Set default paths if not provided
 if ([string]::IsNullOrEmpty($SourcePath)) {
     if ([string]::IsNullOrEmpty($PSScriptRoot)) {
@@ -69,42 +80,42 @@ function Format-ApiSignature {
         $name = $matches[1]
         $value = $matches[2]
         $type = $matches[3]
-        return "- **Constant**: ``$name`` = $value -> *$type*"
+        return "- **Constant**: ``$name`` = $value $Arrow *$type*"
     }
     
     # Abstract methods
     if ($cleanApi -match '^abstract\s+(.+?)\s*->\s*(.+)$') {
         $signature = $matches[1]
         $returnType = $matches[2]
-        return "- **Abstract**: ``$signature`` -> *$returnType*"
+        return "- **Abstract**: ``$signature`` $Arrow *$returnType*"
     }
     
     # Virtual methods
     if ($cleanApi -match '^virtual\s+(.+?)\s*->\s*(.+)$') {
         $signature = $matches[1]
         $returnType = $matches[2]
-        return "- **Virtual**: ``$signature`` -> *$returnType*"
+        return "- **Virtual**: ``$signature`` $Arrow *$returnType*"
     }
     
     # Override methods
     if ($cleanApi -match '^override\s+(.+?)\s*->\s*(.+)$') {
         $signature = $matches[1]
         $returnType = $matches[2]
-        return "- **Override**: ``$signature`` -> *$returnType*"
+        return "- **Override**: ``$signature`` $Arrow *$returnType*"
     }
     
     # Static members
     if ($cleanApi -match '^static\s+(.+?)\s*->\s*(.+)$') {
         $signature = $matches[1]
         $returnType = $matches[2]
-        return "- **Static**: ``$signature`` -> *$returnType*"
+        return "- **Static**: ``$signature`` $Arrow *$returnType*"
     }
     
     # Properties (with .get or .set)
     if ($cleanApi -match '^(.+?\.(?:get|set))\s*->\s*(.+)$') {
         $propAccess = $matches[1]
         $type = $matches[2]
-        return "- **Property**: ``$propAccess`` -> *$type*"
+        return "- **Property**: ``$propAccess`` $Arrow *$type*"
     }
     
     # Regular members/methods
@@ -117,7 +128,7 @@ function Format-ApiSignature {
             return "- **Constructor**: ``$signature``"
         }
         
-        return "- **Member**: ``$signature`` -> *$returnType*"
+        return "- **Member**: ``$signature`` $Arrow *$returnType*"
     }
     
     # Enum values
@@ -125,7 +136,7 @@ function Format-ApiSignature {
         $name = $matches[1]
         $value = $matches[2]
         $type = $matches[3]
-        return "- **Enum**: ``$name`` = $value -> *$type*"
+        return "- **Enum**: ``$name`` = $value $Arrow *$type*"
     }
     
     # Type declarations (just the type name)
@@ -254,7 +265,7 @@ if ($allProjects.Count -eq 0) {
 
 - **Projects with changes:** $($allProjects.Count)
 - **Total new APIs:** $totalNewApis
-- **Total removed APIs:** $totalRemovedApis $(if ($hasBreakingChanges) { "**BREAKING CHANGES**" } else { "" })
+- **Total removed APIs:** $totalRemovedApis $(if ($hasBreakingChanges) { "$EmojiWarning **BREAKING CHANGES**" } else { "" })
 
 "@
 
@@ -266,7 +277,7 @@ if ($allProjects.Count -eq 0) {
     if ($projectsWithBreaking.Count -gt 0) {
         $markdown += @"
 
-## Breaking Changes
+## $EmojiWarning Breaking Changes
 
 The following projects have **removed APIs** which constitute breaking changes:
 
@@ -289,7 +300,7 @@ The following projects have **removed APIs** which constitute breaking changes:
     if ($projectsWithAdditions.Count -gt 0) {
         $markdown += @"
 
-## New APIs (Non-Breaking)
+## $EmojiCheck New APIs (Non-Breaking)
 
 The following projects have **new APIs** added:
 
@@ -314,16 +325,16 @@ The following projects have **new APIs** added:
 
 ## Summary
 
-### Additions (Non-Breaking)
+### $EmojiCheck Additions (Non-Breaking)
 $totalNewApis new API(s) have been added. These are **safe changes** that do not break existing code.
 
-### Breaking Changes
+### $EmojiWarning Breaking Changes
 "@
 
     if ($hasBreakingChanges) {
         $markdown += @"
 $totalRemovedApis API(s) have been **removed**. These are **BREAKING CHANGES** that will require:
-- Major version bump (e.g., 3.x → 4.0)
+- Major version bump (e.g., 3.x $Arrow 4.0)
 - Migration guide for consumers
 - Release notes highlighting the breaking changes
 
@@ -352,15 +363,16 @@ Before releasing:
 
 3. Run the build to ensure no analyzer warnings (RS0016, RS0017)
 
-4. After release, run ``.\build\Merge-PublicApiFiles.ps1`` to move Unshipped → Shipped
+4. After release, run ``.\build\Merge-PublicApiFiles.ps1`` to move Unshipped $Arrow Shipped
 
 ---
 
 *Generated by Get-PublicApiReport.ps1*
 "@
 
-# Write report to file
-$markdown | Set-Content $OutputPath -Encoding UTF8
+# Write report to file as UTF-8 with BOM (best compatibility for Windows + emojis)
+$utf8Bom = New-Object System.Text.UTF8Encoding $true
+[System.IO.File]::WriteAllText($OutputPath, $markdown, $utf8Bom)
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Report saved to: $OutputPath" -ForegroundColor Green
