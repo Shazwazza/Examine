@@ -1,10 +1,10 @@
-
 using System;
 using System.IO;
-using System.Threading;
 using Examine.Lucene.Providers;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Facet.Taxonomy.Directory;
 using Lucene.Net.Index;
+using Lucene.Net.Replicator;
 using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,102 +14,409 @@ namespace Examine.Lucene.Directories
 {
     /// <summary>
     /// A directory factory that replicates the index from main storage on initialization to another
-    /// directory, then creates a lucene Directory based on that replicated index. A replication thread
-    /// is spawned to then replicate the local index back to the main storage location.
+    /// directory, then creates a Lucene Directory based on that replicated index.
     /// </summary>
     /// <remarks>
+    /// A replication thread is spawned to then replicate the local index back to the main storage location.
     /// By default, Examine configures the local directory to be the %temp% folder.
+    /// This also checks if the main/local storage indexes are healthy and syncs/removes accordingly.
     /// </remarks>
     public class SyncedFileSystemDirectoryFactory : FileSystemDirectoryFactory
     {
         private readonly DirectoryInfo _localDir;
+        private readonly DirectoryInfo _mainDir;
         private readonly ILoggerFactory _loggerFactory;
-        private ExamineReplicator? _replicator;
+        private readonly bool _tryFixMainIndexIfCorrupt;
+        private readonly ILogger<SyncedFileSystemDirectoryFactory> _logger;
+        private readonly ILogger<ExamineReplicator> _replicatorLogger;
+        private readonly ILogger<LoggingReplicationClient> _clientLogger;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SyncedFileSystemDirectoryFactory"/> class.
+        /// </summary>
+        /// <param name="localDir">The local directory where the index will be replicated.</param>
+        /// <param name="mainDir">The main directory where the index is stored.</param>
+        /// <param name="lockFactory">The lock factory used for managing index locks.</param>
+        /// <param name="loggerFactory">The logger factory used for creating loggers.</param>
+        /// <param name="indexOptions">The options monitor for Lucene directory index options.</param>
         public SyncedFileSystemDirectoryFactory(
             DirectoryInfo localDir,
             DirectoryInfo mainDir,
             ILockFactory lockFactory,
-            ILoggerFactory loggerFactory)
-            : base(mainDir, lockFactory)
+            ILoggerFactory loggerFactory,
+            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
+            : this(localDir, mainDir, lockFactory, loggerFactory, indexOptions, false)
         {
-            _localDir = localDir;
-            _loggerFactory = loggerFactory;
         }
 
-        /// <inheritdoc/>
-        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SyncedFileSystemDirectoryFactory"/> class.
+        /// </summary>
+        /// <param name="localDir">The local directory where the index will be replicated.</param>
+        /// <param name="mainDir">The main directory where the index is stored.</param>
+        /// <param name="lockFactory">The lock factory used for managing index locks.</param>
+        /// <param name="loggerFactory">The logger factory used for creating loggers.</param>
+        /// <param name="indexOptions">The options monitor for Lucene directory index options.</param>
+        /// <param name="tryFixMainIndexIfCorrupt">Indicates whether to attempt fixing the main index if it is corrupt.</param>
+        public SyncedFileSystemDirectoryFactory(
+            DirectoryInfo localDir,
+            DirectoryInfo mainDir,
+            ILockFactory lockFactory,
+            ILoggerFactory loggerFactory,
+            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions,
+            bool tryFixMainIndexIfCorrupt)
+            : base(mainDir, lockFactory, indexOptions)
         {
-            var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
-            var localLuceneIndexFolder = new DirectoryInfo(path);
+            _localDir = localDir;
+            _mainDir = mainDir;
+            _loggerFactory = loggerFactory;
+            _tryFixMainIndexIfCorrupt = tryFixMainIndexIfCorrupt;
+            _logger = _loggerFactory.CreateLogger<SyncedFileSystemDirectoryFactory>();
+            _replicatorLogger = _loggerFactory.CreateLogger<ExamineReplicator>();
+            _clientLogger = _loggerFactory.CreateLogger<LoggingReplicationClient>();
+        }
 
-            var mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
+        internal CreateResult TryCreateDirectory(LuceneIndex luceneIndex, bool forceUnlock, out Directory directory)
+        {
+            var mainPath = Path.Combine(_mainDir.FullName, luceneIndex.Name);
+            var mainLuceneIndexFolder = new DirectoryInfo(mainPath);
+            var mainPathTaxonomyPath = Path.Combine(_mainDir.FullName, luceneIndex.Name, "taxonomy");
+            var mainLuceneTaxonomyIndexFolder = new DirectoryInfo(mainPathTaxonomyPath);
+
+            var localPath = Path.Combine(_localDir.FullName, luceneIndex.Name);
+            var localLuceneIndexFolder = new DirectoryInfo(localPath);
+            var localTaxonomyPath = Path.Combine(_localDir.FullName, luceneIndex.Name, "taxonomy");
+            var localLuceneTaxonomyIndexFolder = new DirectoryInfo(localTaxonomyPath);
 
             // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
             var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
 
-            if (DirectoryReader.IndexExists(mainDir))
-            {
-                // when the lucene directory is going to be created, we'll sync from main storage to local
-                // storage before any index/writer is opened.
-                using (var tempMainIndexWriter = new IndexWriter(
-                    mainDir,
-                    new IndexWriterConfig(
-                        LuceneInfo.CurrentVersion,
-                        new StandardAnalyzer(LuceneInfo.CurrentVersion))
-                    {
-                        OpenMode = OpenMode.APPEND,
-                        IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy())
-                    }))
-                using (var tempMainIndex = new LuceneIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
-                using (var tempLocalDirectory = new SimpleFSDirectory(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
-                using (var replicator = new ExamineReplicator(_loggerFactory, tempMainIndex, tempLocalDirectory, tempDir))
-                {
-                    if (forceUnlock)
-                    {
-                        IndexWriter.Unlock(tempLocalDirectory);
-                    }
-
-                    // replicate locally.
-                    replicator.ReplicateIndex();
-                }
-            }
-
-            // now create the replicator that will copy from local to main on schedule
-            _replicator = new ExamineReplicator(_loggerFactory, luceneIndex, mainDir, tempDir);
+            var mainLuceneDir = base.CreateDirectory(luceneIndex, forceUnlock);
+            var mainTaxonomyDir = base.CreateTaxonomyDirectory(luceneIndex, forceUnlock);
             var localLuceneDir = FSDirectory.Open(
                 localLuceneIndexFolder,
                 LockFactory.GetLockFactory(localLuceneIndexFolder));
+            var localLuceneTaxonomyDir = FSDirectory.Open(
+                localLuceneTaxonomyIndexFolder,
+                LockFactory.GetLockFactory(localLuceneTaxonomyIndexFolder));
+
+            var mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
+            var localIndexExists = DirectoryReader.IndexExists(localLuceneDir);
+            var mainTaxonomyIndexExists = DirectoryReader.IndexExists(mainTaxonomyDir);
+            var localTaxonomyIndexExists = DirectoryReader.IndexExists(localLuceneTaxonomyDir);
+
+            // Both must exist for the main index to be considered healthy
+            var hasMainIndexes = mainIndexExists && mainTaxonomyIndexExists;
+            var hasLocalIndexes = localIndexExists && localTaxonomyIndexExists;
+
+            var mainResult = CreateResult.Init;
+
+            if (hasMainIndexes)
+            {
+                mainResult = CheckIndexHealthAndFix(mainLuceneDir, mainLuceneIndexFolder, luceneIndex.Name, _tryFixMainIndexIfCorrupt);
+                mainResult |= CheckIndexHealthAndFix(mainTaxonomyDir, mainLuceneTaxonomyIndexFolder, $"{luceneIndex.Name}.taxonomy", _tryFixMainIndexIfCorrupt);
+            }
+
+            // the main index is/was unhealthy or missing, lets check the local index if it exists
+            if (hasLocalIndexes && (!hasMainIndexes || mainResult.HasFlag(CreateResult.NotClean) || mainResult.HasFlag(CreateResult.MissingSegments)))
+            {
+                // TODO: add details here and more below too
+
+                var localResult = CheckIndexHealthAndFix(localLuceneDir, localLuceneIndexFolder, luceneIndex.Name, false);
+                localResult |= CheckIndexHealthAndFix(localLuceneTaxonomyDir, localLuceneTaxonomyIndexFolder, $"{luceneIndex.Name}.taxonomy", false);
+
+                if (localResult == CreateResult.Init)
+                {
+                    // it was read successfully, we can sync back to main
+                    localResult |= TryGetIndexWriters(OpenMode.APPEND, localLuceneDir, localLuceneIndexFolder, localLuceneTaxonomyDir, localLuceneTaxonomyIndexFolder, false, luceneIndex.Name, out var indexWriter, out var taxonomyWriterFactory);
+                    if (localResult.HasFlag(CreateResult.OpenedSuccessfully))
+                    {
+                        using (indexWriter)
+                        using (taxonomyWriterFactory.IndexWriter)
+                        {
+                            SyncIndex(indexWriter, taxonomyWriterFactory, true, luceneIndex.Name, mainLuceneIndexFolder, mainLuceneTaxonomyIndexFolder, tempDir);
+                            mainResult |= CreateResult.SyncedFromLocal;
+                            // we need to check the main index again, as it may have been fixed by the sync
+                            mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
+                            mainTaxonomyIndexExists = DirectoryReader.IndexExists(mainTaxonomyDir);
+
+                            if (mainIndexExists != mainTaxonomyIndexExists)
+                            {
+                                throw new InvalidOperationException(string.Format("search and taxonomy indexes must either both exist or not: index={0} taxo={1}", mainIndexExists, mainTaxonomyIndexExists));
+                            }
+
+                            hasMainIndexes = mainIndexExists && mainTaxonomyIndexExists;
+                        }
+                    }
+                }
+            }
+
+            if (hasMainIndexes)
+            {
+                // when the lucene directory is going to be created, we'll sync from main storage to local
+                // storage before any index/writer is opened.
+
+                var openMode = mainResult == CreateResult.Init || mainResult.HasFlag(CreateResult.Fixed) || mainResult.HasFlag(CreateResult.SyncedFromLocal)
+                            ? OpenMode.APPEND
+                            : OpenMode.CREATE;
+
+                mainResult |= TryGetIndexWriters(openMode, mainLuceneDir, mainLuceneIndexFolder, mainTaxonomyDir, mainLuceneTaxonomyIndexFolder, true, luceneIndex.Name, out var indexWriter, out var taxonomyWriterFactory);
+                if (indexWriter is not null && taxonomyWriterFactory is not null)
+                {
+                    using (indexWriter)
+                    using (taxonomyWriterFactory!.IndexWriter)
+                    {
+                        if (!mainResult.HasFlag(CreateResult.SyncedFromLocal))
+                        {
+                            SyncIndex(indexWriter, taxonomyWriterFactory, forceUnlock, luceneIndex.Name, localLuceneIndexFolder, localLuceneTaxonomyIndexFolder, tempDir);
+                        }
+                    }
+                }
+            }
 
             if (forceUnlock)
             {
                 IndexWriter.Unlock(localLuceneDir);
+                IndexWriter.Unlock(localLuceneTaxonomyDir);
             }
 
-            // Start replicating back to main
-            _replicator.StartIndexReplicationOnSchedule(1000);
+            Directory activeLocalLuceneDir;
 
-            return localLuceneDir;
+            var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
+            if (options.NrtEnabled)
+            {
+                activeLocalLuceneDir = new NRTCachingDirectory(localLuceneDir, options.NrtCacheMaxMergeSizeMB, options.NrtCacheMaxCachedMB);
+            }
+            else
+            {
+                activeLocalLuceneDir = localLuceneDir;
+            }
+
+            directory = new SyncedFileSystemDirectory(_replicatorLogger, _clientLogger, activeLocalLuceneDir, mainLuceneDir, mainTaxonomyDir, luceneIndex, tempDir);
+
+            return mainResult;
         }
 
-        /// <summary>
-        /// Disposes the instance
-        /// </summary>
-        /// <param name="disposing">If the call is coming from Dispose</param>
-        protected override void Dispose(bool disposing)
+        [Flags]
+        internal enum CreateResult
         {
-            base.Dispose(disposing);
-            if (disposing)
+            Init = 0,
+            MissingSegments = 1,
+            NotClean = 2,
+            Fixed = 4,
+            NotFixed = 8,
+            ExceptionNotFixed = 16,
+            CorruptCreatedNew = 32,
+            OpenedSuccessfully = 64,
+            SyncedFromLocal = 128
+        }
+
+        /// <inheritdoc />
+        public override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        {
+            _ = TryCreateDirectory(luceneIndex, forceUnlock, out var directory);
+            return directory;
+        }
+
+        private CreateResult TryGetIndexWriters(
+            OpenMode openMode,
+            Directory luceneDirectory,
+            DirectoryInfo directoryInfo,
+            Directory taxonomyDirectory,
+            DirectoryInfo taxonomyDirectoryInfo,
+            bool createNewIfCorrupt,
+            string indexName,
+            out IndexWriter indexWriter,
+            out SnapshotDirectoryTaxonomyIndexWriterFactory snapshotDirectoryTaxonomyIndexWriterFactory)
+        {
+            try
             {
-                _replicator?.Dispose();
+                indexWriter = GetIndexWriter(luceneDirectory, openMode);
+                var directoryTaxonomyWriter = GetTaxonomyWriter(taxonomyDirectory, openMode, out snapshotDirectoryTaxonomyIndexWriterFactory);
+
+                if (openMode == OpenMode.APPEND)
+                {
+                    return CreateResult.OpenedSuccessfully;
+                }
+                else
+                {
+                    // Required to remove old index files which can be problematic
+                    // if they remain in the index folder when replication is attempted.
+                    indexWriter.Commit();
+                    indexWriter.WaitForMerges();
+                    directoryTaxonomyWriter.Commit();
+
+                    return CreateResult.CorruptCreatedNew;
+                }
             }
+            catch (Exception ex)
+            {
+                if (createNewIfCorrupt)
+                {
+                    // Index is corrupted, typically this will be FileNotFoundException or CorruptIndexException
+                    _logger.LogError(ex, "{IndexName} at {IndexPath} index is corrupt, a new one will be created", indexName, directoryInfo.FullName);
+
+                    // Totally clear all files in the directory
+                    ClearDirectory(directoryInfo);
+                    ClearDirectory(taxonomyDirectoryInfo);
+
+                    indexWriter = GetIndexWriter(luceneDirectory, OpenMode.CREATE);
+                    _ = GetTaxonomyWriter(taxonomyDirectory, OpenMode.CREATE, out snapshotDirectoryTaxonomyIndexWriterFactory);
+                }
+                else
+                {
+                    indexWriter = null!;
+                    snapshotDirectoryTaxonomyIndexWriterFactory = null!;
+                }
+
+                return CreateResult.CorruptCreatedNew;
+            }
+        }
+
+        private void ClearDirectory(DirectoryInfo directoryInfo)
+        {
+            if (directoryInfo.Exists)
+            {
+                foreach (var file in directoryInfo.EnumerateFiles())
+                {
+                    file.Delete();
+                }
+            }
+        }
+
+        private void SyncIndex(
+            IndexWriter sourceIndexWriter,
+            SnapshotDirectoryTaxonomyIndexWriterFactory sourceTaxonomyWriterFactory,
+            bool forceUnlock,
+            string indexName,
+            DirectoryInfo destinationDirectory,
+            DirectoryInfo destinationTaxonomyDirectory,
+            DirectoryInfo tempDir)
+        {
+            // First, we need to clear the main index. If for some reason it is at the same revision, the syncing won't do anything.
+            ClearDirectory(destinationDirectory);
+            ClearDirectory(destinationTaxonomyDirectory);
+
+            using (var sourceIndex = new LuceneIndex(_loggerFactory, indexName, new TempOptions(), sourceIndexWriter, sourceTaxonomyWriterFactory))
+            using (var destinationLuceneDirectory = FSDirectory.Open(destinationDirectory, LockFactory.GetLockFactory(destinationDirectory)))
+            using (var destinationLuceneTaxonomyDirectory = FSDirectory.Open(destinationTaxonomyDirectory, LockFactory.GetLockFactory(destinationTaxonomyDirectory)))
+            using (var replicator = new ExamineReplicator(
+                _replicatorLogger,
+                _clientLogger,
+                sourceIndex,
+                sourceIndexWriter.Directory,
+                destinationLuceneDirectory,
+                destinationLuceneTaxonomyDirectory,
+                tempDir))
+            {
+                if (forceUnlock)
+                {
+                    IndexWriter.Unlock(destinationLuceneDirectory);
+                    IndexWriter.Unlock(destinationLuceneTaxonomyDirectory);
+                }
+
+                // replicate locally.
+                replicator.ReplicateIndex();
+            }
+        }
+
+        private CreateResult CheckIndexHealthAndFix(
+            Directory luceneDir,
+            DirectoryInfo directoryInfo,
+            string indexName,
+            bool doFix)
+        {
+            using var writer = new StringWriter();
+            var result = CreateResult.Init;
+
+            var checker = new CheckIndex(luceneDir)
+            {
+                // Redirect the logging output of the checker
+                InfoStream = writer
+            };
+
+            var status = checker.DoCheckIndex();
+            writer.Flush();
+
+            _logger.LogDebug("{IndexName} health check report {IndexReport}", indexName, writer.ToString());
+
+            if (status.MissingSegments)
+            {
+                _logger.LogWarning("{IndexName} index at {IndexPath} is missing segments, it will be deleted.", indexName, directoryInfo.FullName);
+                result = CreateResult.MissingSegments;
+            }
+            else if (!status.Clean)
+            {
+                _logger.LogWarning("Checked index {IndexName} at {IndexPath} and it is not clean.", indexName, directoryInfo.FullName);
+                result = CreateResult.NotClean;
+
+                if (doFix)
+                {
+                    _logger.LogWarning("Attempting to fix {IndexName} at {IndexPath}. {DocumentsLost} documents will be lost.", indexName, status.TotLoseDocCount, directoryInfo.FullName);
+
+                    try
+                    {
+                        checker.FixIndex(status);
+                        status = checker.DoCheckIndex();
+
+                        if (!status.Clean)
+                        {
+                            _logger.LogError("{IndexName} index at {IndexPath} could not be fixed, it will be deleted.", indexName, directoryInfo.FullName);
+                            result |= CreateResult.NotFixed;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Index {IndexName} at {IndexPath} fixed. {DocumentsLost} documents were lost.", indexName, status.TotLoseDocCount, directoryInfo.FullName);
+                            result |= CreateResult.Fixed;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "{IndexName} index at {IndexPath} could not be fixed, it will be deleted.", indexName, directoryInfo.FullName);
+                        result |= CreateResult.ExceptionNotFixed;
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Checked index {IndexName} at {IndexPath} and it is clean.", indexName, directoryInfo.FullName);
+            }
+
+            return result;
+        }
+
+        private static IndexWriter GetIndexWriter(Directory mainDir, OpenMode openMode)
+        {
+            var indexWriter = new IndexWriter(
+                mainDir,
+                new IndexWriterConfig(
+                    LuceneInfo.CurrentVersion,
+                    new StandardAnalyzer(LuceneInfo.CurrentVersion))
+                {
+                    OpenMode = openMode,
+                    IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy()),
+                    MergePolicy = new TieredMergePolicy()
+                });
+
+            return indexWriter;
+        }
+
+        private static DirectoryTaxonomyWriter GetTaxonomyWriter(Directory d, OpenMode openMode, out SnapshotDirectoryTaxonomyIndexWriterFactory snapshotDirectoryTaxonomyIndexWriterFactory)
+        {
+            ArgumentNullException.ThrowIfNull(d);
+
+            // TODO: This API is broken and weird, the SnapshotDirectoryTaxonomyIndexWriterFactory hangs on the to the writer that it creates,
+            // and is needed downstream by the replicator APIs.
+            snapshotDirectoryTaxonomyIndexWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
+            var writer = new DirectoryTaxonomyWriter(snapshotDirectoryTaxonomyIndexWriterFactory, d, openMode, DirectoryTaxonomyWriter.CreateDefaultTaxonomyWriterCache());
+            return writer;
         }
 
         private class TempOptions : IOptionsMonitor<LuceneDirectoryIndexOptions>
         {
             public LuceneDirectoryIndexOptions CurrentValue => new LuceneDirectoryIndexOptions();
-            public LuceneDirectoryIndexOptions Get(string name) => CurrentValue;
+
+            public LuceneDirectoryIndexOptions Get(string? name) => CurrentValue;
 
             public IDisposable OnChange(Action<LuceneDirectoryIndexOptions, string> listener) => throw new NotImplementedException();
         }

@@ -36,7 +36,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// The index of the shard the doc belongs to
         /// </summary>
-        public int? ShardIndex { get; }
+        public int ShardIndex { get; }
 
         /// <summary>
         /// Search fields. Should contain null or J2N.Int

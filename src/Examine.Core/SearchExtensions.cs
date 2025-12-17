@@ -21,7 +21,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.SimpleWildcard, s);
+            return ExamineValue.Create(Examineness.SimpleWildcard, s);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.ComplexWildcard, s);
+            return ExamineValue.Create(Examineness.ComplexWildcard, s);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.Fuzzy, s, fuzzieness);
+            return ExamineValue.Create(Examineness.Fuzzy, s, fuzzieness);
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.Boosted, s, boost);
+            return ExamineValue.Create(Examineness.Default, s).WithBoost(boost);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Examine
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             }
 
-            return new ExamineValue(Examineness.Proximity, s, Convert.ToSingle(proximity));
+            return ExamineValue.Create(Examineness.Proximity, s, Convert.ToSingle(proximity));
         }
 
         /// <summary>
@@ -110,8 +110,15 @@ namespace Examine
         /// </summary>
         /// <param name="s">The string to escape.</param>
         /// <returns>An IExamineValue for the required operation</returns>
-        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>        
-        public static IExamineValue Escape(this string s)
+        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
+        [Obsolete("Use Phrase instead")]
+        public static IExamineValue Escape(this string s) => Phrase(s);
+
+        /// <summary>
+        /// Ensures the string is treated as a phrase in Lucene
+        /// </summary>
+        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>   
+        public static IExamineValue Phrase(this string s)
         {
             if (string.IsNullOrWhiteSpace(s))
             {
@@ -122,8 +129,7 @@ namespace Examine
             // inside of LuceneSearchCriteria when we detect Escaped, we use a PhraseQuery which automatically
             // escapes invalid chars.
 
-            return new ExamineValue(Examineness.Escaped, s);
+            return ExamineValue.Create(Examineness.Phrase, s);
         }
-
     }
 }

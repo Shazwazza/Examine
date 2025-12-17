@@ -8,9 +8,17 @@ namespace Examine.Search
     public class QueryOptions
     {
         /// <summary>
-        /// The default maximum ammount of results
+        /// The absolute maximum results returned from a query
         /// </summary>
-        public const int DefaultMaxResults = 500;
+        /// <remarks>
+        /// This limit is applied to prevent excessive resource usage and potential performance issues.
+        /// </remarks>
+        public const int AbsoluteMaxResults = 10000;
+
+        /// <summary>
+        /// The default maximum amount of results
+        /// </summary>
+        public const int DefaultMaxResults = 100;
 
         /// <summary>
         /// Creates a <see cref="QueryOptions"/> with the specified parameters
