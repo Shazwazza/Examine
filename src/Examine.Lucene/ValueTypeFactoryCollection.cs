@@ -85,7 +85,7 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, false, false, loggerFactory, DateResolution.MINUTE, true)},
                 {FieldDefinitionTypes.Raw, name => new RawStringType(name, loggerFactory)},
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name, false, false, false, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
-                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, false, false, false, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
+                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, false, false, true, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())},
                 {FieldDefinitionTypes.FacetInteger, name => new Int32Type(name, true,false,loggerFactory, true)},

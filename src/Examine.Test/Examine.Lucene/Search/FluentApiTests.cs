@@ -2769,15 +2769,15 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
                 fieldDefinitionCollection);
             indexer.IndexItems([
-        ValueSet.FromObject(1.ToString(), "content",
-            new { nodeName = "my name 1", writerName = "administrator", parentID = "1143" }),
-        ValueSet.FromObject(2.ToString(), "content",
-            new { nodeName = "my name 2", writerName = "administrator", parentID = "1143" }),
-        ValueSet.FromObject(3.ToString(), "content",
-            new { nodeName = "my name 3", writerName = "administrator", parentID = "1143" }),
-        ValueSet.FromObject(4.ToString(), "content",
-            new { nodeName = "my name 4", writerName = "writer", parentID = "2222" })
-        ]);
+                ValueSet.FromObject(1.ToString(), "content",
+                    new { nodeName = "my name 1", writerName = "administrator", parentID = "1143" }),
+                ValueSet.FromObject(2.ToString(), "content",
+                    new { nodeName = "my name 2", writerName = "administrator", parentID = "1143" }),
+                ValueSet.FromObject(3.ToString(), "content",
+                    new { nodeName = "my name 3", writerName = "administrator", parentID = "1143" }),
+                ValueSet.FromObject(4.ToString(), "content",
+                    new { nodeName = "my name 4", writerName = "writer", parentID = "2222" })
+                ]);
 
             var searcher = indexer.Searcher;
 
@@ -2810,8 +2810,6 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Assert.AreNotEqual(results1.First().Id, results2.First().Id);
             }
-
-
         }
 
         [TestCase(FieldDefinitionTypes.FacetDouble, SortType.Double, true)]
