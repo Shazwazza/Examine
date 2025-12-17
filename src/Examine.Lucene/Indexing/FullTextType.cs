@@ -64,9 +64,7 @@ namespace Examine.Lucene.Indexing
         /// </param>
         /// <param name="sortable"></param>
         // [Obsolete("To be removed in Examine V5")] // TODO: Why?
-#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public FullTextType(string fieldName, ILoggerFactory logger, Analyzer? analyzer = null, bool sortable = false)
-#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
             : this(fieldName, false, false, sortable, logger, analyzer ?? new CultureInvariantStandardAnalyzer())
         {
         }
