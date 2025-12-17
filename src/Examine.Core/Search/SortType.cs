@@ -46,6 +46,11 @@ namespace Examine.Search
         ///             lower values are at the front.
         /// 
         /// </summary>
-        Double
+        Double,
+
+        /// <summary>
+        /// Sort using distance
+        /// </summary>
+        SpatialDistance
     }
 }

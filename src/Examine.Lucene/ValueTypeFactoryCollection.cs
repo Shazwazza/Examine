@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Indexing;
 using Lucene.Net.Analysis;
@@ -73,7 +74,8 @@ namespace Examine.Lucene
             {
                 {"number", name => new Int32Type(name, loggerFactory)},
                 {FieldDefinitionTypes.Integer, name => new Int32Type(name, loggerFactory)},
-                {FieldDefinitionTypes.Float, name => new SingleType(name, loggerFactory)},
+                {FieldDefinitionTypes.Float, name => new FloatType(name, loggerFactory)},
+                {FieldDefinitionTypes.Single, name => new SingleType(name, loggerFactory)},
                 {FieldDefinitionTypes.Double, name => new DoubleType(name, loggerFactory)},
                 {FieldDefinitionTypes.Long, name => new Int64Type(name, loggerFactory)},
                 {"date", name => new DateTimeType(name, loggerFactory, DateResolution.MILLISECOND)},
@@ -89,7 +91,7 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())},
                 {FieldDefinitionTypes.FacetInteger, name => new Int32Type(name, true,false,loggerFactory, true)},
-                {FieldDefinitionTypes.FacetFloat, name => new SingleType(name, true, false, loggerFactory, true)},
+                {FieldDefinitionTypes.FacetFloat, name => new FloatType(name, true, false, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetDouble, name => new DoubleType(name,true, false, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetLong, name => new Int64Type(name, true, false, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetDateTime, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.MILLISECOND, true)},
@@ -101,7 +103,7 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FacetFullText, name => new FullTextType(name, true, false, false, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
                 {FieldDefinitionTypes.FacetFullTextSortable, name => new FullTextType(name, true, false,true, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
                 {FieldDefinitionTypes.FacetTaxonomyInteger, name => new Int32Type(name,true,true, loggerFactory, true)},
-                {FieldDefinitionTypes.FacetTaxonomyFloat, name => new SingleType(name,isFacetable: true, taxonomyIndex: true, loggerFactory,  true)},
+                {FieldDefinitionTypes.FacetTaxonomyFloat, name => new FloatType(name,isFacetable: true, taxonomyIndex: true, loggerFactory,  true)},
                 {FieldDefinitionTypes.FacetTaxonomyDouble, name => new DoubleType(name, true, true, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetTaxonomyLong, name => new Int64Type(name, isFacetable: true, taxonomyIndex: true, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetTaxonomyDateTime, name => new DateTimeType(name, true, taxonomyIndex : true, loggerFactory, DateResolution.MILLISECOND, true)},

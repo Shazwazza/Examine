@@ -41,7 +41,16 @@ var orderedDescendingResults = searcher
    .Field("writerName", "administrator")
    .OrderByDescending(new SortableField("name", SortType.String))
    .Execute();
+
+// Mixing ascending and descending
+var orderedDescendingResults = searcher
+   .CreateQuery("content")
+   .Field("writerName", "administrator")
+      .OrderByDescending(new SortableField("name", SortType.String)),
+      .OrderBy(new SortableField("date", SortType.String))
+      .Execute();
 ```
+
 
 ## Limiting results
 

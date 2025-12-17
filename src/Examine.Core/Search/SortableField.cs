@@ -16,24 +16,43 @@ namespace Examine.Search
         public SortType SortType { get; }
 
         /// <summary>
+        /// The point to calculate distance from
+        /// </summary>
+        public ISpatialPoint SpatialPoint { get; }
+
+        /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="fieldName"></param>
+        /// <param name="fieldName">The field name to sort by</param>
         public SortableField(string fieldName)
         {
             FieldName = fieldName;
             SortType = SortType.String;
+            SpatialPoint = null;
         }
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="sortType"></param>
+        /// <param name="fieldName">The field name to sort by</param>
+        /// <param name="sortType">The way in which the results will be sorted by the field specified.</param>
         public SortableField(string fieldName, SortType sortType)
         {
             FieldName = fieldName;
             SortType = sortType;
+            SpatialPoint = null;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fieldName">The field name to sort by</param>
+        /// <param name="spatialPoint">The point to calculate distance from</param>
+        public SortableField(string fieldName, ISpatialPoint spatialPoint)
+        {
+            FieldName = fieldName;
+            SortType = SortType.SpatialDistance;
+            SpatialPoint = spatialPoint;
         }
     }
 }

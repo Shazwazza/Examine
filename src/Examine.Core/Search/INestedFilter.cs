@@ -1,0 +1,59 @@
+using System;
+using System.Collections.Generic;
+
+namespace Examine.Search
+{
+    public interface INestedFilter
+    {
+        /// <summary>
+        /// Term must match
+        /// </summary>
+        /// <param name="term"></param>
+        /// <returns></returns>
+        INestedBooleanFilterOperation NestedTermFilter(FilterTerm term);
+
+        /// <summary>
+        /// Terms must match
+        /// </summary>
+        /// <param name="terms"></param>
+        /// <returns></returns>
+        INestedBooleanFilterOperation NestedTermsFilter(IEnumerable<FilterTerm> terms);
+
+        /// <summary>
+        /// Term must match as prefix
+        /// </summary>
+        /// <param name="term"></param>
+        /// <returns></returns>
+        INestedBooleanFilterOperation NestedTermPrefix(FilterTerm term);
+
+        /// <summary>
+        /// Document must have value for field
+        /// </summary>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        INestedBooleanFilterOperation NestedFieldValueExists(string field);
+
+        /// <summary>
+        /// Document must not have value for field
+        /// </summary>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        INestedBooleanFilterOperation NestedFieldValueNotExists(string field);
+
+        /// <summary>
+        /// Must match query
+        /// </summary>
+        /// <param name="inner"></param>
+        /// <param name="defaultOp"></param>
+        /// <returns></returns>
+        INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
+
+        /// <summary>
+        /// Executes Spatial operation as a Filter on field and shape
+        /// </summary>
+        /// <param name="field">Index field name</param>
+        /// <param name="shape">Shape</param>
+        /// <returns></returns>
+        INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<ISpatialShapeFactory, ISpatialShape> shape);
+    }
+}
