@@ -66,86 +66,133 @@ if ([string]::IsNullOrEmpty($OutputPath)) {
     }
 }
 
-# Function to format API signatures in a human-readable way
-function Format-ApiSignature {
+function Get-ApiKind {
     param([string]$Api)
-    
-    # Remove *REMOVED* prefix if present
+
     $cleanApi = $Api -replace '^\*REMOVED\*\s*', ''
-    
-    # Parse different API types for better formatting
-    
+
+    if ($cleanApi -match '^const\s+') { return 'Constant' }
+    if ($cleanApi -match '^abstract\s+') { return 'Abstract' }
+    if ($cleanApi -match '^virtual\s+') { return 'Virtual' }
+    if ($cleanApi -match '^override\s+') { return 'Override' }
+    if ($cleanApi -match '^static\s+') { return 'Static' }
+
+    # Enum values look like: Namespace.Enum.Value = 0 -> Namespace.Enum
+    if ($cleanApi -match '^.+?\s*=\s*\d+\s*->\s*.+$') { return 'Enum' }
+
+    # Properties look like: Type.Member.get -> ReturnType
+    if ($cleanApi -match '^.+?\.(get|set)\s*->\s*.+$') { return 'Property' }
+
+    # Type declarations are lines with no arrow at all
+    if ($cleanApi -notmatch '->') { return 'Type' }
+
+    # Constructors look like: Namespace.Type.Type(...) -> void
+    if ($cleanApi -match '^(.+?)\s*->\s*(.+)$') {
+        $signature = $matches[1]
+        if ($signature -match '(\w+)\.(\w+)\([^)]*\)' -and $matches[1] -eq $matches[2]) {
+            return 'Constructor'
+        }
+    }
+
+    return 'Member'
+}
+
+function Format-ApiSignature {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Api,
+
+        # When output is already grouped by kind, omit the redundant "**Kind**:" label.
+        [switch]$OmitKindLabel
+    )
+
+    $cleanApi = $Api -replace '^\*REMOVED\*\s*', ''
+    $kind = Get-ApiKind -Api $Api
+
     # Constants
     if ($cleanApi -match '^const\s+(.+?)\s*=\s*(.+?)\s*->\s*(.+)$') {
         $name = $matches[1]
         $value = $matches[2]
         $type = $matches[3]
-        return "- **Constant**: ``$name`` = $value $Arrow *$type*"
+        if ($OmitKindLabel) { return "- ``$name`` = $value $Arrow *$type*" }
+        return "- **$kind**: ``$name`` = $value $Arrow *$type*"
     }
-    
-    # Abstract methods
-    if ($cleanApi -match '^abstract\s+(.+?)\s*->\s*(.+)$') {
-        $signature = $matches[1]
-        $returnType = $matches[2]
-        return "- **Abstract**: ``$signature`` $Arrow *$returnType*"
+
+    # Methods/members with explicit return types
+    if ($cleanApi -match '^(abstract|virtual|override|static)\s+(.+?)\s*->\s*(.+)$') {
+        $signature = $matches[2]
+        $returnType = $matches[3]
+        if ($OmitKindLabel) { return "- ``$signature`` $Arrow *$returnType*" }
+        return "- **$kind**: ``$signature`` $Arrow *$returnType*"
     }
-    
-    # Virtual methods
-    if ($cleanApi -match '^virtual\s+(.+?)\s*->\s*(.+)$') {
-        $signature = $matches[1]
-        $returnType = $matches[2]
-        return "- **Virtual**: ``$signature`` $Arrow *$returnType*"
-    }
-    
-    # Override methods
-    if ($cleanApi -match '^override\s+(.+?)\s*->\s*(.+)$') {
-        $signature = $matches[1]
-        $returnType = $matches[2]
-        return "- **Override**: ``$signature`` $Arrow *$returnType*"
-    }
-    
-    # Static members
-    if ($cleanApi -match '^static\s+(.+?)\s*->\s*(.+)$') {
-        $signature = $matches[1]
-        $returnType = $matches[2]
-        return "- **Static**: ``$signature`` $Arrow *$returnType*"
-    }
-    
-    # Properties (with .get or .set)
+
+    # Properties
     if ($cleanApi -match '^(.+?\.(?:get|set))\s*->\s*(.+)$') {
         $propAccess = $matches[1]
         $type = $matches[2]
-        return "- **Property**: ``$propAccess`` $Arrow *$type*"
+        if ($OmitKindLabel) { return "- ``$propAccess`` $Arrow *$type*" }
+        return "- **$kind**: ``$propAccess`` $Arrow *$type*"
     }
-    
-    # Regular members/methods
+
+    # Generic member (method/operator/etc)
     if ($cleanApi -match '^(.+?)\s*->\s*(.+)$') {
         $signature = $matches[1]
         $returnType = $matches[2]
-        
-        # Check if it's a constructor (type name matches method name)
-        if ($signature -match '(\w+)\.(\w+)\([^)]*\)' -and $matches[1] -eq $matches[2]) {
+
+        if ($kind -eq 'Constructor') {
+            if ($OmitKindLabel) { return "- ``$signature``" }
             return "- **Constructor**: ``$signature``"
         }
-        
-        return "- **Member**: ``$signature`` $Arrow *$returnType*"
+
+        if ($OmitKindLabel) { return "- ``$signature`` $Arrow *$returnType*" }
+        return "- **$kind**: ``$signature`` $Arrow *$returnType*"
     }
-    
+
     # Enum values
     if ($cleanApi -match '^(.+?)\s*=\s*(\d+)\s*->\s*(.+)$') {
         $name = $matches[1]
         $value = $matches[2]
         $type = $matches[3]
+        if ($OmitKindLabel) { return "- ``$name`` = $value $Arrow *$type*" }
         return "- **Enum**: ``$name`` = $value $Arrow *$type*"
     }
-    
-    # Type declarations (just the type name)
+
+    # Type declarations
     if ($cleanApi -notmatch '->') {
+        if ($OmitKindLabel) { return "- ``$cleanApi``" }
         return "- **Type**: ``$cleanApi``"
     }
-    
-    # Fallback - just wrap in code
+
     return "- ``$cleanApi``"
+}
+
+function Get-KindOrder {
+    param([string]$Kind)
+    switch ($Kind) {
+        'Type' { return 0 }
+        'Constant' { return 1 }
+        'Enum' { return 2 }
+        'Constructor' { return 3 }
+        'Property' { return 4 }
+        'Abstract' { return 5 }
+        'Virtual' { return 6 }
+        'Override' { return 7 }
+        'Static' { return 8 }
+        default { return 9 } # Member
+    }
+}
+
+function Group-ApisByKind {
+    param([string[]]$Apis)
+
+    $groups = @{}
+    foreach ($api in ($Apis | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })) {
+        $k = Get-ApiKind -Api $api
+        if (-not $groups.ContainsKey($k)) { $groups[$k] = New-Object System.Collections.Generic.List[string] }
+        $groups[$k].Add($api)
+    }
+
+    return $groups
 }
 
 # Ensure the source path exists
@@ -260,7 +307,7 @@ if ($allProjects.Count -eq 0) {
     $totalNewApis = ($allProjects | ForEach-Object { $_.NewApis.Count } | Measure-Object -Sum).Sum
     $totalRemovedApis = ($allProjects | ForEach-Object { $_.RemovedApis.Count } | Measure-Object -Sum).Sum
     $hasBreakingChanges = $totalRemovedApis -gt 0
-    
+
     $markdown += @"
 
 - **Projects with changes:** $($allProjects.Count)
@@ -269,58 +316,71 @@ if ($allProjects.Count -eq 0) {
 
 "@
 
-    # Group projects by whether they have breaking changes
-    $projectsWithBreaking = $allProjects | Where-Object { $_.RemovedApis.Count -gt 0 }
-    $projectsWithAdditions = $allProjects | Where-Object { $_.NewApis.Count -gt 0 }
-    
-    # Show breaking changes first if any exist
-    if ($projectsWithBreaking.Count -gt 0) {
-        $markdown += @"
+    # Per-project hybrid output:
+    # - Summary table (counts by kind)
+    # - Categorized lists (Removed then Added)
+    $markdown += @"
 
-## $EmojiWarning Breaking Changes
-
-The following projects have **removed APIs** which constitute breaking changes:
+## Project Breakdown
 
 "@
-        foreach ($project in $projectsWithBreaking) {
-           $markdown += "`n### $($project.Name)`n`n"
-           $markdown += "#### Removed APIs ($($project.RemovedApis.Count)) - BREAKING`n`n"
-           $markdown += "The following public APIs have been **removed**:`n`n"
-           
-           foreach ($api in $project.RemovedApis) {
-               $formattedApi = Format-ApiSignature $api
-               $markdown += "$formattedApi`n"
-           }
-           
-           $markdown += "`n"
-       }
+
+    foreach ($project in $allProjects) {
+        $added = @($project.NewApis)
+        $removed = @($project.RemovedApis)
+
+        $addedGroups = Group-ApisByKind -Apis $added
+        $removedGroups = Group-ApisByKind -Apis $removed
+
+        $allKinds = @($addedGroups.Keys + $removedGroups.Keys | Sort-Object -Unique | Sort-Object { Get-KindOrder $_ }, { $_ })
+
+        $markdown += "`n### $($project.Name)`n`n"
+
+        # Summary table
+        $markdown += "| Kind | Added | Removed |`n"
+        $markdown += "|---|---:|---:|`n"
+
+        foreach ($k in $allKinds) {
+            $aCount = if ($addedGroups.ContainsKey($k)) { $addedGroups[$k].Count } else { 0 }
+            $rCount = if ($removedGroups.ContainsKey($k)) { $removedGroups[$k].Count } else { 0 }
+            $markdown += "| $k | $aCount | $rCount |`n"
+        }
+
+        $markdown += "| **Total** | **$($added.Count)** | **$($removed.Count)** |`n"
+
+        # Breaking changes section
+        if ($removed.Count -gt 0) {
+            $markdown += "`n#### $EmojiWarning Removed APIs (BREAKING) ($($removed.Count))`n`n"
+
+            foreach ($k in $allKinds) {
+                if (-not $removedGroups.ContainsKey($k)) { continue }
+                $markdown += "##### $k ($($removedGroups[$k].Count))`n`n"
+
+                foreach ($api in ($removedGroups[$k] | Sort-Object)) {
+                    $markdown += "$(Format-ApiSignature -Api $api -OmitKindLabel)`n"
+                }
+
+                $markdown += "`n"
+            }
+        }
+
+        # Additions section
+        if ($added.Count -gt 0) {
+            $markdown += "`n#### $EmojiCheck Added APIs (Non-Breaking) ($($added.Count))`n`n"
+
+            foreach ($k in $allKinds) {
+                if (-not $addedGroups.ContainsKey($k)) { continue }
+                $markdown += "##### $k ($($addedGroups[$k].Count))`n`n"
+
+                foreach ($api in ($addedGroups[$k] | Sort-Object)) {
+                    $markdown += "$(Format-ApiSignature -Api $api -OmitKindLabel)`n"
+                }
+
+                $markdown += "`n"
+            }
+        }
     }
-    
-    # Show additions
-    if ($projectsWithAdditions.Count -gt 0) {
-        $markdown += @"
 
-## $EmojiCheck New APIs (Non-Breaking)
-
-The following projects have **new APIs** added:
-
-"@
-        foreach ($project in $projectsWithAdditions) {
-           if ($project.NewApis.Count -eq 0) { continue }
-           
-           $markdown += "`n### $($project.Name)`n`n"
-           $markdown += "#### New APIs ($($project.NewApis.Count))`n`n"
-           $markdown += "The following public APIs have been added:`n`n"
-           
-           foreach ($api in $project.NewApis) {
-               $formattedApi = Format-ApiSignature $api
-               $markdown += "$formattedApi`n"
-           }
-           
-           $markdown += "`n"
-       }
-    }
-    
     $markdown += @"
 
 ## Summary
@@ -329,6 +389,7 @@ The following projects have **new APIs** added:
 $totalNewApis new API(s) have been added. These are **safe changes** that do not break existing code.
 
 ### $EmojiWarning Breaking Changes
+
 "@
 
     if ($hasBreakingChanges) {
