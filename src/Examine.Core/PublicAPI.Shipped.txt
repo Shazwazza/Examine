@@ -26,6 +26,8 @@ const Examine.FieldDefinitionTypes.Integer = "int" -> string
 const Examine.FieldDefinitionTypes.InvariantCultureIgnoreCase = "invariantcultureignorecase" -> string
 const Examine.FieldDefinitionTypes.Long = "long" -> string
 const Examine.FieldDefinitionTypes.Raw = "raw" -> string
+const Examine.Search.QueryOptions.AbsoluteMaxResults = 10000 -> int
+const Examine.Search.QueryOptions.DefaultMaxResults = 100 -> int
 Examine.BaseIndexProvider
 Examine.BaseIndexProvider.BaseIndexProvider(Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, string name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.IndexOptions> indexOptions) -> void
 Examine.BaseIndexProvider.DeleteFromIndex(System.Collections.Generic.IEnumerable<string> itemIds) -> void
@@ -170,8 +172,8 @@ Examine.Search.Examineness.SimpleWildcard = 1 -> Examine.Search.Examineness
 Examine.Search.ExamineValue
 Examine.Search.ExamineValue.Examineness.get -> Examine.Search.Examineness
 Examine.Search.ExamineValue.ExamineValue() -> void
-Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string value) -> void
 Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string value, float level) -> void
+Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string value) -> void
 Examine.Search.ExamineValue.Level.get -> float
 Examine.Search.ExamineValue.Value.get -> string
 Examine.Search.IBooleanOperation
@@ -235,8 +237,8 @@ Examine.Search.QueryOptions.Take.get -> int
 Examine.Search.SortableField
 Examine.Search.SortableField.FieldName.get -> string
 Examine.Search.SortableField.SortableField() -> void
-Examine.Search.SortableField.SortableField(string fieldName) -> void
 Examine.Search.SortableField.SortableField(string fieldName, Examine.Search.SortType sortType) -> void
+Examine.Search.SortableField.SortableField(string fieldName) -> void
 Examine.Search.SortableField.SortType.get -> Examine.Search.SortType
 Examine.Search.SortType
 Examine.Search.SortType.DocumentOrder = 1 -> Examine.Search.SortType
@@ -264,11 +266,11 @@ Examine.ValueSet.GetValues(string key) -> System.Collections.Generic.IEnumerable
 Examine.ValueSet.Id.get -> string
 Examine.ValueSet.ItemType.get -> string
 Examine.ValueSet.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<object>>
-Examine.ValueSet.ValueSet(string id) -> void
 Examine.ValueSet.ValueSet(string id, string category, string itemType, System.Collections.Generic.IDictionary<string, object> values) -> void
 Examine.ValueSet.ValueSet(string id, string category, string itemType, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IEnumerable<object>> values) -> void
 Examine.ValueSet.ValueSet(string id, string category, System.Collections.Generic.IDictionary<string, object> values) -> void
 Examine.ValueSet.ValueSet(string id, string category, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IEnumerable<object>> values) -> void
+Examine.ValueSet.ValueSet(string id) -> void
 Examine.ValueSetValidationResult
 Examine.ValueSetValidationResult.Status.get -> Examine.ValueSetValidationStatus
 Examine.ValueSetValidationResult.ValueSet.get -> Examine.ValueSet
@@ -295,8 +297,8 @@ static Examine.Search.QueryOptions.Default.get -> Examine.Search.QueryOptions
 static Examine.Search.QueryOptions.SkipTake(int skip, int? take = null) -> Examine.Search.QueryOptions
 static Examine.SearchExtensions.Boost(this string s, float boost) -> Examine.Search.IExamineValue
 static Examine.SearchExtensions.Escape(this string s) -> Examine.Search.IExamineValue
-static Examine.SearchExtensions.Fuzzy(this string s) -> Examine.Search.IExamineValue
 static Examine.SearchExtensions.Fuzzy(this string s, float fuzzieness) -> Examine.Search.IExamineValue
+static Examine.SearchExtensions.Fuzzy(this string s) -> Examine.Search.IExamineValue
 static Examine.SearchExtensions.MultipleCharacterWildcard(this string s) -> Examine.Search.IExamineValue
 static Examine.SearchExtensions.Proximity(this string s, int proximity) -> Examine.Search.IExamineValue
 static Examine.SearchExtensions.SingleCharacterWildcard(this string s) -> Examine.Search.IExamineValue
