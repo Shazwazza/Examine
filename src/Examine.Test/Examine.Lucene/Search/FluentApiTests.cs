@@ -5503,5 +5503,7 @@ namespace Examine.Test.Examine.Lucene.Search
             var facetResults5Author = results5.GetFacet("Author");
             Assert.AreEqual(2, facetResults5Author?.Count());
         }
+
+
     }
 }

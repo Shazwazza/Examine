@@ -10,7 +10,7 @@ namespace Examine.Lucene.Search
     public class LuceneDrillDownQueryDimensions : IDrillDownQueryDimensions
     {
         private readonly Dictionary<string, List<LuceneDrillDownQueryDimensionBase>> _dimensions = new Dictionary<string, List<LuceneDrillDownQueryDimensionBase>>();
-        
+
 
         /// <inheritdoc/>
         public IDrillDownQueryDimensions AddDimension(string dimensionName, params string[] paths)
