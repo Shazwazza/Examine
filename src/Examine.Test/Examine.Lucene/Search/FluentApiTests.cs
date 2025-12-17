@@ -5340,8 +5340,8 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 indexer.IndexItems(items);
 
-                var taxonomySearcher = indexer.TaxonomySearcher;
-                var taxonomyCategoryCount = taxonomySearcher.CategoryCount;
+                var taxonomySearcher = indexer.TaxonomySearcher ?? throw new InvalidOperationException("TaxonomySearcher cannot be null");
+
 
 
                 //Act
@@ -5356,16 +5356,10 @@ namespace Examine.Test.Examine.Lucene.Search
             // drill-down of just the query: 
             var sc = searcher.CreateQuery("content")
                 .DrillDownQuery(
-                 dims =>
-                 {
-                     dims.AddDimension("Author", "Lisa");
-                 },
+                 dims => dims.AddDimension("Author", "Lisa"),
                  null
                 ,
-                sideways =>
-                {
-                    sideways.SetTopN(10);
-                },
+                sideways => sideways.SetTopN(10),
                 BooleanOperation.Or)
                 .WithFacets((Action<IFacetOperations>)(facets =>
                 {
@@ -5377,15 +5371,16 @@ namespace Examine.Test.Examine.Lucene.Search
             Assert.AreEqual(2, results1.Count());
 
             var facetResults1PublishDate = results1.GetFacet("publishDate");
+
             // Publish Date is only drill-down, and Lisa published
             // one in 2012 and one in 2010:
-            Assert.AreEqual(2, facetResults1PublishDate.Count());
+            Assert.AreEqual(2, facetResults1PublishDate?.Count());
 
             // Author is drill-sideways + drill-down: Lisa
             // (drill-down) published twice, and Frank/Susan/Bob
             // published once:
             var facetResults1Author = results1.GetFacet("Author");
-            Assert.AreEqual(4, facetResults1Author.Count());
+            Assert.AreEqual(4, facetResults1Author?.Count());
 
             // Another simple case: drill-down on single fields
             // but OR of two values
@@ -5402,10 +5397,7 @@ namespace Examine.Test.Examine.Lucene.Search
                  },
                  null
                 ,
-                sideways =>
-                {
-                    sideways.SetTopN(10);
-                },
+                sideways => sideways.SetTopN(10),
                 BooleanOperation.Or)
                 .WithFacets((Action<IFacetOperations>)(facets =>
                 {
@@ -5418,13 +5410,13 @@ namespace Examine.Test.Examine.Lucene.Search
             // Publish Date is only drill-down: Lisa and Bob
             // (drill-down) published twice in 2010 and once in 2012:
             var facetResults2PublishDate = results2.GetFacet("publishDate");
-            Assert.AreEqual(2, facetResults2PublishDate.Count());
+            Assert.AreEqual(2, facetResults2PublishDate?.Count());
 
             // Author is drill-sideways + drill-down: Lisa
             // (drill-down) published twice, and Frank/Susan/Bob
             // published once:
             var facetResults2Author = results2.GetFacet("Author");
-            Assert.AreEqual(4, facetResults2Author.Count());
+            Assert.AreEqual(4, facetResults2Author?.Count());
 
 
             // Publish Date is only drill-down: Lisa and Bob
@@ -5438,15 +5430,9 @@ namespace Examine.Test.Examine.Lucene.Search
                 },
                 null
                ,
-               sideways =>
-               {
-                   sideways.SetTopN(10);
-               },
+               sideways => sideways.SetTopN(10),
                BooleanOperation.Or)
-               .WithFacets((Action<IFacetOperations>)(facets =>
-               {
-                   facets.FacetAllDimensions(10);
-               }));
+               .WithFacets((Action<IFacetOperations>)(facets => facets.FacetAllDimensions(10)));
             var results3 = sc3.ExecuteWithLucene();
             // Author is drill-sideways + drill-down: Lisa
             // (drill-down) published twice, and Frank/Susan/Bob
@@ -5464,10 +5450,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 },
                 null
                ,
-               sideways =>
-               {
-                   sideways.SetTopN(10);
-               },
+               sideways => sideways.SetTopN(10),
                BooleanOperation.Or)
                .WithFacets((Action<IFacetOperations>)(facets =>
                {
@@ -5480,12 +5463,12 @@ namespace Examine.Test.Examine.Lucene.Search
             // Publish Date is drill-sideways + drill-down: Lisa
             // (drill-down) published once in 2010 and once in 2012:
             var facetResults4PublishDate = results4.GetFacet("publishDate");
-            Assert.AreEqual(2, facetResults4PublishDate.Count());
+            Assert.AreEqual(2, facetResults4PublishDate?.Count());
 
             // Author is drill-sideways + drill-down:
             // only Lisa & Bob published (once each) in 2010:
             var facetResults4Author = results4.GetFacet("Author");
-            Assert.AreEqual(2, facetResults4Author.Count());
+            Assert.AreEqual(2, facetResults4Author?.Count());
 
 
             // Even more interesting case: drill down on two fields,
@@ -5500,10 +5483,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 },
                 null
                ,
-               sideways =>
-               {
-                   sideways.SetTopN(10);
-               },
+               sideways => sideways.SetTopN(10),
                BooleanOperation.Or)
                .WithFacets((Action<IFacetOperations>)(facets =>
                {
@@ -5516,12 +5496,12 @@ namespace Examine.Test.Examine.Lucene.Search
             // Publish Date is both drill-sideways + drill-down:
             // Lisa or Bob published twice in 2010 and once in 2012:
             var facetResults5PublishDate = results5.GetFacet("publishDate");
-            Assert.AreEqual(2, facetResults5PublishDate.Count());
+            Assert.AreEqual(2, facetResults5PublishDate?.Count());
 
             // Author is drill-sideways + drill-down:
             // only Lisa & Bob published (once each) in 2010:
             var facetResults5Author = results5.GetFacet("Author");
-            Assert.AreEqual(2, facetResults5Author.Count());
+            Assert.AreEqual(2, facetResults5Author?.Count());
         }
     }
 }
