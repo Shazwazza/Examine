@@ -437,6 +437,117 @@ var createdFacetResults = results.GetFacet("Created"); // Returns the facets for
 var firstRangeValue = createdFacetResults.Facet("first"); // Gets the IFacetValue for the facet "first"
 ```
 
+### DrillDown Query
+
+DrillDown query is used to drill down and sideways on facets.
+
+#### Basic MatchAll Query example
+
+```csharp
+// Setup
+
+// Create a config
+var facetsConfig = new FacetsConfig();
+facetConfigs.SetHierarchical("publishDate", true);
+
+services.AddExamineLuceneIndex("MyIndex",
+    // Set the indexing of your fields to use the facet type
+    fieldDefinitions: new FieldDefinitionCollection(
+        new FieldDefinition("publishDate", FieldDefinitionTypes.FacetTaxonomyFullText),
+        new FieldDefinition("Author", FieldDefinitionTypes.FacetTaxonomyFullText)
+        ),
+    // Pass your config
+    facetsConfig: facetsConfig,
+    // Enable the Taxonomy sidecar index, required for Heirachy facets
+    useTaxonomyIndex: true
+    );
+
+
+var searcher = myIndex.Searcher;
+var results = searcher.CreateQuery()
+    .DrillDownQuery(
+        dims =>
+        {
+            // Specify the dimensions to drill down on
+            dims.AddDimension("Author", "Lisa");
+        },
+        null // Optional base query to drill down over
+        ,
+        sideways =>
+        {
+            // Drill Sideways for the top 10 facets
+            sideways.SetTopN(10);
+        },
+        BooleanOperation.Or // Default operation for boolean subqueries
+        )
+        .WithFacets((Action<IFacetOperations>)(facets =>
+        {
+            //Fetch the facets
+            facets.FacetString("publishDate", x => x.MaxCount(10));
+            facets.FacetString("Author", x => x.MaxCount(10));
+        }));
+    .Execute();
+
+var publishDateResults = results.GetFacet("publishDate"); // Returns the facets for the specific field publishDate
+var AuthorFacetResults = results.GetFacet("Author"); // Returns the facets for the specific field publishDate
+
+```
+
+#### Basic BaseQuery example
+
+```csharp
+// Setup
+
+// Create a config
+var facetsConfig = new FacetsConfig();
+facetConfigs.SetHierarchical("publishDate", true);
+
+services.AddExamineLuceneIndex("MyIndex",
+    // Set the indexing of your fields to use the facet type
+    fieldDefinitions: new FieldDefinitionCollection(
+        new FieldDefinition("publishDate", FieldDefinitionTypes.FacetTaxonomyFullText),
+        new FieldDefinition("Author", FieldDefinitionTypes.FacetTaxonomyFullText)
+        ),
+    // Pass your config
+    facetsConfig: facetsConfig,
+    // Enable the Taxonomy sidecar index, required for Heirachy facets
+    useTaxonomyIndex: true
+    );
+
+
+var searcher = myIndex.Searcher;
+var results = searcher.CreateQuery()
+    .DrillDownQuery(
+        dims =>
+        {
+            // Specify the dimensions to drill down on
+            dims.AddDimension("Author", "Lisa");
+        },
+         baseQuery => // Optional base query to drill down over
+        {
+            return baseQuery.Field(ExamineFieldNames.CategoryFieldName, "content");
+        } 
+        ,
+        sideways =>
+        {
+            // Drill Sideways for the top 10 facets
+            sideways.SetTopN(10);
+        },
+        BooleanOperation.Or // Default operation for boolean subqueries
+        )
+        .WithFacets((Action<IFacetOperations>)(facets =>
+        {
+            //Fetch the facets
+            facets.FacetString("publishDate", x => x.MaxCount(10));
+            facets.FacetString("Author", x => x.MaxCount(10));
+        }));
+    .Execute();
+
+var publishDateResults = results.GetFacet("publishDate"); // Returns the facets for the specific field publishDate
+var AuthorFacetResults = results.GetFacet("Author"); // Returns the facets for the specific field publishDate
+
+```
+
 ## Lucene queries
 
 Find a reference to how to write Lucene queries in the [Lucene 4.8.0 docs](https://lucene.apache.org/core/4_8_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).

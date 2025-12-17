@@ -1,6 +1,9 @@
 #nullable enable
 abstract Examine.Lucene.Providers.BaseLuceneSearcher.Dispose() -> void
+abstract Examine.Lucene.Search.LuceneBooleanOperationBase.SetSearchAfter(Examine.Search.SearchAfter! searchAfter) -> Examine.Search.IOrdering!
 abstract Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
+abstract Examine.Lucene.Search.LuceneDrillDownQueryDimensionBase.Apply(Lucene.Net.Facet.DrillDownQuery! drillDownQuery) -> void
+abstract Examine.Lucene.Search.LuceneSearchQueryBase.DrillDownQuery(System.Action<Examine.Search.IDrillDownQueryDimensions!>! dimensions, System.Func<Examine.Search.INestedQuery!, Examine.Search.INestedBooleanOperation!>? baseQuery = null, System.Action<Examine.Search.IDrillSideways!>? drillSideways = null, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.Or) -> Examine.Search.IOrdering!
 Examine.Lucene.Directories.FileSystemDirectoryFactory
 Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
 Examine.Lucene.Directories.FileSystemDirectoryFactory.FileSystemDirectoryFactory(System.IO.DirectoryInfo! baseDir, Examine.Lucene.Directories.ILockFactory! lockFactory, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions) -> void
@@ -96,10 +99,12 @@ Examine.Lucene.Search.FacetQueryField.FacetQueryField(Examine.Lucene.Search.Face
 Examine.Lucene.Search.FacetQueryField.MaxCount(int count) -> Examine.Search.IFacetQueryField!
 Examine.Lucene.Search.FacetQueryField.SetPath(params string![]! path) -> Examine.Search.IFacetQueryField!
 Examine.Lucene.Search.IFacetExtractionContext
+Examine.Lucene.Search.IFacetExtractionContext.DrillSidewaysResultFacets.get -> Lucene.Net.Facet.Facets?
 Examine.Lucene.Search.IFacetExtractionContext.FacetConfig.get -> Lucene.Net.Facet.FacetsConfig!
 Examine.Lucene.Search.IFacetExtractionContext.FacetsCollector.get -> Lucene.Net.Facet.FacetsCollector!
 Examine.Lucene.Search.IFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed) -> Lucene.Net.Facet.Facets!
 Examine.Lucene.Search.IFacetExtractionContext.SearcherReference.get -> Examine.Lucene.Search.ISearcherReference!
+Examine.Lucene.Search.IFacetExtractionContext.SortedSetReaderState.get -> Lucene.Net.Facet.SortedSet.SortedSetDocValuesReaderState?
 Examine.Lucene.Search.IFacetField
 Examine.Lucene.Search.IFacetField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
 Examine.Lucene.Search.IFacetField.FacetField.get -> string!
@@ -109,11 +114,28 @@ Examine.Lucene.Search.ITaxonomySearchContext
 Examine.Lucene.Search.ITaxonomySearchContext.GetTaxonomyAndSearcher() -> Examine.Lucene.Search.ITaxonomySearcherReference!
 Examine.Lucene.Search.ITaxonomySearcherReference
 Examine.Lucene.Search.ITaxonomySearcherReference.TaxonomyReader.get -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyReader!
+Examine.Lucene.Search.LuceneBooleanOperationBase.OpBaseQuery(System.Func<Lucene.Net.Search.Query!, Lucene.Net.Search.Query!>! baseQueryBuilder, System.Func<Examine.Search.INestedQuery!, Examine.Search.INestedBooleanOperation!>! inner, Examine.Search.BooleanOperation outerOp, Examine.Search.BooleanOperation? defaultInnerOp = null) -> Examine.Lucene.Search.LuceneBooleanOperationBase!
+Examine.Lucene.Search.LuceneDrillDownQueryDimensionBase
+Examine.Lucene.Search.LuceneDrillDownQueryDimensionBase.DimensionName.get -> string!
+Examine.Lucene.Search.LuceneDrillDownQueryDimensionBase.LuceneDrillDownQueryDimensionBase(string! dimensionName) -> void
+Examine.Lucene.Search.LuceneDrillDownQueryDimensionPath
+Examine.Lucene.Search.LuceneDrillDownQueryDimensionPath.LuceneDrillDownQueryDimensionPath(string! dimensionName, params string![]! paths) -> void
+Examine.Lucene.Search.LuceneDrillDownQueryDimensionPath.Paths.get -> string![]!
+Examine.Lucene.Search.LuceneDrillDownQueryDimensions
+Examine.Lucene.Search.LuceneDrillDownQueryDimensions.AddDimension(string! dimensionName, params string![]! paths) -> Examine.Search.IDrillDownQueryDimensions!
+Examine.Lucene.Search.LuceneDrillDownQueryDimensions.Apply(Lucene.Net.Facet.DrillDownQuery! drillDownQuery) -> void
+Examine.Lucene.Search.LuceneDrillDownQueryDimensions.LuceneDrillDownQueryDimensions() -> void
+Examine.Lucene.Search.LuceneDrillDownQueryDrillSideways
+Examine.Lucene.Search.LuceneDrillDownQueryDrillSideways.LuceneDrillDownQueryDrillSideways() -> void
+Examine.Lucene.Search.LuceneDrillDownQueryDrillSideways.SetTopN(int topN) -> Examine.Search.IDrillSideways!
+Examine.Lucene.Search.LuceneDrillDownQueryDrillSideways.TopN.get -> int
 Examine.Lucene.Search.LuceneFacetExtractionContext
+Examine.Lucene.Search.LuceneFacetExtractionContext.DrillSidewaysResultFacets.get -> Lucene.Net.Facet.Facets?
 Examine.Lucene.Search.LuceneFacetExtractionContext.FacetConfig.get -> Lucene.Net.Facet.FacetsConfig!
 Examine.Lucene.Search.LuceneFacetExtractionContext.FacetsCollector.get -> Lucene.Net.Facet.FacetsCollector!
-Examine.Lucene.Search.LuceneFacetExtractionContext.LuceneFacetExtractionContext(Lucene.Net.Facet.FacetsCollector! facetsCollector, Examine.Lucene.Search.ISearcherReference! searcherReference, Lucene.Net.Facet.FacetsConfig! facetConfig) -> void
+Examine.Lucene.Search.LuceneFacetExtractionContext.LuceneFacetExtractionContext(Lucene.Net.Facet.FacetsCollector! facetsCollector, Examine.Lucene.Search.ISearcherReference! searcherReference, Lucene.Net.Facet.FacetsConfig! facetConfig, Lucene.Net.Facet.Facets? drillSidewaysResultFacets) -> void
 Examine.Lucene.Search.LuceneFacetExtractionContext.SearcherReference.get -> Examine.Lucene.Search.ISearcherReference!
+Examine.Lucene.Search.LuceneFacetExtractionContext.SortedSetReaderState.get -> Lucene.Net.Facet.SortedSet.SortedSetDocValuesReaderState?
 Examine.Lucene.Search.LuceneFacetLabel
 Examine.Lucene.Search.LuceneFacetLabel.CompareTo(Examine.Search.IFacetLabel? other) -> int
 Examine.Lucene.Search.LuceneFacetLabel.Components.get -> string![]!
@@ -123,6 +145,7 @@ Examine.Lucene.Search.LuceneFacetLabel.Subpath(int length) -> Examine.Search.IFa
 Examine.Lucene.Search.LuceneFacetOperation
 Examine.Lucene.Search.LuceneFacetOperation.Execute(Examine.Search.QueryOptions? options = null) -> Examine.ISearchResults!
 Examine.Lucene.Search.LuceneFacetOperation.Facet(string! field, System.Action<Examine.Search.IFacetQueryField!>? facetConfiguration = null) -> Examine.Search.IFacetOperations!
+Examine.Lucene.Search.LuceneFacetOperation.FacetAllDimensions(int maxCount) -> Examine.Search.IFacetOperations!
 Examine.Lucene.Search.LuceneFacetOperation.FacetDoubleRange(string! field, params Examine.Search.DoubleRange[]! doubleRanges) -> Examine.Search.IFacetOperations!
 Examine.Lucene.Search.LuceneFacetOperation.FacetFloatRange(string! field, params Examine.Search.FloatRange[]! floatRanges) -> Examine.Search.IFacetOperations!
 Examine.Lucene.Search.LuceneFacetOperation.FacetLongRange(string! field, params Examine.Search.Int64Range[]! longRanges) -> Examine.Search.IFacetOperations!
@@ -133,6 +156,15 @@ Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.LuceneFacetSamplingQueryOp
 Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.LuceneFacetSamplingQueryOptions(int sampleSize, long seed) -> void
 Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.SampleSize.get -> int
 Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.Seed.get -> long
+Examine.Lucene.Search.LuceneFacetSelectionOptions
+Examine.Lucene.Search.LuceneFacetSelectionOptions.FacetAllFieldsWithHits.get -> bool
+Examine.Lucene.Search.LuceneFacetSelectionOptions.FacetAllFieldsWithHits.set -> void
+Examine.Lucene.Search.LuceneFacetSelectionOptions.FacetAllFieldsWithHitsMaxCount.get -> int
+Examine.Lucene.Search.LuceneFacetSelectionOptions.FacetAllFieldsWithHitsMaxCount.set -> void
+Examine.Lucene.Search.LuceneFacetSelectionOptions.FacetFields.get -> System.Collections.Generic.IList<Examine.Lucene.Search.IFacetField!>!
+Examine.Lucene.Search.LuceneFacetSelectionOptions.FacetFields.set -> void
+Examine.Lucene.Search.LuceneFacetSelectionOptions.LuceneFacetSelectionOptions() -> void
+Examine.Lucene.Search.LuceneQuery.DrillDownQuery(System.Action<Examine.Search.IDrillDownQueryDimensions!>! dimensions, System.Func<Examine.Search.INestedQuery!, Examine.Search.INestedBooleanOperation!>? baseQuery = null, System.Action<Examine.Search.IDrillSideways!>? drillSideways = null, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.Or) -> Examine.Search.IOrdering!
 Examine.Lucene.Search.LuceneQueryOptions.FacetRandomSampling.get -> Examine.Lucene.Search.LuceneFacetSamplingQueryOptions?
 Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int take = 100, Examine.Lucene.Search.SearchAfterOptions? searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false, Examine.Lucene.Search.LuceneFacetSamplingQueryOptions? facetSampling = null) -> void
 Examine.Lucene.Search.LuceneSearchQuery.LuceneSearchQuery(Examine.Lucene.Search.ISearchContext! searchContext, string? category, Lucene.Net.Analysis.Analyzer! analyzer, Examine.Lucene.Search.LuceneSearchOptions! searchOptions, Examine.Search.BooleanOperation occurance, Lucene.Net.Facet.FacetsConfig! facetsConfig) -> void
@@ -140,7 +172,9 @@ Examine.Lucene.Search.LuceneSearchResults.Facets.get -> System.Collections.Gener
 Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult!>! results, int totalItemCount, System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>! facets, float maxScore, Examine.Lucene.Search.SearchAfterOptions? searchAfterOptions) -> void
 Examine.Lucene.Search.LuceneSearchResults.MaxScore.get -> float
 Examine.Lucene.Search.LuceneSearchResults.SearchAfter.get -> Examine.Lucene.Search.SearchAfterOptions?
+Examine.Lucene.Search.SearchAfterOptions.SearchAfterOptions(Examine.Search.SearchAfter! searchAfter) -> void
 Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get -> int
+Examine.Lucene.Search.SearchAfterOptions.ToSearchAfter() -> Examine.Search.SearchAfter!
 Examine.Lucene.Search.SearchContext.SearchContext(Lucene.Net.Search.SearcherManager! searcherManager, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection, bool isNrt) -> void
 Examine.Lucene.Search.TaxonomySearchContext
 Examine.Lucene.Search.TaxonomySearchContext.GetFieldValueType(string! fieldName) -> Examine.Lucene.Indexing.IIndexFieldValueType!
@@ -162,8 +196,11 @@ override Examine.Lucene.Indexing.SingleType.AddValue(Lucene.Net.Documents.Docume
 override Examine.Lucene.Providers.LuceneIndex.PerformDeleteFromIndex(System.Collections.Generic.IEnumerable<string!>! itemIds, System.Action<Examine.IndexOperationEventArgs!>? onComplete) -> void
 override Examine.Lucene.Providers.LuceneIndex.PerformIndexItems(System.Collections.Generic.IEnumerable<Examine.ValueSet!>! values, System.Action<Examine.IndexOperationEventArgs!>? onComplete) -> void
 override Examine.Lucene.Providers.MultiIndexSearcher.Dispose() -> void
+override Examine.Lucene.Search.LuceneBooleanOperation.SetSearchAfter(Examine.Search.SearchAfter! searchAfter) -> Examine.Search.IOrdering!
 override Examine.Lucene.Search.LuceneBooleanOperation.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
+override Examine.Lucene.Search.LuceneDrillDownQueryDimensionPath.Apply(Lucene.Net.Facet.DrillDownQuery! drillDownQuery) -> void
 override Examine.Lucene.Search.LuceneFacetOperation.ToString() -> string!
+override Examine.Lucene.Search.LuceneSearchQuery.DrillDownQuery(System.Action<Examine.Search.IDrillDownQueryDimensions!>! dimensions, System.Func<Examine.Search.INestedQuery!, Examine.Search.INestedBooleanOperation!>? baseQuery = null, System.Action<Examine.Search.IDrillSideways!>? drillSideways = null, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.Or) -> Examine.Search.IOrdering!
 static Examine.Lucene.FacetExtensions.GetFacet(this Examine.ISearchResults! searchResults, string! field) -> Examine.Search.IFacetResult?
 static Examine.Lucene.FacetExtensions.GetFacets(this Examine.ISearchResults! searchResults) -> System.Collections.Generic.IEnumerable<Examine.Search.IFacetResult!>!
 static Examine.Lucene.Search.LuceneSearchExtensions.ExecuteWithLucene(this Examine.Search.IQueryExecutor! queryExecutor, Examine.Search.QueryOptions? options = null) -> Examine.Lucene.Search.ILuceneSearchResults!
@@ -178,6 +215,7 @@ virtual Examine.Lucene.Providers.LuceneIndex.CreateIndexWriter(Lucene.Net.Store.
 virtual Examine.Lucene.Providers.LuceneIndex.TaxonomySearcher.get -> Examine.Lucene.Providers.ILuceneTaxonomySearcher?
 virtual Examine.Lucene.Providers.LuceneIndex.UpdateLuceneDocument(Lucene.Net.Index.Term! term, Lucene.Net.Documents.Document! doc) -> long?
 virtual Examine.Lucene.Search.LuceneFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed) -> Lucene.Net.Facet.Facets!
+virtual Examine.Lucene.Search.LuceneSearchQuery.SetSearchAfter(Examine.Search.SearchAfter! searchAfter) -> void
 virtual Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue) -> Lucene.Net.Search.Query?
 virtual Examine.Lucene.Search.TaxonomySearcherReference.Dispose(bool disposing) -> void
 Examine.Lucene.LuceneIndexOptions.NrtCacheMaxCachedMB.get -> double

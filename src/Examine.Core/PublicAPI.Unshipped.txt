@@ -70,6 +70,10 @@ Examine.Search.FloatRange.Max.get -> float
 Examine.Search.FloatRange.MaxInclusive.get -> bool
 Examine.Search.FloatRange.Min.get -> float
 Examine.Search.FloatRange.MinInclusive.get -> bool
+Examine.Search.IDrillDownQueryDimensions
+Examine.Search.IDrillDownQueryDimensions.AddDimension(string! dimensionName, params string![]! paths) -> Examine.Search.IDrillDownQueryDimensions!
+Examine.Search.IDrillSideways
+Examine.Search.IDrillSideways.SetTopN(int topN) -> Examine.Search.IDrillSideways!
 Examine.Search.IExamineValueBoosted
 Examine.Search.IExamineValueBoosted.Boost.get -> float
 Examine.Search.IFaceting
@@ -79,6 +83,7 @@ Examine.Search.IFacetLabel.Components.get -> string![]!
 Examine.Search.IFacetLabel.Length.get -> int
 Examine.Search.IFacetLabel.Subpath(int length) -> Examine.Search.IFacetLabel!
 Examine.Search.IFacetOperations
+Examine.Search.IFacetOperations.FacetAllDimensions(int maxCount) -> Examine.Search.IFacetOperations!
 Examine.Search.IFacetOperations.FacetDoubleRange(string! field, params Examine.Search.DoubleRange[]! doubleRanges) -> Examine.Search.IFacetOperations!
 Examine.Search.IFacetOperations.FacetFloatRange(string! field, params Examine.Search.FloatRange[]! floatRanges) -> Examine.Search.IFacetOperations!
 Examine.Search.IFacetOperations.FacetLongRange(string! field, params Examine.Search.Int64Range[]! longRanges) -> Examine.Search.IFacetOperations!
@@ -102,7 +107,12 @@ Examine.Search.Int64Range.Max.get -> long
 Examine.Search.Int64Range.MaxInclusive.get -> bool
 Examine.Search.Int64Range.Min.get -> long
 Examine.Search.Int64Range.MinInclusive.get -> bool
+Examine.Search.IOrdering.SetSearchAfter(Examine.Search.SearchAfter! searchAfter) -> Examine.Search.IOrdering!
+Examine.Search.IQuery.DrillDownQuery(System.Action<Examine.Search.IDrillDownQueryDimensions!>! dimensions, System.Func<Examine.Search.INestedQuery!, Examine.Search.INestedBooleanOperation!>? baseQuery = null, System.Action<Examine.Search.IDrillSideways!>? drillSideways = null, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.Or) -> Examine.Search.IOrdering!
 Examine.Search.OrderingExtensions
+Examine.Search.SearchAfter
+Examine.Search.SearchAfter.SearchAfter(string! searchAfter) -> void
+Examine.Search.SearchAfter.Value.get -> string!
 Examine.ValueSet.Category.get -> string!
 Examine.ValueSet.ItemType.get -> string!
 Examine.ValueSet.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Collections.Generic.IReadOnlyList<object!>!>!

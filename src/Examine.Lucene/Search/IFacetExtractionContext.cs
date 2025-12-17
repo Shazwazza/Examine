@@ -1,4 +1,5 @@
 using Lucene.Net.Facet;
+using Lucene.Net.Facet.SortedSet;
 
 namespace Examine.Lucene.Search
 {
@@ -21,6 +22,16 @@ namespace Examine.Lucene.Search
         /// Index Searcher Reference
         /// </summary>
         ISearcherReference SearcherReference { get; }
+
+        /// <summary>
+        /// SortedSetReaderState (Non taxonomy indexed)
+        /// </summary>
+        SortedSetDocValuesReaderState? SortedSetReaderState { get; }
+
+        /// <summary>
+        /// Drill Sideways Result Facets
+        /// </summary>
+        Facets? DrillSidewaysResultFacets { get; }
 
         /// <summary>
         /// Get the facet counts for the faceted field
