@@ -1,9 +1,11 @@
 using System;
-using Lucene.Net.Analysis;
-using Lucene.Net.Search;
 using Examine.Lucene.Search;
 using Examine.Search;
+using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet;
+using Lucene.Net.Search;
+using Microsoft.Extensions.Options;
 
 namespace Examine.Lucene.Providers
 {
@@ -13,15 +15,11 @@ namespace Examine.Lucene.Providers
     public abstract class BaseLuceneSearcher : BaseSearchProvider, IDisposable
     {
         private readonly FacetsConfig _facetsConfig;
-        private bool _disposedValue;
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="analyzer"></param>
-        [Obsolete("To remove in Examine V5")]
-        protected BaseLuceneSearcher(string name, Analyzer analyzer)
+        protected BaseLuceneSearcher(string name, IOptionsMonitor<LuceneSearcherOptions> options)
             : base(name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -29,26 +27,10 @@ namespace Examine.Lucene.Providers
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
             }
 
-            LuceneAnalyzer = analyzer;
-            _facetsConfig = GetDefaultFacetConfig();
-        }
+            var searchOptions = options.Get(name);
 
-        /// <summary>
-        /// Constructor to allow for creating an indexer at runtime
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="analyzer"></param>
-        /// <param name="facetsConfig"></param>
-        protected BaseLuceneSearcher(string name, Analyzer analyzer, FacetsConfig facetsConfig)
-            : base(name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
-            }
-
-            LuceneAnalyzer = analyzer;
-            _facetsConfig = facetsConfig;
+            LuceneAnalyzer = searchOptions.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            _facetsConfig = searchOptions.FacetConfiguration ?? new FacetsConfig();
         }
 
         /// <summary>
@@ -57,9 +39,8 @@ namespace Examine.Lucene.Providers
         public Analyzer LuceneAnalyzer { get; }
 
         /// <summary>
-        /// Gets the seach context
+        /// Gets the search context
         /// </summary>
-        /// <returns></returns>
         public abstract ISearchContext GetSearchContext();
 
 #pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
@@ -93,33 +74,8 @@ namespace Examine.Lucene.Providers
             return sc.Execute(options);
         }
 
-        /// <summary>
-        /// Gets a FacetConfig with default configuration
-        /// </summary>
-        /// <returns>Facet Config</returns>
-        [Obsolete("To remove in Examine V5")]
-        public virtual FacetsConfig GetDefaultFacetConfig() => new FacetsConfig();
-
-        /// <summary>
-        /// Disposes of the searcher
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                _disposedValue = true;
-            }
-        }
-
         /// <inheritdoc />
-        [Obsolete("The virutal modifier will be removed in Examine V5, override Dispose(bool) instead")]
-        public virtual void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
+        public abstract void Dispose();
 
         ///// <summary>
         ///// This is NOT used! however I'm leaving this here as example code

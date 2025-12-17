@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using Lucene.Net.Analysis.Standard;
@@ -41,7 +39,12 @@ namespace Examine
         /// </summary>
         private static string GenerateHash(this string str, string hashType)
         {
-            var hasher = HashAlgorithm.Create(hashType) ?? throw new InvalidOperationException("No hashing type found by name " + hashType);
+            HashAlgorithm hasher = hashType switch
+            {
+                "MD5" => MD5.Create(),
+                "SHA1" => SHA1.Create(),
+                _ => throw new NotSupportedException()
+            };  
 
             using (hasher)
             {
@@ -66,17 +69,7 @@ namespace Examine
             }
         }
 
-        internal static string EnsureEndsWith(this string input, char value)
-        {
-            if (input.EndsWith(value.ToString(CultureInfo.InvariantCulture)))
-            {
-                return input;
-            }
-            else
-            {
-                return input + value;
-            }
-        }
+        internal static string EnsureEndsWith(this string input, char value) => input.EndsWith(value.ToString(CultureInfo.InvariantCulture)) ? input : input + value;
 
         internal static string ReplaceNonAlphanumericChars(this string input, string replacement)
         {
@@ -89,24 +82,24 @@ namespace Examine
             return mName;
         }
 
-		//NOTE: The reason this code is in a separate method is because the Code Analysis barks at us with security concerns for medium trust
-		// when it is inline in the RemoveStopWords method like it used to be.
-		
-		private static bool IsStandardAnalyzerStopWord(string stringToCheck)
-		{
-			if (StandardAnalyzer.STOP_WORDS_SET.Contains(stringToCheck.ToLower()))
-			{
-				return true;
-			}
-			return false;
-		}
+        //NOTE: The reason this code is in a separate method is because the Code Analysis barks at us with security concerns for medium trust
+        // when it is inline in the RemoveStopWords method like it used to be.
+
+        private static bool IsStandardAnalyzerStopWord(string stringToCheck)
+        {
+            if (StandardAnalyzer.STOP_WORDS_SET.Contains(stringToCheck.ToLower()))
+            {
+                return true;
+            }
+            return false;
+        }
 
         ///<summary>
         /// Removes stop words from the text if not contained within a phrase
         ///</summary>
         ///<param name="searchText"></param>
         ///<returns></returns>
-		
+
         public static string RemoveStopWords(this string searchText)
         {
             Action<string, StringBuilder> removeWords = (str, b) =>
@@ -115,20 +108,20 @@ namespace Examine
                         var innerBuilder = new StringBuilder();
                         var searchParts = str.Split(' ');
 
-	                    foreach (var t in searchParts)
-	                    {
-							if (!IsStandardAnalyzerStopWord(t))
-		                    {
-			                    innerBuilder.Append(t);
+                        foreach (var t in searchParts)
+                        {
+                            if (!IsStandardAnalyzerStopWord(t))
+                            {
+                                innerBuilder.Append(t);
                                 innerBuilder.Append(" ");
-		                    }
-	                    }
-	                    b.Append(innerBuilder.ToString());
+                            }
+                        }
+                        b.Append(innerBuilder.ToString());
                     };
 
             var builder = new StringBuilder();
             var carrat = 0;
-            while(carrat < searchText.Length)
+            while (carrat < searchText.Length)
             {
                 var quoteIndex = searchText.IndexOf("\"", carrat);
                 if (quoteIndex >= 0 && carrat == quoteIndex)
@@ -156,12 +149,10 @@ namespace Examine
                     {
                         nextCarrat = searchText.Length;
                     }
-#pragma warning disable IDE0057 // Use range operator
-                    var terms = searchText.Substring(carrat, nextCarrat - carrat).Trim();
-#pragma warning restore IDE0057 // Use range operator
+                    var terms = searchText[carrat..nextCarrat].Trim();
                     if (!string.IsNullOrWhiteSpace(terms))
                     {
-                        removeWords(terms, builder);    
+                        removeWords(terms, builder);
                     }
                     carrat = nextCarrat;
                 }

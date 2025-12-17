@@ -3,7 +3,7 @@ namespace Examine.Search
     /// <summary>
     /// Represents a field used to sort results
     /// </summary>
-    public struct SortableField
+    public readonly struct SortableField
     {
         /// <summary>
         /// The field name to sort by

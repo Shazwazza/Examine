@@ -18,7 +18,7 @@ namespace Examine
         /// <returns></returns>
         internal static bool IsExamineElement(this XElement x)
         {
-            var id = (string) x.Attribute("id");
+            var id = (string?)x.Attribute("id");
             if (string.IsNullOrEmpty(id))
             {
                 return false;
@@ -39,11 +39,11 @@ namespace Examine
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        internal static string ExamineNodeTypeAlias(this XElement x)
+        internal static string? ExamineNodeTypeAlias(this XElement x)
         {
-            return string.IsNullOrEmpty(((string) x.Attribute("nodeTypeAlias")))
+            return string.IsNullOrEmpty((string?)x.Attribute("nodeTypeAlias"))
                 ? x.Name.LocalName
-                : (string) x.Attribute("nodeTypeAlias");
+                : (string?)x.Attribute("nodeTypeAlias");
         }
 
         /// <summary>
@@ -54,12 +54,12 @@ namespace Examine
         /// <returns></returns>
         internal static string SelectExamineDataValue(this XElement xml, string alias)
         {
-            XElement nodeData = null;
+            XElement? nodeData = null;
 
             //if there is data children with attributes, we're on the old
             if (xml.Elements("data").Any(x => x.HasAttributes))
             {
-                nodeData = xml.Elements("data").SingleOrDefault(x => string.Equals(((string) x.Attribute("alias")), alias, StringComparison.InvariantCultureIgnoreCase));
+                nodeData = xml.Elements("data").SingleOrDefault(x => string.Equals((string?)x.Attribute("alias"), alias, StringComparison.InvariantCultureIgnoreCase));
             }
             else
             {
@@ -90,14 +90,14 @@ namespace Examine
                 throw new InvalidOperationException("Not a supported Examine XML structure");
             }
 
-            var id = (string)xml.Attribute("id");
+            var id = (string?)xml.Attribute("id");
             //we will use this as the item type, but we also need to add this as the 'nodeTypeAlias' as part of the properties
             //since this is what Umbraco expects
             var nodeTypeAlias = xml.ExamineNodeTypeAlias();
             var allVals = xml.SelectExamineAllValues();
-            allVals["nodeTypeAlias"] = nodeTypeAlias;
+            allVals["nodeTypeAlias"] = nodeTypeAlias!;
 
-            var set = new ValueSet(id, indexCategory, nodeTypeAlias, allVals);
+            var set = new ValueSet(id!, indexCategory, nodeTypeAlias!, allVals);
             return set;
         }
 
@@ -123,13 +123,13 @@ namespace Examine
                 if (x.Attribute("id") != null)
                 {
                     continue;
-                }   
+                }
 
                 string key;
                 if (x.Name.LocalName == "data")
                 {
                     //it's the legacy schema
-                    key = (string)x.Attribute("alias");
+                    key = (string)x.Attribute("alias")!;
                 }
                 else
                 {
