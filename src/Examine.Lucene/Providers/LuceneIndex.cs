@@ -68,17 +68,25 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime - using NRT
         /// </summary>
+        /// <param name="loggerFactory">The logger factory</param>
+        /// <param name="name">The name of the index</param>
+        /// <param name="indexOptions">The index options</param>
+        /// <param name="writer">The index writer</param>
+        /// <param name="taxonomyWriterFactory">The taxonomy writer factory, or null if taxonomy is not enabled</param>
         internal LuceneIndex(
             ILoggerFactory loggerFactory,
             string name,
             IOptionsMonitor<LuceneIndexOptions> indexOptions,
             IndexWriter writer,
-            SnapshotDirectoryTaxonomyIndexWriterFactory taxonomyWriterFactory)
+            SnapshotDirectoryTaxonomyIndexWriterFactory? taxonomyWriterFactory)
                : this(loggerFactory, name, indexOptions, CreateDefaultCommitter)
         {
             _writer = new TrackingIndexWriter(writer ?? throw new ArgumentNullException(nameof(writer)));
-            SnapshotDirectoryTaxonomyIndexWriterFactory = taxonomyWriterFactory ?? throw new ArgumentNullException(nameof(taxonomyWriterFactory));
-            _lazyTaxonomyDirectory = new Lazy<Directory?>(() => SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter?.Directory);
+            if (taxonomyWriterFactory != null)
+            {
+                SnapshotDirectoryTaxonomyIndexWriterFactory = taxonomyWriterFactory;
+            }
+            _lazyTaxonomyDirectory = new Lazy<Directory?>(() => SnapshotDirectoryTaxonomyIndexWriterFactory?.IndexWriter?.Directory);
             DefaultAnalyzer = writer.Analyzer;
             _isDirectoryExternallyManaged = true;
         }
@@ -429,7 +437,7 @@ namespace Examine.Lucene.Providers
 
                                 if (taxonomyEnabled)
                                 {
-                                    if (taxonomyIndexExists && SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter is not null)
+                                    if (taxonomyIndexExists && SnapshotDirectoryTaxonomyIndexWriterFactory?.IndexWriter is not null)
                                     {
                                         SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.DeleteAll();
                                         SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.Commit();
@@ -1112,8 +1120,9 @@ namespace Examine.Lucene.Providers
         /// <remarks>
         /// Due to strange lucene APIs, this factory actually hangs on to the index writer underneath and needs to be shared this way.
         /// That same writer is also referenced internally by the DirectoryTaxonomyWriter, but it isn't exposed publicly there.
+        /// Returns null if taxonomy indexing is disabled.
         /// </remarks>
-        internal SnapshotDirectoryTaxonomyIndexWriterFactory SnapshotDirectoryTaxonomyIndexWriterFactory { get; } = new SnapshotDirectoryTaxonomyIndexWriterFactory();
+        internal SnapshotDirectoryTaxonomyIndexWriterFactory? SnapshotDirectoryTaxonomyIndexWriterFactory { get; private set; } = new SnapshotDirectoryTaxonomyIndexWriterFactory();
 
         /// <summary>
         /// Gets the taxonomy writer for the current index, or null if taxonomy is not enabled

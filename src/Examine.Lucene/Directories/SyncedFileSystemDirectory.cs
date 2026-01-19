@@ -15,7 +15,7 @@ namespace Examine.Lucene.Directories
             ILogger<LoggingReplicationClient> clientLogger,
             Directory localLuceneDirectory,
             Directory mainLuceneDirectory,
-            Directory mainTaxonomyLuceneDirectory,
+            Directory? mainTaxonomyLuceneDirectory,
             LuceneIndex luceneIndex,
             DirectoryInfo tempDir)
             : base(localLuceneDirectory)
