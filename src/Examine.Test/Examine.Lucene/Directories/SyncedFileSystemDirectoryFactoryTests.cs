@@ -29,6 +29,8 @@ namespace Examine.Test.Examine.Lucene.Directories
     {
         private const int ItemCount = 100;
 
+        #region Tests
+
         [TestCase]
         public void Given_GenericHostBoot_When_Indexed_Then_ReplicationSucceeds()
         {
@@ -84,31 +86,15 @@ namespace Examine.Test.Examine.Lucene.Directories
                     using (index1.WithThreadingMode(IndexThreadingMode.Synchronous))
                     using (index2.WithThreadingMode(IndexThreadingMode.Synchronous))
                     {
-                        index1.IndexItem(
-                            new ValueSet(1.ToString(), "content",
-                                new Dictionary<string, IEnumerable<object>>
-                                {
-                                    {"item1", new List<object>(new[] {"value1"})},
-                                    {"item2", new List<object>(new[] {"value2"})}
-                                }));
-
-                        index2.IndexItem(
-                            new ValueSet(1.ToString(), "content",
-                                new Dictionary<string, IEnumerable<object>>
-                                {
-                                    {"item1", new List<object>(new[] {"value1"})},
-                                    {"item2", new List<object>(new[] {"value2"})}
-                                }));
+                        index1.IndexItem(CreateValueSet(1.ToString()));
+                        index2.IndexItem(CreateValueSet(1.ToString()));
                     }
 
-                    // Allow time to complete indexing/file writing/syncing
                     Thread.Sleep(1000);
-
                     host.Dispose();
                 }
                 finally
                 {
-                    // Validate that the replication worked and the directory can be read
                     Assert.IsTrue(dirInfo1.Exists);
                     Assert.IsTrue(dirInfo2.Exists);
                     using var mainDir1 = FSDirectory.Open(dirInfo1);
@@ -116,7 +102,7 @@ namespace Examine.Test.Examine.Lucene.Directories
                     Assert.Greater(mainDir1.ListAll().Length, 1);
                     Assert.Greater(mainDir2.ListAll().Length, 1);
                     Assert.IsTrue(DirectoryReader.IndexExists(mainDir1));
-                    Assert.IsTrue(DirectoryReader.IndexExists(mainDir2));                    
+                    Assert.IsTrue(DirectoryReader.IndexExists(mainDir2));
                 }
             }
             finally
@@ -137,188 +123,297 @@ namespace Examine.Test.Examine.Lucene.Directories
             bool fixIndex,
             Enum expected)
         {
-            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-            try
+            WithTempPaths((mainPath, tempPath) =>
             {
                 CreateIndex(mainPath, corruptIndex, removeSegments);
 
-                var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
-                    new DirectoryInfo(tempPath),
-                    new DirectoryInfo(mainPath),
-                    new DefaultLockFactory(),
-                    LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
-                    fixIndex);
+                var syncedDirFactory = CreateSyncedFactory(tempPath, mainPath, fixIndex: fixIndex);
+                using var index = CreateLuceneIndex(syncedDirFactory);
 
-                using var index = new LuceneIndex(
-                    LoggerFactory,
-                    TestIndex.TestIndexName,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        DirectoryFactory = syncedDirFactory
-                    }));
-
-                Directory? dir = null;
-                try
-                {
-                    var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
-                    Assert.IsTrue(result.HasFlag(expected), $"{result} does not have flag {expected}");
-                }
-                finally
-                {
-                    dir?.Dispose();
-                }
-            }
-            finally
-            {
-                System.IO.Directory.Delete(mainPath, true);
-                System.IO.Directory.Delete(tempPath, true);
-            }
+                var result = TryCreateDirectoryWithCleanup(syncedDirFactory, index);
+                Assert.IsTrue(result.HasFlag(expected), $"{result} does not have flag {expected}");
+            });
         }
 
         [Test]
         public void Given_CorruptMainIndex_And_HealthyLocalIndex_When_CreatingDirectory_Then_LocalIndexSyncedToMain()
         {
-            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-            try
+            WithTempPaths((mainPath, tempPath) =>
             {
-                // create unhealthy index
-                CreateIndex(mainPath, true, false);
+                CreateIndex(mainPath, corruptIndex: true, removeSegments: false);
+                CreateIndex(tempPath, corruptIndex: false, removeSegments: false);
 
-                // create healthy index
-                CreateIndex(tempPath, false, false);
+                var syncedDirFactory = CreateSyncedFactory(tempPath, mainPath);
+                using var index = CreateLuceneIndex(syncedDirFactory);
 
-                var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
-                    new DirectoryInfo(tempPath),
-                    new DirectoryInfo(mainPath),
-                    new DefaultLockFactory(),
-                    LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
-                    false);
+                var result = TryCreateDirectoryWithCleanup(syncedDirFactory, index);
+                Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
 
-                using var index = new LuceneIndex(
-                    LoggerFactory,
-                    TestIndex.TestIndexName,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        DirectoryFactory = syncedDirFactory
-                    }));
-
-                Directory? dir = null;
-                try
-                {
-                    var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
-                    Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
-                }
-                finally
-                {
-                    dir?.Dispose();
-                }
-
-                // Ensure the docs are there in main
-                using var mainIndex = new LuceneIndex(
-                    LoggerFactory,
-                    TestIndex.TestIndexName,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        DirectoryFactory = new GenericDirectoryFactory(
-                            _ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName)),
-                            _ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName, "Taxonomy"))),
-                    }));
-
+                using var mainIndex = CreateMainIndexReader(mainPath);
                 var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
                 Assert.AreEqual(ItemCount - 2, searchResults.TotalItemCount);
-            }
-            finally
-            {
-                System.IO.Directory.Delete(mainPath, true);
-                System.IO.Directory.Delete(tempPath, true);
-            }
+            });
         }
 
         [Test]
         public void Given_CorruptMainIndex_And_CorruptLocalIndex_When_CreatingDirectory_Then_NewIndexesCreatedAndUsable()
         {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                CreateIndex(mainPath, corruptIndex: true, removeSegments: false);
+                CreateIndex(tempPath, corruptIndex: true, removeSegments: false);
+
+                var syncedFactory = CreateSyncedFactory(tempPath, mainPath);
+                using var mainIndex = CreateLuceneIndex(syncedFactory);
+
+                var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(0, searchResults.TotalItemCount);
+            });
+        }
+
+        [Test]
+        public void Given_NoTaxonomyDirectory_When_CreatingDirectory_Then_IndexCreatedSuccessfully()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                var syncedDirFactory = CreateSyncedFactory(tempPath, mainPath, useTaxonomy: false);
+                using var index = CreateLuceneIndex(syncedDirFactory, useTaxonomy: false);
+
+                var result = TryCreateDirectoryWithCleanup(syncedDirFactory, index);
+                Assert.IsTrue(
+                    result == SyncedFileSystemDirectoryFactory.CreateResult.Init ||
+                    result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully),
+                    $"Expected Init or OpenedSuccessfully, got {result}");
+
+                var taxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
+                Assert.IsFalse(System.IO.Directory.Exists(taxonomyPath), "Taxonomy directory should not exist when UseTaxonomyIndex is false");
+            });
+        }
+
+        [Test]
+        public void Given_NoTaxonomyDirectory_When_IndexingData_Then_SearchSucceeds()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                var syncedFactory = CreateSyncedFactory(tempPath, mainPath, useTaxonomy: false);
+                using var index = CreateLuceneIndex(syncedFactory, useTaxonomy: false);
+
+                using (index.WithThreadingMode(IndexThreadingMode.Synchronous))
+                {
+                    for (var i = 0; i < 10; i++)
+                    {
+                        index.IndexItem(CreateValueSet(i.ToString(), "value" + i));
+                    }
+                }
+
+                var searchResults = index.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(10, searchResults.TotalItemCount);
+
+                var taxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
+                Assert.IsFalse(System.IO.Directory.Exists(taxonomyPath), "Taxonomy directory should not exist when UseTaxonomyIndex is false");
+            });
+        }
+
+        [Test]
+        public void Given_CorruptMainIndex_And_HealthyLocalIndex_NoTaxonomy_When_CreatingDirectory_Then_LocalIndexSyncedToMain()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                CreateIndexWithoutTaxonomy(mainPath, corruptIndex: true, removeSegments: false);
+                CreateIndexWithoutTaxonomy(tempPath, corruptIndex: false, removeSegments: false);
+
+                var syncedDirFactory = CreateSyncedFactory(tempPath, mainPath, useTaxonomy: false);
+                using var index = CreateLuceneIndex(syncedDirFactory, useTaxonomy: false);
+
+                var result = TryCreateDirectoryWithCleanup(syncedDirFactory, index);
+                Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
+
+                using var mainIndex = CreateMainIndexReader(mainPath, useTaxonomy: false);
+                var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(ItemCount - 2, searchResults.TotalItemCount);
+            });
+        }
+
+        [Test]
+        public void Given_CorruptMainIndex_And_CorruptLocalIndex_NoTaxonomy_When_CreatingDirectory_Then_NewIndexesCreatedAndUsable()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                CreateIndexWithoutTaxonomy(mainPath, corruptIndex: true, removeSegments: false);
+                CreateIndexWithoutTaxonomy(tempPath, corruptIndex: true, removeSegments: false);
+
+                var syncedFactory = CreateSyncedFactory(tempPath, mainPath, useTaxonomy: false);
+                using var mainIndex = CreateLuceneIndex(syncedFactory, useTaxonomy: false);
+
+                var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(0, searchResults.TotalItemCount);
+            });
+        }
+
+        #endregion
+
+        #region Private Helper Methods
+
+        /// <summary>
+        /// Creates a temporary test paths structure and executes the test action with automatic cleanup.
+        /// </summary>
+        private static void WithTempPaths(Action<string, string> testAction)
+        {
             var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
             try
             {
-                // create unhealthy index
-                CreateIndex(mainPath, true, false);
-
-                // create unhealthy index
-                CreateIndex(tempPath, true, false);
-
-                var syncedFactory = new SyncedFileSystemDirectoryFactory(
-                    new DirectoryInfo(tempPath),
-                    new DirectoryInfo(mainPath),
-                    new DefaultLockFactory(),
-                    LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
-                    false);
-
-                // Ensure the docs are there in main
-                using var mainIndex = new LuceneIndex(
-                    LoggerFactory,
-                    TestIndex.TestIndexName,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        DirectoryFactory = syncedFactory,
-                    }));
-
-                var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
-                Assert.AreEqual(0, searchResults.TotalItemCount);
+                testAction(mainPath, tempPath);
             }
             finally
             {
-                System.IO.Directory.Delete(mainPath, true);
-                System.IO.Directory.Delete(tempPath, true);
+                DeleteDirectoryIfExists(mainPath);
+                DeleteDirectoryIfExists(tempPath);
+            }
+        }
+
+        private static void DeleteDirectoryIfExists(string path)
+        {
+            if (System.IO.Directory.Exists(path))
+            {
+                System.IO.Directory.Delete(path, true);
+            }
+        }
+
+        /// <summary>
+        /// Creates a mock IOptionsMonitor for LuceneDirectoryIndexOptions.
+        /// </summary>
+        private static IOptionsMonitor<LuceneDirectoryIndexOptions> CreateDirectoryOptionsMonitor(
+            LuceneDirectoryIndexOptions? options = null)
+        {
+            options ??= new LuceneDirectoryIndexOptions();
+            return Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(
+                x => x.Get(TestIndex.TestIndexName) == options);
+        }
+
+        /// <summary>
+        /// Creates a SyncedFileSystemDirectoryFactory with the specified parameters.
+        /// </summary>
+        private SyncedFileSystemDirectoryFactory CreateSyncedFactory(
+            string tempPath,
+            string mainPath,
+            bool useTaxonomy = true,
+            bool fixIndex = false)
+        {
+            var options = new LuceneDirectoryIndexOptions { UseTaxonomyIndex = useTaxonomy };
+            return new SyncedFileSystemDirectoryFactory(
+                new DirectoryInfo(tempPath),
+                new DirectoryInfo(mainPath),
+                new DefaultLockFactory(),
+                LoggerFactory,
+                CreateDirectoryOptionsMonitor(options),
+                fixIndex);
+        }
+
+        /// <summary>
+        /// Creates a LuceneIndex with the specified directory factory.
+        /// </summary>
+        private LuceneIndex CreateLuceneIndex(
+            IDirectoryFactory directoryFactory,
+            bool useTaxonomy = true)
+        {
+            var options = new LuceneDirectoryIndexOptions
+            {
+                DirectoryFactory = directoryFactory,
+                UseTaxonomyIndex = useTaxonomy
+            };
+            return new LuceneIndex(
+                LoggerFactory,
+                TestIndex.TestIndexName,
+                CreateDirectoryOptionsMonitor(options));
+        }
+
+        /// <summary>
+        /// Creates a LuceneIndex using a GenericDirectoryFactory pointing to the main path.
+        /// </summary>
+        private LuceneIndex CreateMainIndexReader(string mainPath, bool useTaxonomy = true)
+        {
+            var factory = new GenericDirectoryFactory(
+                _ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName)),
+                _ => useTaxonomy
+                    ? FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName, "Taxonomy"))
+                    : null!);
+
+            return CreateLuceneIndex(factory, useTaxonomy);
+        }
+
+        /// <summary>
+        /// Creates a standard ValueSet for testing.
+        /// </summary>
+        private static ValueSet CreateValueSet(string id, string item2Value = "value2")
+            => new ValueSet(id, "content",
+                new Dictionary<string, IEnumerable<object>>
+                {
+                    { "item1", new List<object>(new[] { "value1" }) },
+                    { "item2", new List<object>(new[] { item2Value }) }
+                });
+
+        /// <summary>
+        /// Creates a batch of standard ValueSets for testing.
+        /// </summary>
+        private static List<ValueSet> CreateValueSets(int count)
+        {
+            var valueSets = new List<ValueSet>(count);
+            for (var i = 0; i < count; i++)
+            {
+                valueSets.Add(CreateValueSet(i.ToString()));
+            }
+            return valueSets;
+        }
+
+        /// <summary>
+        /// Executes the factory's TryCreateDirectory and ensures cleanup.
+        /// </summary>
+        private static SyncedFileSystemDirectoryFactory.CreateResult TryCreateDirectoryWithCleanup(
+            SyncedFileSystemDirectoryFactory factory,
+            LuceneIndex index)
+        {
+            Directory? dir = null;
+            try
+            {
+                return factory.TryCreateDirectory(index, false, out dir);
+            }
+            finally
+            {
+                dir?.Dispose();
             }
         }
 
         private void CreateIndex(string rootPath, bool corruptIndex, bool removeSegments)
+            => CreateIndex(rootPath, corruptIndex, removeSegments, useTaxonomy: true);
+
+        private void CreateIndexWithoutTaxonomy(string rootPath, bool corruptIndex, bool removeSegments)
+            => CreateIndex(rootPath, corruptIndex, removeSegments, useTaxonomy: false);
+
+        private void CreateIndex(string rootPath, bool corruptIndex, bool removeSegments, bool useTaxonomy)
         {
             var logger = LoggerFactory.CreateLogger<SyncedFileSystemDirectoryFactoryTests>();
-
             var indexPath = Path.Combine(rootPath, TestIndex.TestIndexName);
-            logger.LogInformation($"Creating index at {indexPath} with options: corruptIndex: {corruptIndex}, removeSegments: {removeSegments}");
+            logger.LogInformation($"Creating index at {indexPath} with options: corruptIndex: {corruptIndex}, removeSegments: {removeSegments}, useTaxonomy: {useTaxonomy}");
 
             using var luceneDir = FSDirectory.Open(indexPath);
-            using var luceneTaxonomyDir = FSDirectory.Open(Path.Combine(indexPath, "taxonomy"));
 
-            var taxonomyWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
-            using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyWriterFactory, luceneTaxonomyDir))
-            using (var indexer = GetTestIndex(writer, taxonomyWriterFactory))
-            using (indexer.WithThreadingMode(IndexThreadingMode.Synchronous))
+            if (useTaxonomy)
             {
-                var valueSets = new List<ValueSet>();
-                for (int i = 0; i < ItemCount; i++)
-                {
-                    valueSets.Add(
-                        new ValueSet(i.ToString(), "content",
-                            new Dictionary<string, IEnumerable<object>>
-                            {
-                                {"item1", new List<object>(new[] {"value1"})},
-                                {"item2", new List<object>(new[] {"value2"})}
-                            }));
-                }
-
-                indexer.IndexItems(valueSets);
-
-                // Now delete some items
-                indexer.DeleteFromIndex(new[] { "1", "2" });
-
-                // double ensure we commit here
-                indexer.IndexWriter.IndexWriter.Commit();
-                indexer.IndexWriter.IndexWriter.WaitForMerges();
+                using var luceneTaxonomyDir = FSDirectory.Open(Path.Combine(indexPath, "taxonomy"));
+                var taxonomyWriterFactory = new SnapshotDirectoryTaxonomyIndexWriterFactory();
+                using var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer()));
+                using var taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyWriterFactory, luceneTaxonomyDir);
+                using var indexer = GetTestIndex(writer, taxonomyWriterFactory);
+                PopulateIndex(indexer);
             }
-
+            else
+            {
+                using var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer()));
+                using var indexer = GetTestIndexWithoutTaxonomy(writer);
+                PopulateIndex(indexer);
+            }
 
             logger.LogInformation("Created index at " + luceneDir.Directory);
             Assert.IsTrue(DirectoryReader.IndexExists(luceneDir));
@@ -329,14 +424,23 @@ namespace Examine.Test.Examine.Lucene.Directories
             }
         }
 
-        private void CorruptIndex(DirectoryInfo dir, bool removeSegments, ILogger logger)
+        private static void PopulateIndex(TestIndex indexer)
         {
-            // index file extensions (no segments, no gen)
+            using (indexer.WithThreadingMode(IndexThreadingMode.Synchronous))
+            {
+                indexer.IndexItems(CreateValueSets(ItemCount));
+                indexer.DeleteFromIndex(new[] { "1", "2" });
+                indexer.IndexWriter.IndexWriter.Commit();
+                indexer.IndexWriter.IndexWriter.WaitForMerges();
+            }
+        }
+
+        private static void CorruptIndex(DirectoryInfo dir, bool removeSegments, ILogger logger)
+        {
             var indexFileExtensions = IndexFileNames.INDEX_EXTENSIONS
                 .Except(new[] { IndexFileNames.GEN_EXTENSION })
                 .ToArray();
 
-            // Get an index (non segments file) and delete it (corrupt index)
             var indexFile = dir.GetFiles()
                 .Where(x => removeSegments
                     ? x.Extension.Contains(Lucene46SegmentInfoFormat.SI_EXTENSION, StringComparison.OrdinalIgnoreCase)
@@ -345,285 +449,6 @@ namespace Examine.Test.Examine.Lucene.Directories
 
             logger.LogInformation($"Deleting {indexFile.FullName}");
             File.Delete(indexFile.FullName);
-        }
-
-        [Test]
-        public void Given_NoTaxonomyDirectory_When_CreatingDirectory_Then_IndexCreatedSuccessfully()
-        {
-            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-            try
-            {
-                var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
-                    new DirectoryInfo(tempPath),
-                    new DirectoryInfo(mainPath),
-                    new DefaultLockFactory(),
-                    LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        UseTaxonomyIndex = false
-                    }),
-                    false);
-
-                using var index = new LuceneIndex(
-                    LoggerFactory,
-                    TestIndex.TestIndexName,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        DirectoryFactory = syncedDirFactory,
-                        UseTaxonomyIndex = false
-                    }));
-
-                Directory? dir = null;
-                try
-                {
-                    var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
-                    Assert.IsTrue(result == SyncedFileSystemDirectoryFactory.CreateResult.Init || result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully), $"Expected Init or OpenedSuccessfully, got {result}");
-                }
-                finally
-                {
-                    dir?.Dispose();
-                }
-
-                // Verify no taxonomy directory was created
-                var taxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
-                Assert.IsFalse(System.IO.Directory.Exists(taxonomyPath), "Taxonomy directory should not exist when UseTaxonomyIndex is false");
-            }
-            finally
-            {
-                if (System.IO.Directory.Exists(mainPath))
-                {
-                    System.IO.Directory.Delete(mainPath, true);
-                }
-
-                if (System.IO.Directory.Exists(tempPath))
-                {
-                    System.IO.Directory.Delete(tempPath, true);
-                }
-            }
-        }
-
-        [Test]
-        public void Given_NoTaxonomyDirectory_When_IndexingData_Then_SearchSucceeds()
-        {
-            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-            try
-            {
-                var syncedFactory = new SyncedFileSystemDirectoryFactory(
-                    new DirectoryInfo(tempPath),
-                    new DirectoryInfo(mainPath),
-                    new DefaultLockFactory(),
-                    LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        UseTaxonomyIndex = false
-                    }),
-                    false);
-
-                using var index = new LuceneIndex(
-                    LoggerFactory,
-                    TestIndex.TestIndexName,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        DirectoryFactory = syncedFactory,
-                        UseTaxonomyIndex = false
-                    }));
-
-                using (index.WithThreadingMode(IndexThreadingMode.Synchronous))
-                {
-                    // Index some test data
-                    for (var i = 0; i < 10; i++)
-                    {
-                        index.IndexItem(
-                            new ValueSet(i.ToString(), "content",
-                                new Dictionary<string, IEnumerable<object>>
-                                {
-                                    {"item1", new List<object>(new[] {"value1"})},
-                                    {"item2", new List<object>(new[] {"value" + i})}
-                                }));
-                    }
-                }
-
-                // Search for the indexed data
-                var searchResults = index.Searcher.CreateQuery().All().Execute();
-                Assert.AreEqual(10, searchResults.TotalItemCount);
-
-                // Verify no taxonomy directory was created
-                var taxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
-                Assert.IsFalse(System.IO.Directory.Exists(taxonomyPath), "Taxonomy directory should not exist when UseTaxonomyIndex is false");
-            }
-            finally
-            {
-                if (System.IO.Directory.Exists(mainPath))
-                {
-                    System.IO.Directory.Delete(mainPath, true);
-                }
-
-                if (System.IO.Directory.Exists(tempPath))
-                {
-                    System.IO.Directory.Delete(tempPath, true);
-                }
-            }
-        }
-
-        [Test]
-        public void Given_CorruptMainIndex_And_HealthyLocalIndex_NoTaxonomy_When_CreatingDirectory_Then_LocalIndexSyncedToMain()
-        {
-            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-            try
-            {
-                // create unhealthy index (no taxonomy)
-                CreateIndexWithoutTaxonomy(mainPath, corruptIndex: true, removeSegments: false);
-
-                // create healthy index (no taxonomy)
-                CreateIndexWithoutTaxonomy(tempPath, corruptIndex: false, removeSegments: false);
-
-                var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
-                    new DirectoryInfo(tempPath),
-                    new DirectoryInfo(mainPath),
-                    new DefaultLockFactory(),
-                    LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        UseTaxonomyIndex = false
-                    }),
-                    false);
-
-                using var index = new LuceneIndex(
-                    LoggerFactory,
-                    TestIndex.TestIndexName,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        DirectoryFactory = syncedDirFactory,
-                        UseTaxonomyIndex = false
-                    }));
-
-                Directory? dir = null;
-                try
-                {
-                    var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
-                    Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
-                }
-                finally
-                {
-                    dir?.Dispose();
-                }
-
-                // Ensure the docs are there in main
-                using var mainIndex = new LuceneIndex(
-                    LoggerFactory,
-                    TestIndex.TestIndexName,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        DirectoryFactory = new GenericDirectoryFactory(
-                            _ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName)),
-                            _ => null!),  // No taxonomy
-                        UseTaxonomyIndex = false
-                    }));
-
-                var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
-                Assert.AreEqual(ItemCount - 2, searchResults.TotalItemCount);
-            }
-            finally
-            {
-                System.IO.Directory.Delete(mainPath, true);
-                System.IO.Directory.Delete(tempPath, true);
-            }
-        }
-
-        [Test]
-        public void Given_CorruptMainIndex_And_CorruptLocalIndex_NoTaxonomy_When_CreatingDirectory_Then_NewIndexesCreatedAndUsable()
-        {
-            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-            try
-            {
-                // create unhealthy index (no taxonomy)
-                CreateIndexWithoutTaxonomy(mainPath, corruptIndex: true, removeSegments: false);
-
-                // create unhealthy index (no taxonomy)
-                CreateIndexWithoutTaxonomy(tempPath, corruptIndex: true, removeSegments: false);
-
-                var syncedFactory = new SyncedFileSystemDirectoryFactory(
-                    new DirectoryInfo(tempPath),
-                    new DirectoryInfo(mainPath),
-                    new DefaultLockFactory(),
-                    LoggerFactory,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        UseTaxonomyIndex = false
-                    }),
-                    false);
-
-                // Ensure the index can be used
-                using var mainIndex = new LuceneIndex(
-                    LoggerFactory,
-                    TestIndex.TestIndexName,
-                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
-                    {
-                        DirectoryFactory = syncedFactory,
-                        UseTaxonomyIndex = false
-                    }));
-
-                var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
-                Assert.AreEqual(0, searchResults.TotalItemCount);
-            }
-            finally
-            {
-                System.IO.Directory.Delete(mainPath, true);
-                System.IO.Directory.Delete(tempPath, true);
-            }
-        }
-
-        private void CreateIndexWithoutTaxonomy(string rootPath, bool corruptIndex, bool removeSegments)
-        {
-            var logger = LoggerFactory.CreateLogger<SyncedFileSystemDirectoryFactoryTests>();
-
-            var indexPath = Path.Combine(rootPath, TestIndex.TestIndexName);
-            logger.LogInformation($"Creating index (no taxonomy) at {indexPath} with options: corruptIndex: {corruptIndex}, removeSegments: {removeSegments}");
-
-            using var luceneDir = FSDirectory.Open(indexPath);
-
-            using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var indexer = GetTestIndexWithoutTaxonomy(writer))
-            using (indexer.WithThreadingMode(IndexThreadingMode.Synchronous))
-            {
-                var valueSets = new List<ValueSet>();
-                for (int i = 0; i < ItemCount; i++)
-                {
-                    valueSets.Add(
-                        new ValueSet(i.ToString(), "content",
-                            new Dictionary<string, IEnumerable<object>>
-                            {
-                                {"item1", new List<object>(new[] {"value1"})},
-                                {"item2", new List<object>(new[] {"value2"})}
-                            }));
-                }
-
-                indexer.IndexItems(valueSets);
-
-                // Now delete some items
-                indexer.DeleteFromIndex(new[] { "1", "2" });
-
-                // double ensure we commit here
-                indexer.IndexWriter.IndexWriter.Commit();
-                indexer.IndexWriter.IndexWriter.WaitForMerges();
-            }
-
-
-            logger.LogInformation("Created index at " + luceneDir.Directory);
-            Assert.IsTrue(DirectoryReader.IndexExists(luceneDir));
-
-            if (corruptIndex)
-            {
-                CorruptIndex(luceneDir.Directory, removeSegments, logger);
-            }
         }
 
         private TestIndex GetTestIndexWithoutTaxonomy(IndexWriter writer)
@@ -635,6 +460,8 @@ namespace Examine.Test.Examine.Lucene.Directories
                 }),
                 writer,
                 null!);
+
+        #endregion
 
         private class MyAppDiscriminator : IApplicationDiscriminator
         {
