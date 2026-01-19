@@ -47,8 +47,14 @@ namespace Examine.Lucene.Providers
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
 
-            _lazyTaxonomyDirectory = new Lazy<Directory>(()
-                => directoryOptions.DirectoryFactory.CreateTaxonomyDirectory(this, directoryOptions.UnlockIndex));
+            _lazyTaxonomyDirectory = new Lazy<Directory?>(() =>
+            {
+                if (!directoryOptions.UseTaxonomyIndex)
+                {
+                    return null;
+                }
+                return directoryOptions.DirectoryFactory.CreateTaxonomyDirectory(this, directoryOptions.UnlockIndex);
+            });
 
             _lazyDirectory = new Lazy<Directory>(() =>
             {
@@ -72,7 +78,7 @@ namespace Examine.Lucene.Providers
         {
             _writer = new TrackingIndexWriter(writer ?? throw new ArgumentNullException(nameof(writer)));
             SnapshotDirectoryTaxonomyIndexWriterFactory = taxonomyWriterFactory ?? throw new ArgumentNullException(nameof(taxonomyWriterFactory));
-            _lazyTaxonomyDirectory = new Lazy<Directory>(() => SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.Directory);
+            _lazyTaxonomyDirectory = new Lazy<Directory?>(() => SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter?.Directory);
             DefaultAnalyzer = writer.Analyzer;
             _isDirectoryExternallyManaged = true;
         }
@@ -163,9 +169,18 @@ namespace Examine.Lucene.Providers
         private long? _latestGen;
 
         private readonly Lazy<LuceneSearcher>? _taxonomySearcher;
-        private readonly Lazy<Directory>? _lazyTaxonomyDirectory;
+        private readonly Lazy<Directory?>? _lazyTaxonomyDirectory;
 
         #region Properties
+
+        /// <summary>
+        /// Returns whether taxonomy indexing is enabled for this index
+        /// </summary>
+        /// <remarks>
+        /// Taxonomy indexing enables faceted search capabilities. When disabled, the taxonomy directory
+        /// will not be created and faceted search features will not be available.
+        /// </remarks>
+        public bool IsTaxonomyEnabled => GetLuceneTaxonomyDirectory() != null;
 
         /// <summary>
         /// Returns the <see cref="FieldValueTypeCollection"/> configured for this index
@@ -337,28 +352,30 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public void EnsureIndex(bool forceOverwrite)
         {
-            if (!forceOverwrite && _exists.HasValue && _exists.Value && _taxonomyExists.HasValue && _taxonomyExists.Value)
+            var taxonomyEnabled = IsTaxonomyEnabled;
+            
+            if (!forceOverwrite && _exists.HasValue && _exists.Value && (!taxonomyEnabled || (_taxonomyExists.HasValue && _taxonomyExists.Value)))
             {
                 return;
             }
 
-            // NOTE: indexExists will be false if either the main index or the taxonomy index do not exist
+            // NOTE: indexExists will be false if either the main index or the taxonomy index do not exist (when taxonomy is enabled)
             var indexMissing = !IndexExists();
             if (indexMissing || forceOverwrite)
             {
-                // if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this 
+                // if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this
                 // logic to actually execute multiple times
                 if (Monitor.TryEnter(_writerLocker))
                 {
                     var mainIndexExists = _writer != null || IndexExistsImpl();
-                    var taxonomyIndexExists = _taxonomyWriter != null || TaxonomyIndexExistsImpl();
+                    var taxonomyIndexExists = !taxonomyEnabled || _taxonomyWriter != null || TaxonomyIndexExistsImpl();
 
-                    var noIndexesExist = mainIndexExists == taxonomyIndexExists;
+                    var noIndexesExist = !mainIndexExists && (!taxonomyEnabled || !taxonomyIndexExists);
 
                     try
                     {
                         // if force override and at least one index exists
-                        if (!noIndexesExist && forceOverwrite)
+                        if ((mainIndexExists || (taxonomyEnabled && taxonomyIndexExists)) && forceOverwrite)
                         {
                             // it does exists so we'll need to clear it out
                             if (_logger.IsEnabled(LogLevel.Debug))
@@ -369,12 +386,15 @@ namespace Examine.Lucene.Providers
                             // This will happen if the writer hasn't been created/initialized yet which
                             // might occur if a rebuild is triggered before any indexing has been triggered.
                             // In this case we need to initialize a writer and continue as normal.
-                            // Since we are already inside the writer lock and it is null, we are allowed to 
+                            // Since we are already inside the writer lock and it is null, we are allowed to
                             // make this call with out using GetIndexWriter() to do the initialization.
                             _writer ??= CreateIndexWriterWithLockCheck();
-                            _taxonomyWriter ??= CreateTaxonomyWriterWithLockCheck();
+                            if (taxonomyEnabled)
+                            {
+                                _taxonomyWriter ??= CreateTaxonomyWriterWithLockCheck();
+                            }
 
-                            // We're forcing an overwrite, 
+                            // We're forcing an overwrite,
                             // this means that we need to cancel all operations currently in place,
                             // clear the queue and delete all of the data in the index.
 
@@ -388,7 +408,7 @@ namespace Examine.Lucene.Providers
                                 return;
                             }
 
-                            if (_taxonomyWriter == null)
+                            if (taxonomyEnabled && _taxonomyWriter == null)
                             {
                                 _logger.LogWarning("{IndexName} taxonomy writer was null, exiting", Name);
                                 return;
@@ -407,14 +427,21 @@ namespace Examine.Lucene.Providers
                                     CreateNewIndex(GetLuceneDirectory());
                                 }
 
-                                if (taxonomyIndexExists && SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter is not null)
+                                if (taxonomyEnabled)
                                 {
-                                    SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.DeleteAll();
-                                    SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.Commit();
-                                }
-                                else
-                                {
-                                    CreateNewTaxonomyIndex(GetLuceneTaxonomyDirectory());
+                                    if (taxonomyIndexExists && SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter is not null)
+                                    {
+                                        SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.DeleteAll();
+                                        SnapshotDirectoryTaxonomyIndexWriterFactory.IndexWriter.Commit();
+                                    }
+                                    else
+                                    {
+                                        var taxonomyDir = GetLuceneTaxonomyDirectory();
+                                        if (taxonomyDir != null)
+                                        {
+                                            CreateNewTaxonomyIndex(taxonomyDir);
+                                        }
+                                    }
                                 }
                             }
                             finally
@@ -440,10 +467,14 @@ namespace Examine.Lucene.Providers
                                 CreateNewIndex(GetLuceneDirectory());
                             }
 
-                            if (!taxonomyIndexExists)
+                            if (taxonomyEnabled && !taxonomyIndexExists)
                             {
-                                CreateNewTaxonomyIndex(GetLuceneTaxonomyDirectory());
-                            }   
+                                var taxonomyDir = GetLuceneTaxonomyDirectory();
+                                if (taxonomyDir != null)
+                                {
+                                    CreateNewTaxonomyIndex(taxonomyDir);
+                                }
+                            }
                         }
                     }
                     finally
@@ -676,6 +707,13 @@ namespace Examine.Lucene.Providers
         public override bool IndexExists()
         {
             var mainIndexExists = _writer != null || IndexExistsImpl();
+            
+            // If taxonomy is not enabled, we only check the main index
+            if (!IsTaxonomyEnabled)
+            {
+                return mainIndexExists;
+            }
+            
             var taxonomyIndexExists = _taxonomyWriter != null || TaxonomyIndexExistsImpl();
             return taxonomyIndexExists && mainIndexExists;
         }
@@ -750,11 +788,21 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <returns></returns>
         /// <remarks>
-        /// If the index does not exist, it will not store the value so subsequent calls to this will re-evaulate
+        /// If the index does not exist, it will not store the value so subsequent calls to this will re-evaulate.
+        /// Returns true if taxonomy is disabled (to indicate no taxonomy index is needed).
         /// </remarks>
 
         private bool TaxonomyIndexExistsImpl()
         {
+            var taxonomyDir = GetLuceneTaxonomyDirectory();
+            
+            // If taxonomy is disabled, return true (no taxonomy index needed)
+            if (taxonomyDir == null)
+            {
+                _taxonomyExists = true;
+                return true;
+            }
+            
             //if it's been set and it's true, return true
             if (_taxonomyExists.HasValue && _taxonomyExists.Value)
             {
@@ -764,7 +812,7 @@ namespace Examine.Lucene.Providers
             //if it's not been set or it just doesn't exist, re-read the lucene files
             if (!_taxonomyExists.HasValue || !_taxonomyExists.Value)
             {
-                _taxonomyExists = DirectoryReader.IndexExists(GetLuceneTaxonomyDirectory());
+                _taxonomyExists = DirectoryReader.IndexExists(taxonomyDir);
             }
 
             return _taxonomyExists.Value;
@@ -900,7 +948,18 @@ namespace Examine.Lucene.Providers
         /// The generation number of the update operation, or null if the operation is not applicable.
         /// </returns>
         protected virtual long? UpdateLuceneDocument(Term term, Document doc)
-            => IndexWriter.UpdateDocument(term, _options.FacetsConfig.Build(TaxonomyWriter, doc));
+        {
+            var taxonomyWriter = TaxonomyWriter;
+            if (taxonomyWriter != null)
+            {
+                return IndexWriter.UpdateDocument(term, _options.FacetsConfig.Build(taxonomyWriter, doc));
+            }
+            else
+            {
+                // When taxonomy is disabled, just update the document without facet configuration
+                return IndexWriter.UpdateDocument(term, doc);
+            }
+        }
 
         private bool ProcessQueueItem(IndexOperation item)
         {
@@ -925,10 +984,10 @@ namespace Examine.Lucene.Providers
         public Directory GetLuceneDirectory() => _writer != null ? _writer.IndexWriter.Directory : _lazyDirectory?.Value ?? throw new InvalidOperationException($"{Name} does not have a Lucene Writer or Directory configured.");
 
         /// <summary>
-        /// Returns the Lucene Directory used to store the taxonomy index
+        /// Returns the Lucene Directory used to store the taxonomy index, or null if taxonomy is not enabled
         /// </summary>
-        /// <returns></returns>
-        public Directory GetLuceneTaxonomyDirectory() => _taxonomyWriter != null ? _taxonomyWriter.Directory : _lazyTaxonomyDirectory?.Value ?? throw new InvalidOperationException($"{Name} does not have a Lucene Taxonomy Writer or Directory configured.");
+        /// <returns>The taxonomy directory, or null if taxonomy is not enabled for this index</returns>
+        public Directory? GetLuceneTaxonomyDirectory() => _taxonomyWriter?.Directory ?? _lazyTaxonomyDirectory?.Value;
 
 
         /// <summary>
@@ -1012,12 +1071,18 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The taxonomy writer, or null if taxonomy is not enabled</returns>
         private DirectoryTaxonomyWriter? CreateTaxonomyWriterWithLockCheck()
         {
             var dir = GetLuceneTaxonomyDirectory();
 
-            // Unfortunately if the AppDomain is taken down this will remain locked, so we can 
+            // If taxonomy is disabled, return null
+            if (dir == null)
+            {
+                return null;
+            }
+
+            // Unfortunately if the AppDomain is taken down this will remain locked, so we can
             // ensure that it's unlocked here in that case.
             try
             {
@@ -1051,12 +1116,18 @@ namespace Examine.Lucene.Providers
         internal SnapshotDirectoryTaxonomyIndexWriterFactory SnapshotDirectoryTaxonomyIndexWriterFactory { get; } = new SnapshotDirectoryTaxonomyIndexWriterFactory();
 
         /// <summary>
-        /// Gets the taxonomy writer for the current index
+        /// Gets the taxonomy writer for the current index, or null if taxonomy is not enabled
         /// </summary>
-        internal DirectoryTaxonomyWriter TaxonomyWriter
+        internal DirectoryTaxonomyWriter? TaxonomyWriter
         {
             get
             {
+                // If taxonomy is not enabled, return null
+                if (!IsTaxonomyEnabled)
+                {
+                    return null;
+                }
+                
                 EnsureIndex(false);
 
                 if (_taxonomyWriter == null)
@@ -1073,7 +1144,7 @@ namespace Examine.Lucene.Providers
 
                 }
 
-                return _taxonomyWriter ?? throw new NullReferenceException(nameof(_taxonomyWriter));
+                return _taxonomyWriter;
             }
         }
 
@@ -1483,7 +1554,7 @@ namespace Examine.Lucene.Providers
                         _lazyDirectory.Value.Dispose();
                     }
 
-                    if ((_lazyTaxonomyDirectory?.IsValueCreated ?? false) && !_isDirectoryExternallyManaged)
+                    if ((_lazyTaxonomyDirectory?.IsValueCreated ?? false) && _lazyTaxonomyDirectory?.Value != null && !_isDirectoryExternallyManaged)
                     {
                         _lazyTaxonomyDirectory.Value.Dispose();
                     }

@@ -11,14 +11,14 @@ namespace Examine.Lucene.Directories
         Directory IDirectoryFactory.CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
             => CreateDirectory(luceneIndex, forceUnlock);
 
-        Directory IDirectoryFactory.CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        Directory? IDirectoryFactory.CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
             => CreateTaxonomyDirectory(luceneIndex, forceUnlock);
 
         /// <inheritdoc/>
         protected abstract Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
         /// <inheritdoc/>
-        protected abstract Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock);
+        protected abstract Directory? CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
         /// <summary>
         /// Releases the unmanaged resources used by the object and optionally releases the managed resources.

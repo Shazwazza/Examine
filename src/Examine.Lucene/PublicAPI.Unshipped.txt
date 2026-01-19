@@ -1,12 +1,12 @@
 #nullable enable
-abstract Examine.Lucene.Directories.DirectoryFactoryBase.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
+abstract Examine.Lucene.Directories.DirectoryFactoryBase.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory?
 abstract Examine.Lucene.Providers.BaseLuceneSearcher.Dispose() -> void
 abstract Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
-Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
+Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory?
 Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
-Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
-Examine.Lucene.Directories.GenericDirectoryFactory.GenericDirectoryFactory(System.Func<string!, Lucene.Net.Store.Directory!>! factory, System.Func<string!, Lucene.Net.Store.Directory!>! taxonomyDirectoryFactory) -> void
-Examine.Lucene.Directories.IDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
+Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory?
+Examine.Lucene.Directories.GenericDirectoryFactory.GenericDirectoryFactory(System.Func<string!, Lucene.Net.Store.Directory!>! factory, System.Func<string!, Lucene.Net.Store.Directory?>? taxonomyDirectoryFactory) -> void
+Examine.Lucene.Directories.IDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory?
 Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator!>! replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient!>! clientLogger, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! sourceDirectory, Lucene.Net.Store.Directory! destinationDirectory, Lucene.Net.Store.Directory! destinationTaxonomyDirectory, System.IO.DirectoryInfo! tempStorage) -> void
 Examine.Lucene.FacetExtensions
 Examine.Lucene.Indexing.DateTimeType.DateTimeType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, Lucene.Net.Documents.DateResolution resolution, bool store) -> void
@@ -26,6 +26,8 @@ Examine.Lucene.Indexing.SingleType.IsTaxonomyFaceted.get -> bool
 Examine.Lucene.Indexing.SingleType.SingleType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, bool store) -> void
 Examine.Lucene.LuceneIndexOptions.FacetsConfig.get -> Lucene.Net.Facet.FacetsConfig!
 Examine.Lucene.LuceneIndexOptions.FacetsConfig.set -> void
+Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.get -> bool
+Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.set -> void
 Examine.Lucene.LuceneMultiSearcherOptions
 Examine.Lucene.LuceneMultiSearcherOptions.IndexNames.get -> string![]!
 Examine.Lucene.LuceneMultiSearcherOptions.IndexNames.set -> void
@@ -46,7 +48,8 @@ Examine.Lucene.Providers.ILuceneTaxonomySearcher
 Examine.Lucene.Providers.ILuceneTaxonomySearcher.CategoryCount.get -> int
 Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetOrdinal(string! dim, string![]! path) -> int
 Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetPath(int ordinal) -> Examine.Search.IFacetLabel!
-Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory() -> Lucene.Net.Store.Directory!
+Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory() -> Lucene.Net.Store.Directory?
+Examine.Lucene.Providers.LuceneIndex.IsTaxonomyEnabled.get -> bool
 Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Collections.Generic.IEnumerable<Examine.IIndex!>! indexes) -> void
 Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher!>!>! searchers) -> void
 Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get -> System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.BaseLuceneSearcher!>!

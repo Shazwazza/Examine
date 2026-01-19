@@ -93,6 +93,16 @@ namespace Examine.Lucene.Directories
 
             var mainLuceneDir = base.CreateDirectory(luceneIndex, forceUnlock);
             var mainTaxonomyDir = base.CreateTaxonomyDirectory(luceneIndex, forceUnlock);
+            
+            // SyncedFileSystemDirectoryFactory requires taxonomy to be enabled because
+            // the replication mechanism (IndexAndTaxonomyRevision) requires a taxonomy index.
+            if (mainTaxonomyDir == null)
+            {
+                throw new InvalidOperationException(
+                    $"SyncedFileSystemDirectoryFactory requires taxonomy to be enabled. " +
+                    $"Set {nameof(LuceneIndexOptions.UseTaxonomyIndex)} to true for index '{luceneIndex.Name}'.");
+            }
+            
             var localLuceneDir = FSDirectory.Open(
                 localLuceneIndexFolder,
                 LockFactory.GetLockFactory(localLuceneIndexFolder));
