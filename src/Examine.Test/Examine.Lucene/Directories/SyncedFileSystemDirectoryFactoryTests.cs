@@ -347,6 +347,295 @@ namespace Examine.Test.Examine.Lucene.Directories
             File.Delete(indexFile.FullName);
         }
 
+        [Test]
+        public void Given_NoTaxonomyDirectory_When_CreatingDirectory_Then_IndexCreatedSuccessfully()
+        {
+            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            try
+            {
+                var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
+                    new DirectoryInfo(tempPath),
+                    new DirectoryInfo(mainPath),
+                    new DefaultLockFactory(),
+                    LoggerFactory,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        UseTaxonomyIndex = false
+                    }),
+                    false);
+
+                using var index = new LuceneIndex(
+                    LoggerFactory,
+                    TestIndex.TestIndexName,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        DirectoryFactory = syncedDirFactory,
+                        UseTaxonomyIndex = false
+                    }));
+
+                Directory? dir = null;
+                try
+                {
+                    var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
+                    Assert.IsTrue(result == SyncedFileSystemDirectoryFactory.CreateResult.Init || result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.OpenedSuccessfully), $"Expected Init or OpenedSuccessfully, got {result}");
+                }
+                finally
+                {
+                    dir?.Dispose();
+                }
+
+                // Verify no taxonomy directory was created
+                var taxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
+                Assert.IsFalse(System.IO.Directory.Exists(taxonomyPath), "Taxonomy directory should not exist when UseTaxonomyIndex is false");
+            }
+            finally
+            {
+                if (System.IO.Directory.Exists(mainPath))
+                {
+                    System.IO.Directory.Delete(mainPath, true);
+                }
+
+                if (System.IO.Directory.Exists(tempPath))
+                {
+                    System.IO.Directory.Delete(tempPath, true);
+                }
+            }
+        }
+
+        [Test]
+        public void Given_NoTaxonomyDirectory_When_IndexingData_Then_SearchSucceeds()
+        {
+            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            try
+            {
+                var syncedFactory = new SyncedFileSystemDirectoryFactory(
+                    new DirectoryInfo(tempPath),
+                    new DirectoryInfo(mainPath),
+                    new DefaultLockFactory(),
+                    LoggerFactory,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        UseTaxonomyIndex = false
+                    }),
+                    false);
+
+                using var index = new LuceneIndex(
+                    LoggerFactory,
+                    TestIndex.TestIndexName,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        DirectoryFactory = syncedFactory,
+                        UseTaxonomyIndex = false
+                    }));
+
+                using (index.WithThreadingMode(IndexThreadingMode.Synchronous))
+                {
+                    // Index some test data
+                    for (var i = 0; i < 10; i++)
+                    {
+                        index.IndexItem(
+                            new ValueSet(i.ToString(), "content",
+                                new Dictionary<string, IEnumerable<object>>
+                                {
+                                    {"item1", new List<object>(new[] {"value1"})},
+                                    {"item2", new List<object>(new[] {"value" + i})}
+                                }));
+                    }
+                }
+
+                // Search for the indexed data
+                var searchResults = index.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(10, searchResults.TotalItemCount);
+
+                // Verify no taxonomy directory was created
+                var taxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
+                Assert.IsFalse(System.IO.Directory.Exists(taxonomyPath), "Taxonomy directory should not exist when UseTaxonomyIndex is false");
+            }
+            finally
+            {
+                if (System.IO.Directory.Exists(mainPath))
+                {
+                    System.IO.Directory.Delete(mainPath, true);
+                }
+
+                if (System.IO.Directory.Exists(tempPath))
+                {
+                    System.IO.Directory.Delete(tempPath, true);
+                }
+            }
+        }
+
+        [Test]
+        public void Given_CorruptMainIndex_And_HealthyLocalIndex_NoTaxonomy_When_CreatingDirectory_Then_LocalIndexSyncedToMain()
+        {
+            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            try
+            {
+                // create unhealthy index (no taxonomy)
+                CreateIndexWithoutTaxonomy(mainPath, corruptIndex: true, removeSegments: false);
+
+                // create healthy index (no taxonomy)
+                CreateIndexWithoutTaxonomy(tempPath, corruptIndex: false, removeSegments: false);
+
+                var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
+                    new DirectoryInfo(tempPath),
+                    new DirectoryInfo(mainPath),
+                    new DefaultLockFactory(),
+                    LoggerFactory,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        UseTaxonomyIndex = false
+                    }),
+                    false);
+
+                using var index = new LuceneIndex(
+                    LoggerFactory,
+                    TestIndex.TestIndexName,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        DirectoryFactory = syncedDirFactory,
+                        UseTaxonomyIndex = false
+                    }));
+
+                Directory? dir = null;
+                try
+                {
+                    var result = syncedDirFactory.TryCreateDirectory(index, false, out dir);
+                    Assert.IsTrue(result.HasFlag(SyncedFileSystemDirectoryFactory.CreateResult.SyncedFromLocal));
+                }
+                finally
+                {
+                    dir?.Dispose();
+                }
+
+                // Ensure the docs are there in main
+                using var mainIndex = new LuceneIndex(
+                    LoggerFactory,
+                    TestIndex.TestIndexName,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        DirectoryFactory = new GenericDirectoryFactory(
+                            _ => FSDirectory.Open(Path.Combine(mainPath, TestIndex.TestIndexName)),
+                            _ => null!),  // No taxonomy
+                        UseTaxonomyIndex = false
+                    }));
+
+                var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(ItemCount - 2, searchResults.TotalItemCount);
+            }
+            finally
+            {
+                System.IO.Directory.Delete(mainPath, true);
+                System.IO.Directory.Delete(tempPath, true);
+            }
+        }
+
+        [Test]
+        public void Given_CorruptMainIndex_And_CorruptLocalIndex_NoTaxonomy_When_CreatingDirectory_Then_NewIndexesCreatedAndUsable()
+        {
+            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            try
+            {
+                // create unhealthy index (no taxonomy)
+                CreateIndexWithoutTaxonomy(mainPath, corruptIndex: true, removeSegments: false);
+
+                // create unhealthy index (no taxonomy)
+                CreateIndexWithoutTaxonomy(tempPath, corruptIndex: true, removeSegments: false);
+
+                var syncedFactory = new SyncedFileSystemDirectoryFactory(
+                    new DirectoryInfo(tempPath),
+                    new DirectoryInfo(mainPath),
+                    new DefaultLockFactory(),
+                    LoggerFactory,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        UseTaxonomyIndex = false
+                    }),
+                    false);
+
+                // Ensure the index can be used
+                using var mainIndex = new LuceneIndex(
+                    LoggerFactory,
+                    TestIndex.TestIndexName,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        DirectoryFactory = syncedFactory,
+                        UseTaxonomyIndex = false
+                    }));
+
+                var searchResults = mainIndex.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(0, searchResults.TotalItemCount);
+            }
+            finally
+            {
+                System.IO.Directory.Delete(mainPath, true);
+                System.IO.Directory.Delete(tempPath, true);
+            }
+        }
+
+        private void CreateIndexWithoutTaxonomy(string rootPath, bool corruptIndex, bool removeSegments)
+        {
+            var logger = LoggerFactory.CreateLogger<SyncedFileSystemDirectoryFactoryTests>();
+
+            var indexPath = Path.Combine(rootPath, TestIndex.TestIndexName);
+            logger.LogInformation($"Creating index (no taxonomy) at {indexPath} with options: corruptIndex: {corruptIndex}, removeSegments: {removeSegments}");
+
+            using var luceneDir = FSDirectory.Open(indexPath);
+
+            using (var writer = new IndexWriter(luceneDir, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
+            using (var indexer = GetTestIndexWithoutTaxonomy(writer))
+            using (indexer.WithThreadingMode(IndexThreadingMode.Synchronous))
+            {
+                var valueSets = new List<ValueSet>();
+                for (int i = 0; i < ItemCount; i++)
+                {
+                    valueSets.Add(
+                        new ValueSet(i.ToString(), "content",
+                            new Dictionary<string, IEnumerable<object>>
+                            {
+                                {"item1", new List<object>(new[] {"value1"})},
+                                {"item2", new List<object>(new[] {"value2"})}
+                            }));
+                }
+
+                indexer.IndexItems(valueSets);
+
+                // Now delete some items
+                indexer.DeleteFromIndex(new[] { "1", "2" });
+
+                // double ensure we commit here
+                indexer.IndexWriter.IndexWriter.Commit();
+                indexer.IndexWriter.IndexWriter.WaitForMerges();
+            }
+
+
+            logger.LogInformation("Created index at " + luceneDir.Directory);
+            Assert.IsTrue(DirectoryReader.IndexExists(luceneDir));
+
+            if (corruptIndex)
+            {
+                CorruptIndex(luceneDir.Directory, removeSegments, logger);
+            }
+        }
+
+        private TestIndex GetTestIndexWithoutTaxonomy(IndexWriter writer)
+            => new TestIndex(
+                LoggerFactory,
+                Mock.Of<IOptionsMonitor<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions
+                {
+                    UseTaxonomyIndex = false
+                }),
+                writer,
+                null!);
+
         private class MyAppDiscriminator : IApplicationDiscriminator
         {
             public string Discriminator { get; } = Guid.NewGuid().ToString();

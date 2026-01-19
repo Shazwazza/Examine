@@ -104,8 +104,7 @@ namespace Examine.Lucene.Providers
 
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
-            _taxonomySearcher = new Lazy<LuceneSearcher>(CreateSearcher);
-            _searcher = new Lazy<BaseLuceneSearcher>(() => _taxonomySearcher.Value);
+            _searcher = new Lazy<BaseLuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
@@ -116,6 +115,7 @@ namespace Examine.Lucene.Providers
         private readonly LuceneIndexOptions _options;
         private PerFieldAnalyzerWrapper? _fieldAnalyzer;
         private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>? _nrtReopenThread;
+        private ControlledRealTimeReopenThread<IndexSearcher>? _nrtReopenThreadNoTaxonomy;
         private readonly ILogger<LuceneIndex> _logger;
         private readonly Lazy<Directory>? _lazyDirectory;
         private bool _isDirectoryExternallyManaged = false;
@@ -152,9 +152,9 @@ namespace Examine.Lucene.Providers
         public override ISearcher Searcher => _searcher.Value;
 
         /// <summary>
-        /// Gets a Taxonomy searcher for the index
+        /// Gets a Taxonomy searcher for the index, or null if taxonomy is not enabled
         /// </summary>
-        public virtual ILuceneTaxonomySearcher? TaxonomySearcher => _taxonomySearcher?.Value;
+        public virtual ILuceneTaxonomySearcher? TaxonomySearcher => _searcher.Value as ILuceneTaxonomySearcher;
 
         /// <summary>
         /// The async task that runs during an async indexing operation
@@ -176,7 +176,6 @@ namespace Examine.Lucene.Providers
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
 
-        private readonly Lazy<LuceneSearcher>? _taxonomySearcher;
         private readonly Lazy<Directory?>? _lazyTaxonomyDirectory;
 
         #region Properties
@@ -1197,7 +1196,7 @@ namespace Examine.Lucene.Providers
             return writer;
         }
 
-        private LuceneSearcher CreateSearcher()
+        private BaseLuceneSearcher CreateSearcher()
         {
             var name = Name;
             foreach (var suffix in PossibleSuffixes)
@@ -1216,51 +1215,94 @@ namespace Examine.Lucene.Providers
 
             // Create an IndexSearcher ReferenceManager to safely share IndexSearcher instances across
             // multiple threads
-            var searcherManager = new SearcherTaxonomyManager(
-                writer.IndexWriter,
-
-                // TODO: Apply All Deletes? Will be faster if this is false, https://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
-                // BUT ... to do that we would need to fulfill this requirement:
-                // "yet during searching you have some way to ignore the old versions"
-                // Without fulfilling that requirement our Index_Read_And_Write_Ensure_No_Errors_In_Async tests fail when using
-                // non in-memory directories because it will return more results than what is actually in the index.
-                true,
-                new SearcherFactory(),
-                taxonomyWriter);
-
-            searcherManager.AddListener(this);
-
-            if (_options.NrtEnabled)
+            // When taxonomy is disabled, we use a regular SearcherManager instead of SearcherTaxonomyManager
+            if (taxonomyWriter != null)
             {
-                // Create the ControlledRealTimeReopenThread that reopens the index periodically having into 
-                // account the changes made to the index and tracked by the TrackingIndexWriter instance
-                // The index is refreshed every XX sec when nobody is waiting 
-                // and every XX sec whenever is someone waiting (see search method)
-                // (see http://lucene.apache.org/core/4_3_0/core/org/apache/lucene/search/NRTManagerReopenThread.html)
-                _nrtReopenThread = new ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>(
-                    writer,
-                    searcherManager,
-                    _options.NrtTargetMaxStaleSec,    // when there is nobody waiting
-                    _options.NrtTargetMinStaleSec)    // when there is someone waiting
+                var searcherManager = new SearcherTaxonomyManager(
+                    writer.IndexWriter,
+
+                    // TODO: Apply All Deletes? Will be faster if this is false, https://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
+                    // BUT ... to do that we would need to fulfill this requirement:
+                    // "yet during searching you have some way to ignore the old versions"
+                    // Without fulfilling that requirement our Index_Read_And_Write_Ensure_No_Errors_In_Async tests fail when using
+                    // non in-memory directories because it will return more results than what is actually in the index.
+                    true,
+                    new SearcherFactory(),
+                    taxonomyWriter);
+
+                searcherManager.AddListener(this);
+
+                if (_options.NrtEnabled)
                 {
-                    Name = $"{Name} NRT Reopen Thread",
-                    IsBackground = true
-                };
+                    // Create the ControlledRealTimeReopenThread that reopens the index periodically having into
+                    // account the changes made to the index and tracked by the TrackingIndexWriter instance
+                    // The index is refreshed every XX sec when nobody is waiting
+                    // and every XX sec whenever is someone waiting (see search method)
+                    // (see http://lucene.apache.org/core/4_3_0/core/org/apache/lucene/search/NRTManagerReopenThread.html)
+                    _nrtReopenThread = new ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>(
+                        writer,
+                        searcherManager,
+                        _options.NrtTargetMaxStaleSec,    // when there is nobody waiting
+                        _options.NrtTargetMinStaleSec)    // when there is someone waiting
+                    {
+                        Name = $"{Name} NRT Reopen Thread",
+                        IsBackground = true
+                    };
 
-                _nrtReopenThread.Start();
+                    _nrtReopenThread.Start();
 
+                    // wait for most recent changes when first creating the searcher
+                    WaitForChanges();
+                }
+                else
+                {
+                    // wait for most recent changes when first creating the searcher
+                    searcherManager.MaybeRefreshBlocking();
+                }
                 // wait for most recent changes when first creating the searcher
                 WaitForChanges();
+
+                return new LuceneSearcher(name + "Searcher", searcherManager, FieldValueTypeCollection, new SearcherOptions(FieldAnalyzer, _options.FacetsConfig), _options.NrtEnabled);
             }
             else
             {
-                // wait for most recent changes when first creating the searcher
-                searcherManager.MaybeRefreshBlocking();
-            }
-            // wait for most recent changes when first creating the searcher
-            WaitForChanges();
+                // When taxonomy is disabled, use a regular SearcherManager
+                var searcherManager = new SearcherManager(
+                    writer.IndexWriter,
+                    true,
+                    new SearcherFactory());
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldValueTypeCollection, new SearcherOptions(FieldAnalyzer, _options.FacetsConfig), _options.NrtEnabled);
+                searcherManager.AddListener(this);
+
+                if (_options.NrtEnabled)
+                {
+                    // Create the ControlledRealTimeReopenThread that reopens the index periodically having into
+                    // account the changes made to the index and tracked by the TrackingIndexWriter instance
+                    _nrtReopenThreadNoTaxonomy = new ControlledRealTimeReopenThread<IndexSearcher>(
+                        writer,
+                        searcherManager,
+                        _options.NrtTargetMaxStaleSec,    // when there is nobody waiting
+                        _options.NrtTargetMinStaleSec)    // when there is someone waiting
+                    {
+                        Name = $"{Name} NRT Reopen Thread",
+                        IsBackground = true
+                    };
+
+                    _nrtReopenThreadNoTaxonomy.Start();
+
+                    // wait for most recent changes when first creating the searcher
+                    WaitForChanges();
+                }
+                else
+                {
+                    // wait for most recent changes when first creating the searcher
+                    searcherManager.MaybeRefreshBlocking();
+                }
+                // wait for most recent changes when first creating the searcher
+                WaitForChanges();
+
+                return new LuceneNonTaxonomySearcher(name + "Searcher", searcherManager, FieldValueTypeCollection, new SearcherOptions(FieldAnalyzer, _options.FacetsConfig), _options.NrtEnabled);
+            }
         }
 
         /// <summary>
@@ -1401,7 +1443,9 @@ namespace Examine.Lucene.Providers
             {
                 if (_options.NrtEnabled)
                 {
-                    var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000);
+                    // Use the correct NRT thread depending on whether taxonomy is enabled
+                    var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000)
+                             ?? _nrtReopenThreadNoTaxonomy?.WaitForGeneration(_latestGen.Value, 5000);
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
                         _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
@@ -1494,6 +1538,12 @@ namespace Examine.Lucene.Providers
                     {
                         _nrtReopenThread.Interrupt();
                         _nrtReopenThread.Dispose();
+                    }
+
+                    if (_nrtReopenThreadNoTaxonomy is not null)
+                    {
+                        _nrtReopenThreadNoTaxonomy.Interrupt();
+                        _nrtReopenThreadNoTaxonomy.Dispose();
                     }
 
                     if (_searcher != null && _searcher.IsValueCreated)
