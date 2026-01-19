@@ -417,6 +417,8 @@ namespace Examine.Lucene.Search
             }
             return ExamineFieldNames.DefaultFacetsName;
         }
+
+        // TODO: These aren't used?!
         private bool GetFacetFieldIsMultiValued(string field)
         {
             if (_facetsConfig is null)
