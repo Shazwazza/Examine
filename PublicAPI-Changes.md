@@ -352,7 +352,7 @@ Generated: 2025-12-17 15:13:07
 
 ##### Abstract (3)
 
-- `Examine.Lucene.Directories.DirectoryFactoryBase.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
+- `Examine.Lucene.Directories.DirectoryFactoryBase.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?* *(nullable - taxonomy is now optional)*
 - `Examine.Lucene.Providers.BaseLuceneSearcher.Dispose()` → *void*
 - `Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets)` → *Examine.Search.IQueryExecutor!*
 
@@ -389,10 +389,10 @@ Generated: 2025-12-17 15:13:07
 
 ##### Member (34)
 
-- `Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
+- `Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?* *(nullable - taxonomy is now optional)*
 - `Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
-- `Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
-- `Examine.Lucene.Directories.IDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
+- `Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?* *(nullable - taxonomy is now optional)*
+- `Examine.Lucene.Directories.IDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?* *(nullable - taxonomy is now optional)*
 - `Examine.Lucene.Indexing.IIndexFacetValueType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
 - `Examine.Lucene.Providers.IIndexCommitter.CommitError` → *System.EventHandler<Examine.IndexingErrorEventArgs!>!*
 - `Examine.Lucene.Providers.IIndexCommitter.CommitNow()` → *void*
@@ -428,13 +428,23 @@ Generated: 2025-12-17 15:13:07
 ## Summary
 
 ### ✅ Additions (Non-Breaking)
-270 new API(s) have been added. These are **safe changes** that do not break existing code.
+270+ new API(s) have been added. These are **safe changes** that do not break existing code.
+
+**New APIs for Optional Taxonomy:**
+- `Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex` → *bool* (default: `true`) - Controls whether taxonomy index is created
+- `Examine.Lucene.Providers.LuceneIndex.IsTaxonomyEnabled` → *bool* - Runtime check if taxonomy is enabled
 
 ### ⚠️ Breaking Changes
-27 API(s) have been **removed**. These are **BREAKING CHANGES** that will require:
+28 API(s) have been **modified or removed**. These are **BREAKING CHANGES** that will require:
 - Major version bump (e.g., 3.x → 4.0)
 - Migration guide for consumers
 - Release notes highlighting the breaking changes
+
+**New Breaking Changes (Optional Taxonomy):**
+- `IDirectoryFactory.CreateTaxonomyDirectory` now returns `Directory?` (nullable) instead of `Directory`
+- `DirectoryFactoryBase.CreateTaxonomyDirectory` now returns `Directory?` (nullable) instead of `Directory`
+- `FileSystemDirectoryFactory.CreateTaxonomyDirectory` now returns `Directory?` (nullable) instead of `Directory`
+- `SyncedFileSystemDirectoryFactory` now throws `InvalidOperationException` if `UseTaxonomyIndex` is set to `false` (replication requires taxonomy)
 
 ## Next Steps
 
