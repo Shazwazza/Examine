@@ -75,6 +75,6 @@ _**Tip**: There are many unit tests in the source code that can be used as Examp
 
 &copy; 2023 by Shannon Deminick
 
-This is free software and is licensed under the [Microsoft Public License (Ms-PL)](http://opensource.org/licenses/MS-PL)
+This is free software and is licensed under the [MIT License](https://opensource.org/licenses/MIT)
 
 <a href="https://www.freepik.com/free-photos-vectors/flat">Flat vector created by freepik - www.freepik.com</a>
