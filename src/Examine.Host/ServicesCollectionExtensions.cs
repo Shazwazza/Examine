@@ -38,12 +38,12 @@ namespace Examine
                     name,
                     (options) =>
                     {
-                        options.Analyzer = config.Analyzer;
-                        options.Validator = config.Validator;
-                        options.IndexValueTypesFactory = config.IndexValueTypesFactory;
-                        options.FieldDefinitions = config.FieldDefinitions ?? options.FieldDefinitions;
-                        options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
-                        options.FacetsConfig = config.FacetsConfig ?? new FacetsConfig();
+                        options.Analyzer = options.Analyzer ?? config.Analyzer;
+                        options.Validator = options.Validator ?? config.Validator;
+                        options.IndexValueTypesFactory = options.IndexValueTypesFactory ?? config.IndexValueTypesFactory;
+                        options.FieldDefinitions = options.FieldDefinitions ?? config.FieldDefinitions;
+                        options.DirectoryFactory = options.DirectoryFactory ?? services.GetRequiredService<TDirectoryFactory>();
+                        options.FacetsConfig = options.FacetsConfig ?? config.FacetsConfig ?? new FacetsConfig();
                     }));
 
             return serviceCollection.AddSingleton<IIndex>(services =>
@@ -98,8 +98,8 @@ namespace Examine
                     name,
                     (options) =>
                     {
-                        options.Analyzer = config.Analyzer;
-                        options.FacetConfiguration = config.FacetConfiguration;
+                        options.Analyzer = options.Analyzer ?? config.Analyzer;
+                        options.FacetConfiguration = options.FacetConfiguration ?? config.FacetConfiguration;
                     }));
 
             // Transient I think because of how the search context is created, it can't hang on to it.
