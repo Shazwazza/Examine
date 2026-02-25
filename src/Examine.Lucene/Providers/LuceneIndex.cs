@@ -53,7 +53,11 @@ namespace Examine.Lucene.Providers
                 {
                     return null;
                 }
-                return directoryOptions.DirectoryFactory.CreateTaxonomyDirectory(this, directoryOptions.UnlockIndex);
+                if (directoryOptions.DirectoryFactory is ITaxonomyDirectoryFactory taxonomyFactory)
+                {
+                    return taxonomyFactory.CreateTaxonomyDirectory(this, directoryOptions.UnlockIndex);
+                }
+                return null;
             });
 
             _lazyDirectory = new Lazy<Directory>(() =>

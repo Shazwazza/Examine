@@ -11,7 +11,7 @@ namespace Examine.Lucene.Directories
     /// <summary>
     /// Represents a directory factory for creating file system directories
     /// </summary>
-    public class FileSystemDirectoryFactory : IDirectoryFactory
+    public class FileSystemDirectoryFactory : IDirectoryFactory, ITaxonomyDirectoryFactory
     {
         private readonly DirectoryInfo _baseDir;
 

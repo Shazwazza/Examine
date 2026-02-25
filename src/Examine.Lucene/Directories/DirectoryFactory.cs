@@ -8,10 +8,19 @@ namespace Examine.Lucene.Directories
     /// <summary>
     /// Represents a generic directory factory
     /// </summary>
-    public class GenericDirectoryFactory : IDirectoryFactory
+    public class GenericDirectoryFactory : IDirectoryFactory, ITaxonomyDirectoryFactory
     {
         private readonly Func<string, Directory> _factory;
         private readonly Func<string, Directory?>? _taxonomyDirectoryFactory;
+
+        /// <summary>
+        /// Creates an instance of <see cref="GenericDirectoryFactory"/>
+        /// </summary>
+        public GenericDirectoryFactory(
+            Func<string, Directory> factory)
+            : this(false, factory, null)
+        {
+        }
 
         /// <summary>
         /// Creates an instance of <see cref="GenericDirectoryFactory"/>
