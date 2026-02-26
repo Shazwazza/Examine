@@ -283,11 +283,8 @@ namespace Examine.Lucene.Providers
                     //this is required to ensure the index is written to during the same thread execution
                     if (!RunAsync)
                     {
-                        //commit the changes
+                        //commit the changes (also refreshes NRT reader and fires IndexCommitted)
                         _committer.CommitNow();
-
-                        // now force any searcher to be updated.
-                        WaitForChanges();
                     }
                     else
                     {
@@ -515,11 +512,8 @@ namespace Examine.Lucene.Providers
                 //this is required to ensure the index is written to during the same thread execution
                 if (!RunAsync)
                 {
-                    //commit the changes (this will process the deletes too)
+                    //commit the changes (also refreshes NRT reader and fires IndexCommitted)
                     _committer.CommitNow();
-
-                    // now force any searcher to be updated.
-                    WaitForChanges();
                 }
                 else
                 {
@@ -794,6 +788,12 @@ namespace Examine.Lucene.Providers
             public void CommitNow()
             {
                 _index._writer?.IndexWriter?.Commit();
+
+                // Ensure the NRT reader is refreshed before signaling commit completion.
+                // Without this, consumers reacting to IndexCommitted may search with
+                // a stale reader that doesn't yet reflect the committed changes.
+                _index.WaitForChanges();
+
                 _index.IndexCommitted?.Invoke(_index, EventArgs.Empty);
             }
 
@@ -864,9 +864,6 @@ namespace Examine.Lucene.Providers
                         {
                             //perform the commit
                             CommitNow();
-
-                            // after the commit, refresh the searcher
-                            _index.WaitForChanges();
                         }
                         catch (Exception e)
                         {
