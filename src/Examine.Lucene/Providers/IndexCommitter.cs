@@ -44,6 +44,12 @@ namespace Examine.Lucene.Providers
         {
             _index.TaxonomyWriter?.Commit();
             _index.IndexWriter.IndexWriter.Commit();
+
+            // Ensure the NRT reader is refreshed before signaling commit completion.
+            // Without this, consumers reacting to the Committed event may search with
+            // a stale reader that doesn't yet reflect the committed changes.
+            _index.WaitForChanges();
+
             Committed?.Invoke(this, EventArgs.Empty);
         }
 
@@ -114,9 +120,6 @@ namespace Examine.Lucene.Providers
                     {
                         //perform the commit
                         CommitNow();
-
-                        // after the commit, refresh the searcher
-                        _index.WaitForChanges();
                     }
                     catch (Exception e)
                     {
