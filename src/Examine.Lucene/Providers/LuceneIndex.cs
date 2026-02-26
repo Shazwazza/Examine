@@ -334,11 +334,8 @@ namespace Examine.Lucene.Providers
                     //this is required to ensure the index is written to during the same thread execution
                     if (!RunAsync)
                     {
-                        //commit the changes
+                        //commit the changes (also refreshes NRT reader and fires Committed/IndexCommitted)
                         _committer.CommitNow();
-
-                        // now force any searcher to be updated.
-                        WaitForChanges();
                     }
                     else
                     {
@@ -650,11 +647,8 @@ namespace Examine.Lucene.Providers
                 //this is required to ensure the index is written to during the same thread execution
                 if (!RunAsync)
                 {
-                    //commit the changes (this will process the deletes too)
+                    //commit the changes (also refreshes NRT reader and fires Committed/IndexCommitted)
                     _committer.CommitNow();
-
-                    // now force any searcher to be updated.
-                    WaitForChanges();
                 }
                 else
                 {
