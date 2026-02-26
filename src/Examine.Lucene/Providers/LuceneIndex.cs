@@ -967,8 +967,9 @@ namespace Examine.Lucene.Providers
             }
             else
             {
-                // When taxonomy is disabled, just update the document without facet configuration
-                return IndexWriter.UpdateDocument(term, doc);
+                // When taxonomy is disabled, still process facet fields (e.g., SortedSetDocValuesFacetField)
+                // using the non-taxonomy overload of FacetsConfig.Build
+                return IndexWriter.UpdateDocument(term, _options.FacetsConfig.Build(doc));
             }
         }
 
