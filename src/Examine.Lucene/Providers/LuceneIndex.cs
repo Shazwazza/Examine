@@ -794,6 +794,12 @@ namespace Examine.Lucene.Providers
             public void CommitNow()
             {
                 _index._writer?.IndexWriter?.Commit();
+
+                // Ensure the NRT reader is refreshed before signaling commit completion.
+                // Without this, consumers reacting to IndexCommitted may search with
+                // a stale reader that doesn't yet reflect the committed changes.
+                _index.WaitForChanges();
+
                 _index.IndexCommitted?.Invoke(_index, EventArgs.Empty);
             }
 
@@ -864,9 +870,6 @@ namespace Examine.Lucene.Providers
                         {
                             //perform the commit
                             CommitNow();
-
-                            // after the commit, refresh the searcher
-                            _index.WaitForChanges();
                         }
                         catch (Exception e)
                         {
