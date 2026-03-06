@@ -1,27 +1,29 @@
 ﻿# Public API Changes Report
 
-Generated: 2025-12-17 15:13:07
+Generated: 2026-03-06 09:42:08
 
 ## Summary
 
 - **Projects with changes:** 3
-- **Total new APIs:** 270
-- **Total removed APIs:** 27 ⚠️ **BREAKING CHANGES**
+- **Total new APIs (safe):** 260
+- **Total modified APIs:** 11 ⚠️ signature changes
+- **Total breaking additions:** 2 ⚠️ abstract/interface members on existing types
+- **Total removed APIs:** 15 ⚠️ **BREAKING**
 
 ## Project Breakdown
 
 ### Examine.Core
 
-| Kind | Added | Removed |
-|---|---:|---:|
-| Type | 16 | 0 |
-| Constant | 25 | 0 |
-| Enum | 2 | 0 |
-| Constructor | 12 | 1 |
-| Property | 25 | 0 |
-| Static | 5 | 0 |
-| Member | 15 | 0 |
-| **Total** | **100** | **1** |
+| Kind | Added | Modified | Breaking Additions | Removed |
+|---|---:|---:|---:|---:|
+| Type | 16 | 0 | 0 | 0 |
+| Constant | 25 | 0 | 0 | 0 |
+| Enum | 2 | 0 | 0 | 0 |
+| Constructor | 12 | 0 | 0 | 1 |
+| Property | 25 | 0 | 0 | 0 |
+| Static | 5 | 0 | 0 | 0 |
+| Member | 15 | 0 | 0 | 0 |
+| **Total** | **100** | **0** | **0** | **1** |
 
 #### ⚠️ Removed APIs (BREAKING) (1)
 
@@ -156,10 +158,10 @@ Generated: 2025-12-17 15:13:07
 
 ### Examine.Host
 
-| Kind | Added | Removed |
-|---|---:|---:|
-| Static | 4 | 0 |
-| **Total** | **4** | **0** |
+| Kind | Added | Modified | Breaking Additions | Removed |
+|---|---:|---:|---:|---:|
+| Static | 4 | 0 | 0 | 0 |
+| **Total** | **4** | **0** | **0** | **0** |
 
 #### ✅ Added APIs (Non-Breaking) (4)
 
@@ -173,58 +175,46 @@ Generated: 2025-12-17 15:13:07
 
 ### Examine.Lucene
 
-| Kind | Added | Removed |
-|---|---:|---:|
-| Type | 21 | 1 |
-| Constructor | 31 | 16 |
-| Property | 55 | 3 |
-| Abstract | 3 | 0 |
-| Virtual | 11 | 2 |
-| Override | 9 | 3 |
-| Static | 2 | 0 |
-| Member | 34 | 1 |
-| **Total** | **166** | **26** |
+| Kind | Added | Modified | Breaking Additions | Removed |
+|---|---:|---:|---:|---:|
+| Type | 22 | 0 | 0 | 1 |
+| Constructor | 25 | 6 | 0 | 9 |
+| Property | 56 | 2 | 0 | 1 |
+| Abstract | 0 | 0 | 2 | 0 |
+| Virtual | 9 | 1 | 0 | 1 |
+| Override | 9 | 2 | 0 | 1 |
+| Static | 2 | 0 | 0 | 0 |
+| Member | 33 | 0 | 0 | 1 |
+| **Total** | **156** | **11** | **2** | **14** |
 
-#### ⚠️ Removed APIs (BREAKING) (26)
+#### ⚠️ Removed APIs (BREAKING) (14)
 
 ##### Type (1)
 
 - `Examine.Lucene.Providers.LuceneSearcher`
 
-##### Constructor (16)
+##### Constructor (9)
 
 - `Examine.Lucene.Directories.FileSystemDirectoryFactory.FileSystemDirectoryFactory(System.IO.DirectoryInfo baseDir, Examine.Lucene.Directories.ILockFactory lockFactory)`
-- `Examine.Lucene.Directories.GenericDirectoryFactory.GenericDirectoryFactory(System.Func<string, Lucene.Net.Store.Directory> factory)`
 - `Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo localDir, System.IO.DirectoryInfo mainDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, bool tryFixMainIndexIfCorrupt)`
 - `Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo localDir, System.IO.DirectoryInfo mainDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory)`
 - `Examine.Lucene.Directories.TempEnvFileSystemDirectoryFactory.TempEnvFileSystemDirectoryFactory(Examine.Lucene.Directories.IApplicationIdentifier applicationIdentifier, Examine.Lucene.Directories.ILockFactory lockFactory)`
-- `Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator> replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient> clientLogger, Examine.Lucene.Providers.LuceneIndex sourceIndex, Lucene.Net.Store.Directory destinationDirectory, System.IO.DirectoryInfo tempStorage)`
 - `Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator> replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient> clientLogger, Examine.Lucene.Providers.LuceneIndex sourceIndex, Lucene.Net.Store.Directory sourceDirectory, Lucene.Net.Store.Directory destinationDirectory, System.IO.DirectoryInfo tempStorage)`
 - `Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, Examine.Lucene.Providers.LuceneIndex sourceIndex, Lucene.Net.Store.Directory destinationDirectory, System.IO.DirectoryInfo tempStorage)`
-- `Examine.Lucene.Providers.BaseLuceneSearcher.BaseLuceneSearcher(string name, Lucene.Net.Analysis.Analyzer analyzer)`
 - `Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string name, Lucene.Net.Search.SearcherManager searcherManager, Lucene.Net.Analysis.Analyzer analyzer, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection, bool isNrt)`
 - `Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string name, Lucene.Net.Search.SearcherManager searcherManager, Lucene.Net.Analysis.Analyzer analyzer, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection)`
-- `Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string name, System.Collections.Generic.IEnumerable<Examine.IIndex> indexes, Lucene.Net.Analysis.Analyzer analyzer = null)`
-- `Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string name, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher>> searchers, Lucene.Net.Analysis.Analyzer analyzer = null)`
-- `Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int? take = null, Examine.Lucene.Search.SearchAfterOptions searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false)`
-- `Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult> results, int totalItemCount, float maxScore, Examine.Lucene.Search.SearchAfterOptions searchAfterOptions)`
 - `Examine.Lucene.Search.SearchContext.SearchContext(Lucene.Net.Search.SearcherManager searcherManager, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection)`
 
-##### Property (3)
+##### Property (1)
 
 - `Examine.Lucene.Providers.LuceneIndex.IsCancellationRequested.get` → *bool*
-- `Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get` → *System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.LuceneSearcher>*
-- `Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get` → *int?*
 
-##### Virtual (2)
+##### Virtual (1)
 
 - `Examine.Lucene.Providers.LuceneSearcher.Dispose(bool disposing)` → *void*
-- `Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string fieldName, Examine.Search.IExamineValue fieldValue, bool useQueryParser)` → *Lucene.Net.Search.Query*
 
-##### Override (3)
+##### Override (1)
 
-- `Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory*
-- `Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory*
 - `Examine.Lucene.Providers.LuceneSearcher.GetSearchContext()` → *Examine.Lucene.Search.ISearchContext*
 
 ##### Member (1)
@@ -232,10 +222,60 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.Providers.LuceneSearcher.Dispose()` → *void*
 
 
-#### ✅ Added APIs (Non-Breaking) (166)
+#### ⚠️ Modified APIs (BREAKING) (11)
 
-##### Type (21)
+_Signature changes → callers and/or derived classes must be updated._
 
+##### Constructor (6)
+
+- `Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator> replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient> clientLogger, Examine.Lucene.Providers.LuceneIndex sourceIndex, Lucene.Net.Store.Directory destinationDirectory, System.IO.DirectoryInfo tempStorage)`
+  **Changed to:** `Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator!>! replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient!>! clientLogger, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! sourceDirectory, Lucene.Net.Store.Directory! destinationDirectory, Lucene.Net.Store.Directory? destinationTaxonomyDirectory, System.IO.DirectoryInfo! tempStorage)`
+- `Examine.Lucene.Providers.BaseLuceneSearcher.BaseLuceneSearcher(string name, Lucene.Net.Analysis.Analyzer analyzer)`
+  **Changed to:** `Examine.Lucene.Providers.BaseLuceneSearcher.BaseLuceneSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneSearcherOptions!>! options)`
+- `Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string name, System.Collections.Generic.IEnumerable<Examine.IIndex> indexes, Lucene.Net.Analysis.Analyzer analyzer = null)`
+  **Changed to:** `Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Collections.Generic.IEnumerable<Examine.IIndex!>! indexes)`
+- `Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string name, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher>> searchers, Lucene.Net.Analysis.Analyzer analyzer = null)`
+  **Changed to:** `Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher!>!>! searchers)`
+- `Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int? take = null, Examine.Lucene.Search.SearchAfterOptions searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false)`
+  **Changed to:** `Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int take = 100, Examine.Lucene.Search.SearchAfterOptions? searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false, Examine.Lucene.Search.LuceneFacetSamplingQueryOptions? facetSampling = null)`
+- `Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult> results, int totalItemCount, float maxScore, Examine.Lucene.Search.SearchAfterOptions searchAfterOptions)`
+  **Changed to:** `Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult!>! results, int totalItemCount, System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>! facets, float maxScore, Examine.Lucene.Search.SearchAfterOptions? searchAfterOptions)`
+
+##### Property (2)
+
+- `Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get` → *System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.LuceneSearcher>*
+  **Changed to:** `Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get` → *System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.BaseLuceneSearcher!>!*
+- `Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get` → *int?*
+  **Changed to:** `Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get` → *int*
+
+##### Virtual (1)
+
+- `Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string fieldName, Examine.Search.IExamineValue fieldValue, bool useQueryParser)` → *Lucene.Net.Search.Query*
+  **Changed to:** `Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue)` → *Lucene.Net.Search.Query?*
+
+##### Override (2)
+
+- `Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory*
+  **Changed to:** `Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
+- `Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory*
+  **Changed to:** `Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
+
+
+#### ⚠️ Breaking Additions (2)
+
+_New abstract or interface members on existing types → all derived classes / implementors must be updated._
+
+##### Abstract (2)
+
+- `Examine.Lucene.Providers.BaseLuceneSearcher.Dispose()` → *void*
+- `Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets)` → *Examine.Search.IQueryExecutor!*
+
+
+#### ✅ Added APIs (Non-Breaking) (156)
+
+##### Type (22)
+
+- `Examine.Lucene.Directories.ITaxonomyDirectoryFactory`
 - `Examine.Lucene.FacetExtensions`
 - `Examine.Lucene.Indexing.IIndexFacetValueType`
 - `Examine.Lucene.LuceneMultiSearcherOptions`
@@ -258,10 +298,9 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.Search.TaxonomySearchContext`
 - `Examine.Lucene.Search.TaxonomySearcherReference`
 
-##### Constructor (31)
+##### Constructor (25)
 
-- `Examine.Lucene.Directories.GenericDirectoryFactory.GenericDirectoryFactory(System.Func<string!, Lucene.Net.Store.Directory!>! factory, System.Func<string!, Lucene.Net.Store.Directory!>! taxonomyDirectoryFactory)`
-- `Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator!>! replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient!>! clientLogger, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! sourceDirectory, Lucene.Net.Store.Directory! destinationDirectory, Lucene.Net.Store.Directory! destinationTaxonomyDirectory, System.IO.DirectoryInfo! tempStorage)`
+- `Examine.Lucene.Directories.GenericDirectoryFactory.GenericDirectoryFactory(System.Func<string!, Lucene.Net.Store.Directory!>! factory, System.Func<string!, Lucene.Net.Store.Directory?>? taxonomyDirectoryFactory)`
 - `Examine.Lucene.Indexing.DateTimeType.DateTimeType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, Lucene.Net.Documents.DateResolution resolution, bool store)`
 - `Examine.Lucene.Indexing.DoubleType.DoubleType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, bool store)`
 - `Examine.Lucene.Indexing.FullTextType.FullTextType(string! fieldName, bool isFacetable, bool taxonomyIndex, bool sortable, Microsoft.Extensions.Logging.ILoggerFactory! logger, Lucene.Net.Analysis.Analyzer! analyzer)`
@@ -270,9 +309,6 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.Indexing.SingleType.SingleType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, bool store)`
 - `Examine.Lucene.LuceneMultiSearcherOptions.LuceneMultiSearcherOptions()`
 - `Examine.Lucene.LuceneSearcherOptions.LuceneSearcherOptions()`
-- `Examine.Lucene.Providers.BaseLuceneSearcher.BaseLuceneSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneSearcherOptions!>! options)`
-- `Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Collections.Generic.IEnumerable<Examine.IIndex!>! indexes)`
-- `Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneMultiSearcherOptions!>! options, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher!>!>! searchers)`
 - `Examine.Lucene.Search.FacetDoubleField.FacetDoubleField()`
 - `Examine.Lucene.Search.FacetDoubleField.FacetDoubleField(string! field, Examine.Search.DoubleRange[]! doubleRanges, string! facetField, bool isTaxonomyIndexed = false)`
 - `Examine.Lucene.Search.FacetFloatField.FacetFloatField()`
@@ -286,13 +322,11 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.Search.LuceneFacetOperation.LuceneFacetOperation(Examine.Lucene.Search.LuceneSearchQuery! search)`
 - `Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.LuceneFacetSamplingQueryOptions(int sampleSize, long seed)`
 - `Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.LuceneFacetSamplingQueryOptions(int sampleSize)`
-- `Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int take = 100, Examine.Lucene.Search.SearchAfterOptions? searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false, Examine.Lucene.Search.LuceneFacetSamplingQueryOptions? facetSampling = null)`
 - `Examine.Lucene.Search.LuceneSearchQuery.LuceneSearchQuery(Examine.Lucene.Search.ISearchContext! searchContext, string? category, Lucene.Net.Analysis.Analyzer! analyzer, Examine.Lucene.Search.LuceneSearchOptions! searchOptions, Examine.Search.BooleanOperation occurance, Lucene.Net.Facet.FacetsConfig! facetsConfig)`
-- `Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult!>! results, int totalItemCount, System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>! facets, float maxScore, Examine.Lucene.Search.SearchAfterOptions? searchAfterOptions)`
 - `Examine.Lucene.Search.TaxonomySearchContext.TaxonomySearchContext(Lucene.Net.Facet.Taxonomy.SearcherTaxonomyManager! searcherManager, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection, bool isNrt)`
 - `Examine.Lucene.Search.TaxonomySearcherReference.TaxonomySearcherReference(Lucene.Net.Facet.Taxonomy.SearcherTaxonomyManager! searcherManager)`
 
-##### Property (55)
+##### Property (56)
 
 - `Examine.Lucene.Indexing.DateTimeType.IsTaxonomyFaceted.get` → *bool*
 - `Examine.Lucene.Indexing.DoubleType.IsTaxonomyFaceted.get` → *bool*
@@ -303,6 +337,8 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.Indexing.SingleType.IsTaxonomyFaceted.get` → *bool*
 - `Examine.Lucene.LuceneIndexOptions.FacetsConfig.get` → *Lucene.Net.Facet.FacetsConfig!*
 - `Examine.Lucene.LuceneIndexOptions.FacetsConfig.set` → *void*
+- `Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.get` → *bool*
+- `Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.set` → *void*
 - `Examine.Lucene.LuceneMultiSearcherOptions.IndexNames.get` → *string![]!*
 - `Examine.Lucene.LuceneMultiSearcherOptions.IndexNames.set` → *void*
 - `Examine.Lucene.LuceneSearcherOptions.Analyzer.get` → *Lucene.Net.Analysis.Analyzer?*
@@ -310,7 +346,7 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.LuceneSearcherOptions.FacetConfiguration.get` → *Lucene.Net.Facet.FacetsConfig?*
 - `Examine.Lucene.LuceneSearcherOptions.FacetConfiguration.set` → *void*
 - `Examine.Lucene.Providers.ILuceneTaxonomySearcher.CategoryCount.get` → *int*
-- `Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get` → *System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.BaseLuceneSearcher!>!*
+- `Examine.Lucene.Providers.LuceneIndex.IsTaxonomyEnabled.get` → *bool*
 - `Examine.Lucene.Search.FacetDoubleField.DoubleRanges.get` → *Examine.Search.DoubleRange[]!*
 - `Examine.Lucene.Search.FacetDoubleField.FacetField.get` → *string!*
 - `Examine.Lucene.Search.FacetDoubleField.Field.get` → *string!*
@@ -345,20 +381,12 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.Seed.get` → *long*
 - `Examine.Lucene.Search.LuceneQueryOptions.FacetRandomSampling.get` → *Examine.Lucene.Search.LuceneFacetSamplingQueryOptions?*
 - `Examine.Lucene.Search.LuceneSearchResults.Facets.get` → *System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>!*
-- `Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get` → *int*
 - `Examine.Lucene.Search.TaxonomySearchContext.SearchableFields.get` → *string![]!*
 - `Examine.Lucene.Search.TaxonomySearcherReference.IndexSearcher.get` → *Lucene.Net.Search.IndexSearcher!*
 - `Examine.Lucene.Search.TaxonomySearcherReference.TaxonomyReader.get` → *Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyReader!*
 
-##### Abstract (3)
+##### Virtual (9)
 
-- `Examine.Lucene.Directories.DirectoryFactoryBase.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?* *(nullable - taxonomy is now optional)*
-- `Examine.Lucene.Providers.BaseLuceneSearcher.Dispose()` → *void*
-- `Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets)` → *Examine.Search.IQueryExecutor!*
-
-##### Virtual (11)
-
-- `Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
 - `Examine.Lucene.Indexing.DateTimeType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
 - `Examine.Lucene.Indexing.DoubleType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
 - `Examine.Lucene.Indexing.FullTextType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
@@ -367,7 +395,6 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.Indexing.SingleType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
 - `Examine.Lucene.Providers.LuceneIndex.TaxonomySearcher.get` → *Examine.Lucene.Providers.ILuceneTaxonomySearcher?*
 - `Examine.Lucene.Search.LuceneFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed)` → *Lucene.Net.Facet.Facets!*
-- `Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue)` → *Lucene.Net.Search.Query?*
 - `Examine.Lucene.Search.TaxonomySearcherReference.Dispose(bool disposing)` → *void*
 
 ##### Override (9)
@@ -387,12 +414,11 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.FacetExtensions.GetFacet(this Examine.ISearchResults! searchResults, string! field)` → *Examine.Search.IFacetResult?*
 - `Examine.Lucene.FacetExtensions.GetFacets(this Examine.ISearchResults! searchResults)` → *System.Collections.Generic.IEnumerable<Examine.Search.IFacetResult!>!*
 
-##### Member (34)
+##### Member (33)
 
-- `Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?* *(nullable - taxonomy is now optional)*
-- `Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
-- `Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?* *(nullable - taxonomy is now optional)*
-- `Examine.Lucene.Directories.IDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?* *(nullable - taxonomy is now optional)*
+- `Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?*
+- `Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?*
+- `Examine.Lucene.Directories.ITaxonomyDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory?*
 - `Examine.Lucene.Indexing.IIndexFacetValueType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
 - `Examine.Lucene.Providers.IIndexCommitter.CommitError` → *System.EventHandler<Examine.IndexingErrorEventArgs!>!*
 - `Examine.Lucene.Providers.IIndexCommitter.CommitNow()` → *void*
@@ -400,7 +426,7 @@ Generated: 2025-12-17 15:13:07
 - `Examine.Lucene.Providers.IIndexCommitter.ScheduleCommit()` → *void*
 - `Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetOrdinal(string! dim, string![]! path)` → *int*
 - `Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetPath(int ordinal)` → *Examine.Search.IFacetLabel!*
-- `Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory()` → *Lucene.Net.Store.Directory!*
+- `Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory()` → *Lucene.Net.Store.Directory?*
 - `Examine.Lucene.Search.CustomMultiFieldQueryParser.GetPhraseQueryInternal(string! field, string! queryText)` → *Lucene.Net.Search.Query!*
 - `Examine.Lucene.Search.FacetDoubleField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
 - `Examine.Lucene.Search.FacetFloatField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
@@ -428,23 +454,19 @@ Generated: 2025-12-17 15:13:07
 ## Summary
 
 ### ✅ Additions (Non-Breaking)
-270+ new API(s) have been added. These are **safe changes** that do not break existing code.
-
-**New APIs for Optional Taxonomy:**
-- `Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex` → *bool* (default: `true`) - Controls whether taxonomy index is created
-- `Examine.Lucene.Providers.LuceneIndex.IsTaxonomyEnabled` → *bool* - Runtime check if taxonomy is enabled
+260 new API(s) have been added. These are **safe changes** that do not break existing code.
 
 ### ⚠️ Breaking Changes
-28 API(s) have been **modified or removed**. These are **BREAKING CHANGES** that will require:
+11 API(s) have **changed signatures**.
+
+15 API(s) have been **removed**.
+
+2 **abstract or interface member(s)** have been added to existing types (all derived classes / implementors must be updated).
+
+These are **BREAKING CHANGES** that will require:
 - Major version bump (e.g., 3.x → 4.0)
 - Migration guide for consumers
 - Release notes highlighting the breaking changes
-
-**New Breaking Changes (Optional Taxonomy):**
-- `IDirectoryFactory.CreateTaxonomyDirectory` now returns `Directory?` (nullable) instead of `Directory`
-- `DirectoryFactoryBase.CreateTaxonomyDirectory` now returns `Directory?` (nullable) instead of `Directory`
-- `FileSystemDirectoryFactory.CreateTaxonomyDirectory` now returns `Directory?` (nullable) instead of `Directory`
-- `SyncedFileSystemDirectoryFactory` now throws `InvalidOperationException` if `UseTaxonomyIndex` is set to `false` (replication requires taxonomy)
 
 ## Next Steps
 
