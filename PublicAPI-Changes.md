@@ -1,13 +1,13 @@
 ﻿# Public API Changes Report
 
-Generated: 2026-03-06 09:42:08
+Generated: 2026-03-06 14:57:41
 
 ## Summary
 
 - **Projects with changes:** 3
-- **Total new APIs (safe):** 260
-- **Total modified APIs:** 11 ⚠️ signature changes
-- **Total breaking additions:** 2 ⚠️ abstract/interface members on existing types
+- **Total new APIs (safe):** 263
+- **Total modified APIs:** 10 ⚠️ signature changes
+- **Total breaking additions:** 1 ⚠️ abstract/interface members on existing types
 - **Total removed APIs:** 15 ⚠️ **BREAKING**
 
 ## Project Breakdown
@@ -180,12 +180,12 @@ Generated: 2026-03-06 09:42:08
 | Type | 22 | 0 | 0 | 1 |
 | Constructor | 25 | 6 | 0 | 9 |
 | Property | 56 | 2 | 0 | 1 |
-| Abstract | 0 | 0 | 2 | 0 |
-| Virtual | 9 | 1 | 0 | 1 |
+| Abstract | 0 | 0 | 1 | 0 |
+| Virtual | 12 | 0 | 0 | 1 |
 | Override | 9 | 2 | 0 | 1 |
 | Static | 2 | 0 | 0 | 0 |
 | Member | 33 | 0 | 0 | 1 |
-| **Total** | **156** | **11** | **2** | **14** |
+| **Total** | **159** | **10** | **1** | **14** |
 
 #### ⚠️ Removed APIs (BREAKING) (14)
 
@@ -222,7 +222,7 @@ Generated: 2026-03-06 09:42:08
 - `Examine.Lucene.Providers.LuceneSearcher.Dispose()` → *void*
 
 
-#### ⚠️ Modified APIs (BREAKING) (11)
+#### ⚠️ Modified APIs (BREAKING) (10)
 
 _Signature changes → callers and/or derived classes must be updated._
 
@@ -248,11 +248,6 @@ _Signature changes → callers and/or derived classes must be updated._
 - `Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get` → *int?*
   **Changed to:** `Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get` → *int*
 
-##### Virtual (1)
-
-- `Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string fieldName, Examine.Search.IExamineValue fieldValue, bool useQueryParser)` → *Lucene.Net.Search.Query*
-  **Changed to:** `Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue)` → *Lucene.Net.Search.Query?*
-
 ##### Override (2)
 
 - `Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory*
@@ -261,17 +256,16 @@ _Signature changes → callers and/or derived classes must be updated._
   **Changed to:** `Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock)` → *Lucene.Net.Store.Directory!*
 
 
-#### ⚠️ Breaking Additions (2)
+#### ⚠️ Breaking Additions (1)
 
 _New abstract or interface members on existing types → all derived classes / implementors must be updated._
 
-##### Abstract (2)
+##### Abstract (1)
 
 - `Examine.Lucene.Providers.BaseLuceneSearcher.Dispose()` → *void*
-- `Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets)` → *Examine.Search.IQueryExecutor!*
 
 
-#### ✅ Added APIs (Non-Breaking) (156)
+#### ✅ Added APIs (Non-Breaking) (159)
 
 ##### Type (22)
 
@@ -385,7 +379,7 @@ _New abstract or interface members on existing types → all derived classes / i
 - `Examine.Lucene.Search.TaxonomySearcherReference.IndexSearcher.get` → *Lucene.Net.Search.IndexSearcher!*
 - `Examine.Lucene.Search.TaxonomySearcherReference.TaxonomyReader.get` → *Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyReader!*
 
-##### Virtual (9)
+##### Virtual (12)
 
 - `Examine.Lucene.Indexing.DateTimeType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
 - `Examine.Lucene.Indexing.DoubleType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
@@ -394,7 +388,10 @@ _New abstract or interface members on existing types → all derived classes / i
 - `Examine.Lucene.Indexing.Int64Type.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
 - `Examine.Lucene.Indexing.SingleType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field)` → *System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!*
 - `Examine.Lucene.Providers.LuceneIndex.TaxonomySearcher.get` → *Examine.Lucene.Providers.ILuceneTaxonomySearcher?*
+- `Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets)` → *Examine.Search.IQueryExecutor!*
 - `Examine.Lucene.Search.LuceneFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed)` → *Lucene.Net.Facet.Facets!*
+- `Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue, bool useQueryParser)` → *Lucene.Net.Search.Query?*
+- `Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue)` → *Lucene.Net.Search.Query?*
 - `Examine.Lucene.Search.TaxonomySearcherReference.Dispose(bool disposing)` → *void*
 
 ##### Override (9)
@@ -454,14 +451,14 @@ _New abstract or interface members on existing types → all derived classes / i
 ## Summary
 
 ### ✅ Additions (Non-Breaking)
-260 new API(s) have been added. These are **safe changes** that do not break existing code.
+263 new API(s) have been added. These are **safe changes** that do not break existing code.
 
 ### ⚠️ Breaking Changes
-11 API(s) have **changed signatures**.
+10 API(s) have **changed signatures**.
 
 15 API(s) have been **removed**.
 
-2 **abstract or interface member(s)** have been added to existing types (all derived classes / implementors must be updated).
+1 **abstract or interface member(s)** have been added to existing types (all derived classes / implementors must be updated).
 
 These are **BREAKING CHANGES** that will require:
 - Major version bump (e.g., 3.x → 4.0)
