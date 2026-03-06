@@ -1,6 +1,6 @@
 #nullable enable
 abstract Examine.Lucene.Providers.BaseLuceneSearcher.Dispose() -> void
-abstract Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
+virtual Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
 Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory?
 Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
 Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory?
@@ -192,4 +192,4 @@ virtual Examine.Lucene.Search.TaxonomySearcherReference.Dispose(bool disposing) 
 *REMOVED*override Examine.Lucene.Directories.GenericDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory
 *REMOVED*override Examine.Lucene.Providers.LuceneSearcher.GetSearchContext() -> Examine.Lucene.Search.ISearchContext
 *REMOVED*virtual Examine.Lucene.Providers.LuceneSearcher.Dispose(bool disposing) -> void
-*REMOVED*virtual Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string fieldName, Examine.Search.IExamineValue fieldValue, bool useQueryParser) -> Lucene.Net.Search.Query
+virtual Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue, bool useQueryParser) -> Lucene.Net.Search.Query?
