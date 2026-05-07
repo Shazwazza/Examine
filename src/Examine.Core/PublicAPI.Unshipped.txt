@@ -76,7 +76,6 @@ Examine.Search.IFacetOperations.FacetLongRange(string field, params Examine.Sear
 Examine.Search.IFacetOperations.FacetString(string field, System.Action<Examine.Search.IFacetQueryField> facetConfiguration = null, params string[] values) -> Examine.Search.IFacetOperations
 Examine.Search.IFacetQueryField
 Examine.Search.IFacetQueryField.MaxCount(int count) -> Examine.Search.IFacetQueryField
-Examine.Search.IFacetQueryField.SetPath(params string[] path) -> Examine.Search.IFacetQueryField
 Examine.Search.IFacetResult
 Examine.Search.IFacetResult.Facet(string label) -> Examine.Search.IFacetValue
 Examine.Search.IFacetResult.TryGetFacet(string label, out Examine.Search.IFacetValue facetValue) -> bool

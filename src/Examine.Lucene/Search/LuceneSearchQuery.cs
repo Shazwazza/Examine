@@ -418,32 +418,5 @@ namespace Examine.Lucene.Search
             return ExamineFieldNames.DefaultFacetsName;
         }
 
-        // TODO: These aren't used?!
-        private bool GetFacetFieldIsMultiValued(string field)
-        {
-            if (_facetsConfig is null)
-            {
-                throw new InvalidOperationException("FacetsConfig not set. User a LuceneSearchQuery constructor with all parameters");
-            }
-
-            if (_facetsConfig.DimConfigs.ContainsKey(field))
-            {
-                return _facetsConfig.DimConfigs[field].IsMultiValued;
-            }
-            return false;
-        }
-        private bool GetFacetFieldIsHierarchical(string field)
-        {
-            if (_facetsConfig is null)
-            {
-                throw new InvalidOperationException("FacetsConfig not set. User a LuceneSearchQuery constructor with all parameters");
-            }
-
-            if (_facetsConfig.DimConfigs.ContainsKey(field))
-            {
-                return _facetsConfig.DimConfigs[field].IsHierarchical;
-            }
-            return false;
-        }
     }
 }

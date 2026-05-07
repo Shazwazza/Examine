@@ -26,23 +26,16 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public string FacetField { get; }
 
-        /// <summary>
-        /// Path hierachy
-        /// </summary>
-        // TODO: This is not used
-        public string[]? Path { get; internal set; }
-
         /// <inheritdoc/>
         public bool IsTaxonomyIndexed { get; }
 
         /// <inheritdoc/>
-        public FacetFullTextField(string field, string[] values, string facetField, int maxCount = 10, string[]? path = null, bool isTaxonomyIndexed = false)
+        public FacetFullTextField(string field, string[] values, string facetField, int maxCount = 10, bool isTaxonomyIndexed = false)
         {
             Field = field;
             Values = values;
             FacetField = facetField;
             MaxCount = maxCount;
-            Path = path;
             IsTaxonomyIndexed = isTaxonomyIndexed;
         }
 
