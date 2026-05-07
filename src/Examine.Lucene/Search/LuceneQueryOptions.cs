@@ -18,7 +18,6 @@ namespace Examine.Lucene.Search
         /// <param name="skipTakeMaxResults">When using Skip/Take (not SearchAfter) this will be the maximum data set size that can be paged.</param>
         /// <param name="autoCalculateSkipTakeMaxResults">If enabled, this will pre-calculate the document count in the index to use for <see cref="SkipTakeMaxResults"/>.</param>
         /// <param name="trackDocumentScores">Whether to Track Document Scores. For best performance, if not needed, leave false.</param>
-        /// <param name="facetSampling">Whether to apply Facet sampling to improve performance. If not required, leave null</param>
         public LuceneQueryOptions(
             int skip,
             int take = DefaultMaxResults,
@@ -26,15 +25,13 @@ namespace Examine.Lucene.Search
             bool trackDocumentScores = false,
             bool trackDocumentMaxScore = false,
             int skipTakeMaxResults = AbsoluteMaxResults,
-            bool autoCalculateSkipTakeMaxResults = false,
-            LuceneFacetSamplingQueryOptions? facetSampling = null)
+            bool autoCalculateSkipTakeMaxResults = false)
             : base(skip, take)
         {
             SearchAfter = searchAfter;
             TrackDocumentScores = trackDocumentScores;
             TrackDocumentMaxScore = trackDocumentMaxScore;
             SkipTakeMaxResults = skipTakeMaxResults;
-            FacetRandomSampling = facetSampling;
             AutoCalculateSkipTakeMaxResults = autoCalculateSkipTakeMaxResults;
         }
 
@@ -52,14 +49,6 @@ namespace Examine.Lucene.Search
         /// Options for Searching After. Used for efficient deep paging.
         /// </summary>
         public SearchAfterOptions? SearchAfter { get; }
-
-        /// <summary>
-        /// Options for Lucene Facet Sampling. If not set, no Facet Sampling is applied. 
-        /// </summary>
-        /// <remarks>
-        /// Performance optimization for large sets
-        /// </remarks>
-        public LuceneFacetSamplingQueryOptions? FacetRandomSampling { get; }
 
         /// <summary>
         /// When using Skip/Take (not SearchAfter) this will be the maximum data set size that can be paged.

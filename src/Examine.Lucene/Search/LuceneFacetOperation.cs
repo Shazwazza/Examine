@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Examine.Search;
 
 namespace Examine.Lucene.Search
@@ -24,9 +20,6 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public ISearchResults Execute(QueryOptions? options = null) => _search.Execute(options);
-
-        /// <inheritdoc/>
-        public IFacetOperations Facet(string field, Action<IFacetQueryField>? facetConfiguration = null) => _search.FacetInternal(field, facetConfiguration, Array.Empty<string>());
 
         /// <inheritdoc/>
         public IFacetOperations FacetString(string field, Action<IFacetQueryField>? facetConfiguration = null, params string[] values) => _search.FacetInternal(field, facetConfiguration, values);
