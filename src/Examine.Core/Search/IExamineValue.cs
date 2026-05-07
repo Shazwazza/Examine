@@ -9,16 +9,16 @@ namespace Examine.Search
         /// <summary>
         /// Different ways to match terms
         /// </summary>
-        Examineness Examineness { get; }
+        public Examineness Examineness { get; }
 
         /// <summary>
         /// The level
         /// </summary>
-        float Level { get; }
+        public float Level { get; }
 
         /// <summary>
         /// The value
         /// </summary>
-        string Value { get; }
+        public string Value { get; }
     }
 }

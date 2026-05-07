@@ -37,9 +37,7 @@ namespace Examine.Lucene
         /// <param name="fieldValueTypeFactory"></param>
         /// <returns></returns>
         public bool TryGetFactory(string valueTypeName,
-#if !NETSTANDARD2_0
             [MaybeNullWhen(false)]
-#endif
             out IFieldValueTypeFactory fieldValueTypeFactory)
             => _valueTypeFactories.TryGetValue(valueTypeName, out fieldValueTypeFactory);
 
@@ -73,48 +71,48 @@ namespace Examine.Lucene
         private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(ILoggerFactory loggerFactory, Analyzer? defaultAnalyzer = null) =>
             new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
-                {"number", name => new Int32Type(name, loggerFactory)},
-                {FieldDefinitionTypes.Integer, name => new Int32Type(name, loggerFactory)},
-                {FieldDefinitionTypes.Float, name => new SingleType(name, loggerFactory)},
-                {FieldDefinitionTypes.Double, name => new DoubleType(name, loggerFactory)},
-                {FieldDefinitionTypes.Long, name => new Int64Type(name, loggerFactory)},
-                {"date", name => new DateTimeType(name, loggerFactory, DateResolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, loggerFactory, DateResolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, loggerFactory, DateResolution.YEAR)},
-                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, loggerFactory, DateResolution.MONTH)},
-                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, loggerFactory, DateResolution.DAY)},
-                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, loggerFactory, DateResolution.HOUR)},
-                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, loggerFactory, DateResolution.MINUTE)},
+                {"number", name => new Int32Type(name, false, false, loggerFactory, true)},
+                {FieldDefinitionTypes.Integer, name => new Int32Type(name, false, false, loggerFactory, true)},
+                {FieldDefinitionTypes.Float, name => new SingleType(name, false, false, loggerFactory, true)},
+                {FieldDefinitionTypes.Double, name => new DoubleType(name, false, false, loggerFactory, true)},
+                {FieldDefinitionTypes.Long, name => new Int64Type(name, false, false, loggerFactory, true)},
+                {"date", name => new DateTimeType(name, false, false, loggerFactory, DateResolution.MILLISECOND, true)},
+                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, false, false, loggerFactory, DateResolution.MILLISECOND, true)},
+                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, false, false, loggerFactory, DateResolution.YEAR, true)},
+                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, false, false, loggerFactory, DateResolution.MONTH, true)},
+                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, false, false, loggerFactory, DateResolution.DAY, true)},
+                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, false, false, loggerFactory, DateResolution.HOUR, true)},
+                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, false, false, loggerFactory, DateResolution.MINUTE, true)},
                 {FieldDefinitionTypes.Raw, name => new RawStringType(name, loggerFactory)},
-                {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory, defaultAnalyzer)},
-                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true)},
+                {FieldDefinitionTypes.FullText, name => new FullTextType(name, false, false, false, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
+                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, false, false, true, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())},
                 {FieldDefinitionTypes.FacetInteger, name => new Int32Type(name, true,false,loggerFactory, true)},
                 {FieldDefinitionTypes.FacetFloat, name => new SingleType(name, true, false, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetDouble, name => new DoubleType(name,true, false, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetLong, name => new Int64Type(name, true, false, loggerFactory, true)},
-                {FieldDefinitionTypes.FacetDateTime, name => new DateTimeType(name, true, true, false, loggerFactory, DateResolution.MILLISECOND)},
-                {FieldDefinitionTypes.FacetDateYear, name => new DateTimeType(name,true, true, false, loggerFactory, DateResolution.YEAR)},
-                {FieldDefinitionTypes.FacetDateMonth, name => new DateTimeType(name,true, true, false, loggerFactory, DateResolution.MONTH)},
-                {FieldDefinitionTypes.FacetDateDay, name => new DateTimeType(name, true, true, false, loggerFactory, DateResolution.DAY)},
-                {FieldDefinitionTypes.FacetDateHour, name => new DateTimeType(name,  true, true, false, loggerFactory, DateResolution.HOUR)},
-                {FieldDefinitionTypes.FacetDateMinute, name => new DateTimeType(name, true, true, false, loggerFactory, DateResolution.MINUTE)},
-                {FieldDefinitionTypes.FacetFullText, name => new FullTextType(name, loggerFactory, true, false, false, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
-                {FieldDefinitionTypes.FacetFullTextSortable, name => new FullTextType(name, loggerFactory, true, false,true, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
+                {FieldDefinitionTypes.FacetDateTime, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.MILLISECOND, true)},
+                {FieldDefinitionTypes.FacetDateYear, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.YEAR, true)},
+                {FieldDefinitionTypes.FacetDateMonth, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.MONTH, true)},
+                {FieldDefinitionTypes.FacetDateDay, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.DAY, true)},
+                {FieldDefinitionTypes.FacetDateHour, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.HOUR, true)},
+                {FieldDefinitionTypes.FacetDateMinute, name => new DateTimeType(name, true, false, loggerFactory, DateResolution.MINUTE, true)},
+                {FieldDefinitionTypes.FacetFullText, name => new FullTextType(name, true, false, false, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
+                {FieldDefinitionTypes.FacetFullTextSortable, name => new FullTextType(name, true, false,true, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
                 {FieldDefinitionTypes.FacetTaxonomyInteger, name => new Int32Type(name,true,true, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetTaxonomyFloat, name => new SingleType(name,isFacetable: true, taxonomyIndex: true, loggerFactory,  true)},
                 {FieldDefinitionTypes.FacetTaxonomyDouble, name => new DoubleType(name, true, true, loggerFactory, true)},
                 {FieldDefinitionTypes.FacetTaxonomyLong, name => new Int64Type(name, isFacetable: true, taxonomyIndex: true, loggerFactory, true)},
-                {FieldDefinitionTypes.FacetTaxonomyDateTime, name => new DateTimeType(name,true, true, taxonomyIndex : true, loggerFactory, DateResolution.MILLISECOND)},
-                {FieldDefinitionTypes.FacetTaxonomyDateYear, name =>  new DateTimeType(name, true, true, taxonomyIndex : true, loggerFactory, DateResolution.YEAR)},
-                {FieldDefinitionTypes.FacetTaxonomyDateMonth, name => new DateTimeType(name, true, true, taxonomyIndex : true, loggerFactory, DateResolution.MONTH)},
-                {FieldDefinitionTypes.FacetTaxonomyDateDay, name => new DateTimeType(name, true, true, taxonomyIndex : true, loggerFactory, DateResolution.DAY)},
-                {FieldDefinitionTypes.FacetTaxonomyDateHour, name => new DateTimeType(name, true, isFacetable: true, taxonomyIndex: true, loggerFactory, DateResolution.HOUR)},
-                {FieldDefinitionTypes.FacetTaxonomyDateMinute, name => new DateTimeType(name, true, true, taxonomyIndex : true, loggerFactory, DateResolution.MINUTE)},
-                {FieldDefinitionTypes.FacetTaxonomyFullText, name => new FullTextType(name, loggerFactory, true, true, false, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
-                {FieldDefinitionTypes.FacetTaxonomyFullTextSortable, name => new FullTextType(name, loggerFactory, true, true, true, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
-                };
+                {FieldDefinitionTypes.FacetTaxonomyDateTime, name => new DateTimeType(name, true, taxonomyIndex : true, loggerFactory, DateResolution.MILLISECOND, true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateYear, name =>  new DateTimeType(name, true, taxonomyIndex : true, loggerFactory, DateResolution.YEAR, true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateMonth, name => new DateTimeType(name, true, taxonomyIndex : true, loggerFactory, DateResolution.MONTH, true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateDay, name => new DateTimeType(name, true, taxonomyIndex : true, loggerFactory, DateResolution.DAY, true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateHour, name => new DateTimeType(name, isFacetable: true, taxonomyIndex: true, loggerFactory, DateResolution.HOUR, true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateMinute, name => new DateTimeType(name, true, taxonomyIndex : true, loggerFactory, DateResolution.MINUTE, true)},
+                {FieldDefinitionTypes.FacetTaxonomyFullText, name => new FullTextType(name, true, true, false, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
+                {FieldDefinitionTypes.FacetTaxonomyFullTextSortable, name => new FullTextType(name, true, true, true, loggerFactory, defaultAnalyzer ?? new CultureInvariantStandardAnalyzer())},
+            };
 
 
         /// <inheritdoc/>

@@ -29,6 +29,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Path hierachy
         /// </summary>
+        // TODO: This is not used
         public string[]? Path { get; internal set; }
 
         /// <inheritdoc/>

@@ -13,22 +13,28 @@ namespace Examine.Lucene.Search
     {
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly bool _isNrt;
         private string[]? _searchableFields;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="searcherManager"></param>
-        /// <param name="fieldValueTypeCollection"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        public TaxonomySearchContext(SearcherTaxonomyManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
+        public TaxonomySearchContext(SearcherTaxonomyManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, bool isNrt)
         {
             _searcherManager = searcherManager ?? throw new ArgumentNullException(nameof(searcherManager));
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
+            _isNrt = isNrt;
         }
 
         /// <inheritdoc/>
-        public ISearcherReference GetSearcher() => new TaxonomySearcherReference(_searcherManager);
+        public ISearcherReference GetSearcher()
+        {
+            if (!_isNrt)
+            {
+                _searcherManager.MaybeRefresh();
+            }
+            return new TaxonomySearcherReference(_searcherManager);
+        }
 
         /// <inheritdoc/>
         public string[] SearchableFields
@@ -48,9 +54,18 @@ namespace Examine.Lucene.Search
                                     .ToList();
 
                         //exclude the special index fields
-                        _searchableFields = fields
+                        var filtered = fields
                             .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix) && !x.Equals(ExamineFieldNames.DefaultFacetsName))
                             .ToArray();
+
+                        // Only cache non-empty results so that an initially empty index
+                        // will re-read fields once documents have been indexed.
+                        if (filtered.Length > 0)
+                        {
+                            _searchableFields = filtered;
+                        }
+
+                        return filtered;
                     }
                     finally
                     {

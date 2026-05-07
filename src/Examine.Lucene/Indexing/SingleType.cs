@@ -8,7 +8,6 @@ using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
-using static Lucene.Net.Queries.Function.ValueSources.MultiFunction;
 
 namespace Examine.Lucene.Indexing
 {
@@ -31,13 +30,10 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
-        [Obsolete("To be removed in Examine V5")]
-#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+        [Obsolete("Use ctor with all parameters instead.")]
         public SingleType(string fieldName, ILoggerFactory logger, bool store = true)
-#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
-            : base(fieldName, logger, store)
+            : this(fieldName, false, false, logger, store)
         {
-            _isFacetable = false;
         }
 
         /// <summary>
@@ -64,7 +60,7 @@ namespace Examine.Lucene.Indexing
                     return;
                 }
 
-                doc.Add(new DoubleField(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+                doc.Add(new SingleField(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
                 doc.Add(new FacetField(FieldName, parsedPathVal));
                 doc.Add(new SingleDocValuesField(FieldName, parsedVal));
@@ -81,7 +77,7 @@ namespace Examine.Lucene.Indexing
                 return;
             }
 
-            doc.Add(new DoubleField(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+            doc.Add(new SingleField(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
             if (_isFacetable && _taxonomyIndex)
             {
@@ -101,7 +97,7 @@ namespace Examine.Lucene.Indexing
         /// <inheritdoc/>
         public override Query GetQuery(float? lower, float? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
-            return NumericRangeQuery.NewDoubleRange(FieldName,
+            return NumericRangeQuery.NewSingleRange(FieldName,
                 lower ?? float.MinValue,
                 upper ?? float.MaxValue, lowerInclusive, upperInclusive);
         }

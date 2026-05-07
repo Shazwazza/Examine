@@ -1,0 +1,43 @@
+using Lucene.Net.Analysis;
+using Lucene.Net.Store;
+
+namespace Examine.Benchmarks
+{
+    internal class InitTools
+    {
+        public static TestIndex InitializeIndex(
+            ExamineBaseTest examineBaseTest,
+            string tempBasePath,
+            Analyzer analyzer,
+            out DirectoryInfo indexDir)
+        {
+            var tempPath = Path.Combine(tempBasePath, Guid.NewGuid().ToString());
+            System.IO.Directory.CreateDirectory(tempPath);
+            indexDir = new DirectoryInfo(tempPath);
+            var luceneDirectory = FSDirectory.Open(indexDir);
+            var luceneTaxonomyDir = FSDirectory.Open(Path.Combine(tempPath, "Taxonomy"));
+            var indexer = examineBaseTest.GetTestIndex(luceneDirectory, luceneTaxonomyDir, analyzer);
+            return indexer;
+        }
+
+        public static List<ValueSet> CreateValueSet(int count)
+        {
+            var random = new Random();
+            var valueSets = new List<ValueSet>();
+
+            for (var i = 0; i < count; i++)
+            {
+                valueSets.Add(ValueSet.FromObject(Guid.NewGuid().ToString(), "content",
+                    new
+                    {
+                        nodeName = "location" + (i % 2 == 0 ? "1" : "2"),
+                        bodyText = Enumerable.Range(0, random.Next(10, 100)).Select(x => Guid.NewGuid().ToString()),
+                        number = random.Next(0, 1000),
+                        date = DateTime.Now.AddMinutes(random.Next(-1000, 1000))
+                    }));
+            }
+
+            return valueSets;
+        }
+    }
+}

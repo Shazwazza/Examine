@@ -69,13 +69,8 @@ namespace Examine
         }
 
         /// <inheritdoc/>
-#pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
-        // Justification for warning disabled: IDictionary is missing [MaybeNullWhen(false)] in Netstandard 2.1
         public bool TryGetValue(TKey key,
-#pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
-#if !NETSTANDARD2_0
             [MaybeNullWhen(false)]
-#endif
             out TVal value)
         {
             if (Dictionary == null)

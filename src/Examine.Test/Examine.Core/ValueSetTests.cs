@@ -65,13 +65,17 @@ namespace Examine.Test.Examine.Core
 
             foreach (var key in input.Keys)
             {
-                object[] expected = null;
+                object[]? expected = null;
                 // ArrayEnumerator does not inherit IEnumerable, so we have to
                 // test both options.
                 if (input[key] is IEnumerable enumerable)
+                {
                     expected = enumerable.Cast<object>().ToArray();
+                }
                 else if (input[key] is Array array)
+                {
                     expected = array.Cast<object>().ToArray();
+                }
 
                 object[] output = sut.Values[key].ToArray();
 
@@ -104,17 +108,25 @@ namespace Examine.Test.Examine.Core
 
             foreach (var key in input.Keys)
             {
-                object[] expected = null;
+                object[]? expected = null;
                 // ArrayEnumerator does not inherit IEnumerable, so we have to
                 // test both options.
                 if (input[key] is string s)
+                {
                     expected = new object[] { s };
+                }
                 else if (input[key] is IEnumerable enumerable)
+                {
                     expected = enumerable.Cast<object>().ToArray();
+                }
                 else if (input[key] is Array array)
+                {
                     expected = array.Cast<object>().ToArray();
+                }
                 else
+                {
                     expected = new object[] { input[key] };
+                }
 
                 object[] output = sut.Values[key].ToArray();
 

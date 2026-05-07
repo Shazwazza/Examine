@@ -17,7 +17,7 @@ namespace Examine.Web.Demo
             _loggerFactory = loggerFactory;
         }
 
-        public void Configure(string name, LuceneDirectoryIndexOptions options)
+        public void Configure(string? name, LuceneDirectoryIndexOptions options)
         {
             switch (name)
             {
@@ -41,7 +41,6 @@ namespace Examine.Web.Demo
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
                     break;
                 case "TaxonomyFacetIndex":
-                    options.UseTaxonomyIndex = true;
                     options.FacetsConfig.SetMultiValued("Tags", true);
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetTaxonomyFullText));
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressStateCity", FieldDefinitionTypes.FacetTaxonomyFullText));
@@ -49,7 +48,6 @@ namespace Examine.Web.Demo
                    break;
 
                 case "FacetIndex":
-                    options.UseTaxonomyIndex = false;
                     options.FacetsConfig.SetMultiValued("Tags", true);
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetFullText));
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressStateCity", FieldDefinitionTypes.FacetFullText));

@@ -30,13 +30,10 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
-        [Obsolete("To be removed in Examine V5")]
-#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+        [Obsolete("Use ctor with all parameters instead.")]
         public Int32Type(string fieldName, ILoggerFactory logger, bool store = true)
-#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
-            : base(fieldName, logger, store)
+            : this(fieldName, false, false, logger, store)
         {
-            _isFacetable = false;
         }
 
         /// <summary>
@@ -69,6 +66,7 @@ namespace Examine.Lucene.Indexing
                 doc.Add(new NumericDocValuesField(FieldName, parsedVal));
                 return;
             }
+
             base.AddValue(doc, value);
         }
 
@@ -80,8 +78,16 @@ namespace Examine.Lucene.Indexing
                 return;
             }
 
-            doc.Add(new Int32Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
+            // TODO: We can use this for better scoring/sorting performance
+            // https://stackoverflow.com/a/44953624/694494
+            // https://lucene.apache.org/core/7_4_0/core/org/apache/lucene/document/NumericDocValuesField.html
+            //var dvField = new NumericDocValuesField(_docValuesFieldName, 0);
+            //dvField.SetInt32Value(parsedVal);
+            //doc.Add(dvField);
+
+            doc.Add(new Int32Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+             
             if (_isFacetable && _taxonomyIndex)
             {
                 doc.Add(new FacetField(FieldName, parsedVal.ToString()));

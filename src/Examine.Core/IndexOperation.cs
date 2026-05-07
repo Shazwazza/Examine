@@ -3,7 +3,7 @@ namespace Examine
     /// <summary>
     /// Represents an indexing operation (either add/remove)
     /// </summary>
-    public struct IndexOperation
+    public readonly struct IndexOperation
     {   
         /// <summary>
         /// Initializes a new instance of the <see cref="T:System.Object"/> class.
