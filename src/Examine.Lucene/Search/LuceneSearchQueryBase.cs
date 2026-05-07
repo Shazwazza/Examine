@@ -396,6 +396,17 @@ namespace Examine.Lucene.Search
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="fieldValue"></param>
+        /// <param name="useQueryParser">This parameter is no longer used and will be removed in a future version.</param>
+        /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
+        [Obsolete("Use the overload without the useQueryParser parameter. This overload will be removed in a future version.")]
+        protected virtual Query? GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
+            => GetFieldInternalQuery(fieldName, fieldValue);
+
+        /// <summary>
+        /// Returns the Lucene query object for a field given an IExamineValue
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldValue"></param>
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         protected virtual Query? GetFieldInternalQuery(string fieldName, IExamineValue fieldValue)
         {

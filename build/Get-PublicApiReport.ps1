@@ -195,6 +195,69 @@ function Group-ApisByKind {
     return $groups
 }
 
+function Get-ParentTypeName {
+    param([string]$Api)
+
+    $cleanApi = $Api -replace '^\*REMOVED\*\s*', ''
+    $cleanApi = $cleanApi -replace '^(abstract|virtual|override|static|const)\s+', ''
+
+    # Properties: Type.Member.get/set -> ReturnType
+    if ($cleanApi -match '^(.+?)\.(get|set)\s*(->\s*.+)?$') {
+        $propPath = $matches[1]
+        if ($propPath -match '^(.+)\.\w+$') { return $matches[1] }
+        return $null
+    }
+
+    # Methods: Type.Method(args) -> ReturnType
+    if ($cleanApi -match '^(.+?)\(') {
+        $methodPath = $matches[1]
+        if ($methodPath -match '^(.+)\.\w+$') { return $matches[1] }
+        return $null
+    }
+
+    # Constants/Enums: Type.Name = value -> type
+    if ($cleanApi -match '^(.+?)\s*=\s*') {
+        $constPath = $matches[1]
+        if ($constPath -match '^(.+)\.\w+$') { return $matches[1] }
+        return $null
+    }
+
+    # Type declaration (no parent)
+    return $null
+}
+
+function Test-IsInterfaceType {
+    param([string]$TypeName)
+
+    if ([string]::IsNullOrEmpty($TypeName)) { return $false }
+
+    $parts = $TypeName.Split('.')
+    $typePart = $parts[-1]
+
+    # C# convention: interfaces start with 'I' followed by an uppercase letter
+    return ($typePart.Length -ge 2 -and $typePart[0] -eq 'I' -and [char]::IsUpper($typePart[1]))
+}
+
+function Get-ApiIdentity {
+    param([string]$Api)
+
+    $cleanApi = $Api -replace '^\*REMOVED\*\s*', ''
+    $cleanApi = $cleanApi -replace '^(abstract|virtual|override|static|const)\s+', ''
+
+    # Methods/constructors: fully qualified name before '('
+    if ($cleanApi -match '^([^(]+)\(') {
+        return $matches[1].Trim()
+    }
+
+    # Properties/accessors or members with return type: everything before ' -> '
+    if ($cleanApi -match '^(.+?)\s*->\s*') {
+        return $matches[1].Trim()
+    }
+
+    # Type declarations or bare names
+    return $cleanApi.Trim()
+}
+
 # Ensure the source path exists
 if (-not (Test-Path $SourcePath)) {
     Write-Error "Source path does not exist: $SourcePath"
@@ -241,9 +304,19 @@ foreach ($unshippedFile in $unshippedFiles) {
             $_.Trim() -ne "" -and $_.Trim() -ne "#nullable enable" 
         }
         
-        # Categorize APIs
+        # Build set of existing type names from shipped content
+        $shippedTypes = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        foreach ($line in $shippedContent) {
+            $stripped = $line.Trim()
+            if ((Get-ApiKind -Api $stripped) -eq 'Type') {
+                [void]$shippedTypes.Add($stripped)
+            }
+        }
+
+        # Categorize APIs into three buckets
         $newApis = @()
         $removedApis = @()
+        $breakingAdditions = @()
         
         foreach ($api in $unshippedContent) {
             $apiTrimmed = $api.Trim()
@@ -255,20 +328,76 @@ foreach ($unshippedFile in $unshippedFiles) {
             }
             # Check if this is truly new (not in shipped)
             elseif ($shippedContent -notcontains $api) {
-                $newApis += $api
+                $kind = Get-ApiKind -Api $apiTrimmed
+                $parentType = Get-ParentTypeName -Api $apiTrimmed
+
+                # Abstract additions to existing types are breaking
+                # (all derived classes must implement the new member)
+                if ($kind -eq 'Abstract' -and $parentType -and $shippedTypes.Contains($parentType)) {
+                    $breakingAdditions += $api
+                }
+                # New members on existing interfaces are breaking
+                # (all implementors must add the new member)
+                elseif ($kind -ne 'Type' -and $parentType -and $shippedTypes.Contains($parentType) -and (Test-IsInterfaceType -TypeName $parentType)) {
+                    $breakingAdditions += $api
+                }
+                else {
+                    $newApis += $api
+                }
             }
         }
         
-        if ($newApis.Count -gt 0 -or $removedApis.Count -gt 0) {
+        if ($newApis.Count -gt 0 -or $removedApis.Count -gt 0 -or $breakingAdditions.Count -gt 0) {
+            # Detect modified APIs: pair *REMOVED* entries with additions sharing the same identity
+            $modifiedApis = [System.Collections.Generic.List[hashtable]]::new()
+
+            $allAdditions = @($newApis) + @($breakingAdditions)
+            $additionsByIdentity = @{}
+            foreach ($api in $allAdditions) {
+                $id = Get-ApiIdentity -Api $api
+                if (-not $additionsByIdentity.ContainsKey($id)) {
+                    $additionsByIdentity[$id] = [System.Collections.Generic.List[string]]::new()
+                }
+                $additionsByIdentity[$id].Add($api)
+            }
+
+            $matchedAdditions = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            $unmatchedRemoved = [System.Collections.Generic.List[string]]::new()
+
+            foreach ($api in $removedApis) {
+                $id = Get-ApiIdentity -Api $api
+                if ($additionsByIdentity.ContainsKey($id) -and $additionsByIdentity[$id].Count -gt 0) {
+                    $match = $additionsByIdentity[$id][0]
+                    $additionsByIdentity[$id].RemoveAt(0)
+                    [void]$matchedAdditions.Add($match)
+                    $modifiedApis.Add(@{ Old = $api; New = $match })
+                } else {
+                    $unmatchedRemoved.Add($api)
+                }
+            }
+
+            # Rebuild filtered lists without the matched pairs
+            $newApis = @($newApis | Where-Object { -not $matchedAdditions.Contains($_) })
+            $breakingAdditions = @($breakingAdditions | Where-Object { -not $matchedAdditions.Contains($_) })
+            $removedApis = @($unmatchedRemoved)
+
             $projectInfo = @{
                 Name = $projectName
                 NewApis = $newApis
                 RemovedApis = $removedApis
+                BreakingAdditions = $breakingAdditions
+                ModifiedApis = @($modifiedApis)
             }
             $allProjects += $projectInfo
             
             if ($newApis.Count -gt 0) {
                 Write-Host "  Found $($newApis.Count) new API(s)" -ForegroundColor Green
+            }
+            if ($modifiedApis.Count -gt 0) {
+                Write-Host "  Found $($modifiedApis.Count) modified API(s) [BREAKING]" -ForegroundColor Magenta
+            }
+            if ($breakingAdditions.Count -gt 0) {
+                Write-Host "  Found $($breakingAdditions.Count) breaking addition(s) [BREAKING]" -ForegroundColor Red
             }
             if ($removedApis.Count -gt 0) {
                 Write-Host "  Found $($removedApis.Count) removed API(s) [BREAKING]" -ForegroundColor Red
@@ -305,14 +434,18 @@ if ($allProjects.Count -eq 0) {
 "@
 } else {
     $totalNewApis = ($allProjects | ForEach-Object { $_.NewApis.Count } | Measure-Object -Sum).Sum
+    $totalBreakingAdditions = ($allProjects | ForEach-Object { $_.BreakingAdditions.Count } | Measure-Object -Sum).Sum
+    $totalModifiedApis = ($allProjects | ForEach-Object { $_.ModifiedApis.Count } | Measure-Object -Sum).Sum
     $totalRemovedApis = ($allProjects | ForEach-Object { $_.RemovedApis.Count } | Measure-Object -Sum).Sum
-    $hasBreakingChanges = $totalRemovedApis -gt 0
+    $hasBreakingChanges = ($totalRemovedApis -gt 0) -or ($totalBreakingAdditions -gt 0) -or ($totalModifiedApis -gt 0)
 
     $markdown += @"
 
 - **Projects with changes:** $($allProjects.Count)
-- **Total new APIs:** $totalNewApis
-- **Total removed APIs:** $totalRemovedApis $(if ($hasBreakingChanges) { "$EmojiWarning **BREAKING CHANGES**" } else { "" })
+- **Total new APIs (safe):** $totalNewApis
+- **Total modified APIs:** $totalModifiedApis $(if ($totalModifiedApis -gt 0) { "$EmojiWarning signature changes" } else { "" })
+- **Total breaking additions:** $totalBreakingAdditions $(if ($totalBreakingAdditions -gt 0) { "$EmojiWarning abstract/interface members on existing types" } else { "" })
+- **Total removed APIs:** $totalRemovedApis $(if ($totalRemovedApis -gt 0) { "$EmojiWarning **BREAKING**" } else { "" })
 
 "@
 
@@ -328,27 +461,40 @@ if ($allProjects.Count -eq 0) {
     foreach ($project in $allProjects) {
         $added = @($project.NewApis)
         $removed = @($project.RemovedApis)
+        $breakingAdds = @($project.BreakingAdditions)
+        $modified = @($project.ModifiedApis)
 
         $addedGroups = Group-ApisByKind -Apis $added
         $removedGroups = Group-ApisByKind -Apis $removed
+        $breakingAddGroups = Group-ApisByKind -Apis $breakingAdds
 
-        $allKinds = @($addedGroups.Keys + $removedGroups.Keys | Sort-Object -Unique | Sort-Object { Get-KindOrder $_ }, { $_ })
+        # Group modified APIs by the kind of their old (removed) entry
+        $modifiedGroups = @{}
+        foreach ($mod in $modified) {
+            $k = Get-ApiKind -Api $mod.Old
+            if (-not $modifiedGroups.ContainsKey($k)) { $modifiedGroups[$k] = New-Object System.Collections.Generic.List[hashtable] }
+            $modifiedGroups[$k].Add($mod)
+        }
+
+        $allKinds = @($addedGroups.Keys + $removedGroups.Keys + $breakingAddGroups.Keys + $modifiedGroups.Keys | Sort-Object -Unique | Sort-Object { Get-KindOrder $_ }, { $_ })
 
         $markdown += "`n### $($project.Name)`n`n"
 
         # Summary table
-        $markdown += "| Kind | Added | Removed |`n"
-        $markdown += "|---|---:|---:|`n"
+        $markdown += "| Kind | Added | Modified | Breaking Additions | Removed |`n"
+        $markdown += "|---|---:|---:|---:|---:|`n"
 
         foreach ($k in $allKinds) {
             $aCount = if ($addedGroups.ContainsKey($k)) { $addedGroups[$k].Count } else { 0 }
+            $mCount = if ($modifiedGroups.ContainsKey($k)) { $modifiedGroups[$k].Count } else { 0 }
+            $bCount = if ($breakingAddGroups.ContainsKey($k)) { $breakingAddGroups[$k].Count } else { 0 }
             $rCount = if ($removedGroups.ContainsKey($k)) { $removedGroups[$k].Count } else { 0 }
-            $markdown += "| $k | $aCount | $rCount |`n"
+            $markdown += "| $k | $aCount | $mCount | $bCount | $rCount |`n"
         }
 
-        $markdown += "| **Total** | **$($added.Count)** | **$($removed.Count)** |`n"
+        $markdown += "| **Total** | **$($added.Count)** | **$($modified.Count)** | **$($breakingAdds.Count)** | **$($removed.Count)** |`n"
 
-        # Breaking changes section
+        # Breaking changes - Removed APIs (pure removals, no replacement)
         if ($removed.Count -gt 0) {
             $markdown += "`n#### $EmojiWarning Removed APIs (BREAKING) ($($removed.Count))`n`n"
 
@@ -364,7 +510,44 @@ if ($allProjects.Count -eq 0) {
             }
         }
 
-        # Additions section
+        # Breaking changes - Modified APIs (signature changes: old removed + new added)
+        if ($modified.Count -gt 0) {
+            $markdown += "`n#### $EmojiWarning Modified APIs (BREAKING) ($($modified.Count))`n`n"
+            $markdown += "_Signature changes $Arrow callers and/or derived classes must be updated._`n`n"
+
+            foreach ($k in $allKinds) {
+                if (-not $modifiedGroups.ContainsKey($k)) { continue }
+                $markdown += "##### $k ($($modifiedGroups[$k].Count))`n`n"
+
+                foreach ($mod in ($modifiedGroups[$k] | Sort-Object { $_.Old })) {
+                    $oldFormatted = Format-ApiSignature -Api $mod.Old -OmitKindLabel
+                    $newFormatted = Format-ApiSignature -Api $mod.New -OmitKindLabel
+                    $newFormatted = $newFormatted -replace '^- ', '  **Changed to:** '
+                    $markdown += "$oldFormatted`n$newFormatted`n"
+                }
+
+                $markdown += "`n"
+            }
+        }
+
+        # Breaking changes - Abstract/interface member additions to existing types
+        if ($breakingAdds.Count -gt 0) {
+            $markdown += "`n#### $EmojiWarning Breaking Additions ($($breakingAdds.Count))`n`n"
+            $markdown += "_New abstract or interface members on existing types $Arrow all derived classes / implementors must be updated._`n`n"
+
+            foreach ($k in $allKinds) {
+                if (-not $breakingAddGroups.ContainsKey($k)) { continue }
+                $markdown += "##### $k ($($breakingAddGroups[$k].Count))`n`n"
+
+                foreach ($api in ($breakingAddGroups[$k] | Sort-Object)) {
+                    $markdown += "$(Format-ApiSignature -Api $api -OmitKindLabel)`n"
+                }
+
+                $markdown += "`n"
+            }
+        }
+
+        # Non-breaking additions
         if ($added.Count -gt 0) {
             $markdown += "`n#### $EmojiCheck Added APIs (Non-Breaking) ($($added.Count))`n`n"
 
@@ -393,8 +576,20 @@ $totalNewApis new API(s) have been added. These are **safe changes** that do not
 "@
 
     if ($hasBreakingChanges) {
+        $breakingDetails = @()
+        if ($totalModifiedApis -gt 0) {
+            $breakingDetails += "$totalModifiedApis API(s) have **changed signatures**."
+        }
+        if ($totalRemovedApis -gt 0) {
+            $breakingDetails += "$totalRemovedApis API(s) have been **removed**."
+        }
+        if ($totalBreakingAdditions -gt 0) {
+            $breakingDetails += "$totalBreakingAdditions **abstract or interface member(s)** have been added to existing types (all derived classes / implementors must be updated)."
+        }
         $markdown += @"
-$totalRemovedApis API(s) have been **removed**. These are **BREAKING CHANGES** that will require:
+$($breakingDetails -join "`n`n")
+
+These are **BREAKING CHANGES** that will require:
 - Major version bump (e.g., 3.x $Arrow 4.0)
 - Migration guide for consumers
 - Release notes highlighting the breaking changes

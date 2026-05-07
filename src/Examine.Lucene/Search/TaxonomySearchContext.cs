@@ -54,9 +54,18 @@ namespace Examine.Lucene.Search
                                     .ToList();
 
                         //exclude the special index fields
-                        _searchableFields = fields
+                        var filtered = fields
                             .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix) && !x.Equals(ExamineFieldNames.DefaultFacetsName))
                             .ToArray();
+
+                        // Only cache non-empty results so that an initially empty index
+                        // will re-read fields once documents have been indexed.
+                        if (filtered.Length > 0)
+                        {
+                            _searchableFields = filtered;
+                        }
+
+                        return filtered;
                     }
                     finally
                     {

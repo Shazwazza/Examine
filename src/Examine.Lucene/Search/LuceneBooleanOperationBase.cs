@@ -137,6 +137,11 @@ namespace Examine.Lucene.Search
         public abstract IOrdering SelectAllFields();
 
         /// <inheritdoc/>
-        public abstract IQueryExecutor WithFacets(Action<IFacetOperations> facets);
+        /// <remarks>
+        /// The default implementation throws <see cref="NotSupportedException"/>.
+        /// Providers that support faceted search should override this method.
+        /// </remarks>
+        public virtual IQueryExecutor WithFacets(Action<IFacetOperations> facets)
+            => throw new NotSupportedException("Faceted search is not supported by this provider.");
     }
 }

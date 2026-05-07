@@ -11,7 +11,7 @@ namespace Examine.Lucene.Directories
     /// <summary>
     /// Represents a directory factory for creating file system directories
     /// </summary>
-    public class FileSystemDirectoryFactory : IDirectoryFactory
+    public class FileSystemDirectoryFactory : IDirectoryFactory, ITaxonomyDirectoryFactory
     {
         private readonly DirectoryInfo _baseDir;
 
@@ -62,8 +62,16 @@ namespace Examine.Lucene.Directories
         }
 
         /// <inheritdoc/>
-        public Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        public Directory? CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
+            var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
+            
+            // If taxonomy is not enabled, return null
+            if (!options.UseTaxonomyIndex)
+            {
+                return null;
+            }
+            
             var path = Path.Combine(_baseDir.FullName, luceneIndex.Name, "taxonomy");
             var luceneIndexFolder = new DirectoryInfo(path);
 
@@ -72,7 +80,6 @@ namespace Examine.Lucene.Directories
             {
                 IndexWriter.Unlock(dir);
             }
-            var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
             if (options.NrtEnabled)
             {
                 return new NRTCachingDirectory(dir, options.NrtCacheMaxMergeSizeMB, options.NrtCacheMaxCachedMB);
