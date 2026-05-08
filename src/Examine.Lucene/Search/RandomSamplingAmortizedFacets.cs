@@ -54,7 +54,9 @@ namespace Examine.Lucene.Search
         public override LuceneFacetResult GetTopChildren(int topN, string dim, params string[] path)
         {
             var facetResult = _innerFacets.GetTopChildren(topN, dim, path);
-            return facetResult is null ? null! : Amortize(facetResult);
+#pragma warning disable CS8603
+            return facetResult is null ? facetResult : Amortize(facetResult);
+#pragma warning restore CS8603
         }
 
         private LuceneFacetResult Amortize(LuceneFacetResult facetResult)
