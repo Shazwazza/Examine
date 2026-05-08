@@ -9,11 +9,5 @@ namespace Examine.Search
         /// Maximum number of terms to return
         /// </summary>
         IFacetQueryField MaxCount(int count);
-
-        /// <summary>
-        /// Set the Facet Path
-        /// </summary>
-        /// <param name="path">Facet Path</param>
-        IFacetQueryField SetPath(params string[] path);
     }
 }

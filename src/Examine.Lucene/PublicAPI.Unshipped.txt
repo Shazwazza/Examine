@@ -73,11 +73,10 @@ Examine.Lucene.Search.FacetFloatField.IsTaxonomyIndexed.get -> bool
 Examine.Lucene.Search.FacetFullTextField
 Examine.Lucene.Search.FacetFullTextField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
 Examine.Lucene.Search.FacetFullTextField.FacetField.get -> string!
-Examine.Lucene.Search.FacetFullTextField.FacetFullTextField(string! field, string![]! values, string! facetField, int maxCount = 10, string![]? path = null, bool isTaxonomyIndexed = false) -> void
+Examine.Lucene.Search.FacetFullTextField.FacetFullTextField(string! field, string![]! values, string! facetField, int maxCount = 10, bool isTaxonomyIndexed = false) -> void
 Examine.Lucene.Search.FacetFullTextField.Field.get -> string!
 Examine.Lucene.Search.FacetFullTextField.IsTaxonomyIndexed.get -> bool
 Examine.Lucene.Search.FacetFullTextField.MaxCount.get -> int
-Examine.Lucene.Search.FacetFullTextField.Path.get -> string![]?
 Examine.Lucene.Search.FacetFullTextField.Values.get -> string![]!
 Examine.Lucene.Search.FacetLongField
 Examine.Lucene.Search.FacetLongField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
@@ -90,7 +89,6 @@ Examine.Lucene.Search.FacetLongField.LongRanges.get -> Examine.Search.Int64Range
 Examine.Lucene.Search.FacetQueryField
 Examine.Lucene.Search.FacetQueryField.FacetQueryField(Examine.Lucene.Search.FacetFullTextField! field) -> void
 Examine.Lucene.Search.FacetQueryField.MaxCount(int count) -> Examine.Search.IFacetQueryField!
-Examine.Lucene.Search.FacetQueryField.SetPath(params string![]! path) -> Examine.Search.IFacetQueryField!
 Examine.Lucene.Search.IFacetExtractionContext
 Examine.Lucene.Search.IFacetExtractionContext.FacetConfig.get -> Lucene.Net.Facet.FacetsConfig!
 Examine.Lucene.Search.IFacetExtractionContext.FacetsCollector.get -> Lucene.Net.Facet.FacetsCollector!
@@ -118,7 +116,6 @@ Examine.Lucene.Search.LuceneFacetLabel.LuceneFacetLabel(Lucene.Net.Facet.Taxonom
 Examine.Lucene.Search.LuceneFacetLabel.Subpath(int length) -> Examine.Search.IFacetLabel!
 Examine.Lucene.Search.LuceneFacetOperation
 Examine.Lucene.Search.LuceneFacetOperation.Execute(Examine.Search.QueryOptions? options = null) -> Examine.ISearchResults!
-Examine.Lucene.Search.LuceneFacetOperation.Facet(string! field, System.Action<Examine.Search.IFacetQueryField!>? facetConfiguration = null) -> Examine.Search.IFacetOperations!
 Examine.Lucene.Search.LuceneFacetOperation.FacetDoubleRange(string! field, params Examine.Search.DoubleRange[]! doubleRanges) -> Examine.Search.IFacetOperations!
 Examine.Lucene.Search.LuceneFacetOperation.FacetFloatRange(string! field, params Examine.Search.FloatRange[]! floatRanges) -> Examine.Search.IFacetOperations!
 Examine.Lucene.Search.LuceneFacetOperation.FacetLongRange(string! field, params Examine.Search.Int64Range[]! longRanges) -> Examine.Search.IFacetOperations!

@@ -18,7 +18,7 @@ namespace Examine.Lucene.Search
         /// <param name="skipTakeMaxResults">When using Skip/Take (not SearchAfter) this will be the maximum data set size that can be paged.</param>
         /// <param name="autoCalculateSkipTakeMaxResults">If enabled, this will pre-calculate the document count in the index to use for <see cref="SkipTakeMaxResults"/>.</param>
         /// <param name="trackDocumentScores">Whether to Track Document Scores. For best performance, if not needed, leave false.</param>
-        /// <param name="facetSampling">Whether to apply Facet sampling to improve performance. If not required, leave null</param>
+        /// <param name="facetSampling">Whether to apply Facet sampling to improve performance. If not required, leave null.</param>
         public LuceneQueryOptions(
             int skip,
             int take = DefaultMaxResults,
@@ -34,8 +34,8 @@ namespace Examine.Lucene.Search
             TrackDocumentScores = trackDocumentScores;
             TrackDocumentMaxScore = trackDocumentMaxScore;
             SkipTakeMaxResults = skipTakeMaxResults;
-            FacetRandomSampling = facetSampling;
             AutoCalculateSkipTakeMaxResults = autoCalculateSkipTakeMaxResults;
+            FacetRandomSampling = facetSampling;
         }
 
         /// <summary>
@@ -54,10 +54,10 @@ namespace Examine.Lucene.Search
         public SearchAfterOptions? SearchAfter { get; }
 
         /// <summary>
-        /// Options for Lucene Facet Sampling. If not set, no Facet Sampling is applied. 
+        /// Options for Lucene Facet Sampling. If not set, no Facet Sampling is applied.
         /// </summary>
         /// <remarks>
-        /// Performance optimization for large sets
+        /// Performance optimization for large result sets.
         /// </remarks>
         public LuceneFacetSamplingQueryOptions? FacetRandomSampling { get; }
 

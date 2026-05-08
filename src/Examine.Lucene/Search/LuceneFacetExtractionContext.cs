@@ -35,7 +35,7 @@ namespace Examine.Lucene.Search
             {
                 if (SearcherReference is ITaxonomySearcherReference taxonomySearcher)
                 {
-                    return new FastTaxonomyFacetCounts(facetIndexFieldName, taxonomySearcher.TaxonomyReader, FacetConfig, FacetsCollector);
+                    return WrapFacetCounts(new FastTaxonomyFacetCounts(facetIndexFieldName, taxonomySearcher.TaxonomyReader, FacetConfig, FacetsCollector));
                 }
                 throw new InvalidOperationException("Cannot get FastTaxonomyFacetCounts for field not stored in the Taxonomy index");
             }
@@ -45,8 +45,13 @@ namespace Examine.Lucene.Search
                 {
                     _sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(SearcherReference.IndexSearcher.IndexReader, facetIndexFieldName);
                 }
-                return new SortedSetDocValuesFacetCounts(_sortedSetReaderState, FacetsCollector);
+                return WrapFacetCounts(new SortedSetDocValuesFacetCounts(_sortedSetReaderState, FacetsCollector));
             }
         }
+
+        private Facets WrapFacetCounts(Facets facetCounts)
+            => FacetsCollector is RandomSamplingFacetsCollector samplingCollector
+                ? new RandomSamplingAmortizedFacets(facetCounts, samplingCollector, FacetConfig, SearcherReference.IndexSearcher)
+                : facetCounts;
     }
 }
