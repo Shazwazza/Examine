@@ -12,7 +12,7 @@ jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-    - uses: dorny/test-reporter@v2
+    - uses: dorny/test-reporter@v3
       with:
         artifact: /(examine-test-results|test-results-(.*))/    # artifact name(s)
         name: Publish Tests               # Name of the check run which will be created
