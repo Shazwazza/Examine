@@ -269,6 +269,58 @@ namespace Examine.Test.Examine.Lucene.Search
 
         private bool HasFacets(FacetTestType withFacets) => withFacets is FacetTestType.TaxonomyFacets or FacetTestType.SortedSetFacets;
 
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        public void Facet_Random_Sampling_Amortizes_Facet_Counts(FacetTestType withFacets)
+        {
+            var fieldDefinitionCollection = withFacets switch
+            {
+                FacetTestType.TaxonomyFacets => new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetTaxonomyFullText)),
+                FacetTestType.SortedSetFacets => new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText)),
+                _ => throw new ArgumentOutOfRangeException(nameof(withFacets))
+            };
+
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using var luceneDir = new RandomIdRAMDirectory();
+            using var luceneTaxonomyDir = new RandomIdRAMDirectory();
+            using var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer, fieldDefinitionCollection);
+            indexer.IndexItems(
+            [
+                .. Enumerable.Range(1, 80).Select(i => ValueSet.FromObject(i.ToString(), "content", new { nodeTypeAlias = "news" })),
+                .. Enumerable.Range(81, 20).Select(i => ValueSet.FromObject(i.ToString(), "content", new { nodeTypeAlias = "blog" }))
+            ]);
+
+            var sampledOptions = new LuceneQueryOptions(
+                0,
+                100,
+                facetSampling: new LuceneFacetSamplingQueryOptions(10, 1234));
+
+            var searcher = indexer.Searcher;
+
+            var topChildrenResults = searcher.CreateQuery("content")
+                .All()
+                .WithFacets(facets => facets.FacetString("nodeTypeAlias"))
+                .Execute(sampledOptions);
+
+            Assert.AreEqual(100, topChildrenResults.TotalItemCount);
+
+            var topChildrenFacet = topChildrenResults.GetFacet("nodeTypeAlias")!.ToArray();
+            Assert.AreEqual(2, topChildrenFacet.Length);
+            Assert.That(topChildrenFacet.Sum(x => x.Value), Is.GreaterThan(10));
+            Assert.That(topChildrenFacet.Sum(x => x.Value), Is.LessThanOrEqualTo(100));
+
+            var specificValueResults = searcher.CreateQuery("content")
+                .All()
+                .WithFacets(facets => facets.FacetString("nodeTypeAlias", null, "news", "blog"))
+                .Execute(sampledOptions);
+
+            Assert.AreEqual(100, specificValueResults.TotalItemCount);
+
+            var specificValueFacet = specificValueResults.GetFacet("nodeTypeAlias")!.ToArray();
+            Assert.AreEqual(2, specificValueFacet.Length);
+            Assert.That(specificValueFacet.Sum(x => x.Value), Is.GreaterThan(10));
+            Assert.That(specificValueFacet.Sum(x => x.Value), Is.LessThanOrEqualTo(100));
+        }
 
         [TestCase(FacetTestType.TaxonomyFacets)]
         [TestCase(FacetTestType.SortedSetFacets)]

@@ -125,7 +125,9 @@ namespace Examine.Lucene.Search
                 FacetsCollector? facetsCollector = null;
                 if (_facetFields != null && _facetFields.Any())
                 {
-                    facetsCollector = new FacetsCollector();
+                    facetsCollector = _luceneQueryOptions?.FacetRandomSampling is { } facetSampling
+                        ? new RandomSamplingFacetsCollector(facetSampling.SampleSize, facetSampling.Seed)
+                        : new FacetsCollector();
                 }
 
                 if (scoreDocAfter != null && sort != null)

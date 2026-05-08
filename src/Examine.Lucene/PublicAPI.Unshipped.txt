@@ -121,7 +121,13 @@ Examine.Lucene.Search.LuceneFacetOperation.FacetFloatRange(string! field, params
 Examine.Lucene.Search.LuceneFacetOperation.FacetLongRange(string! field, params Examine.Search.Int64Range[]! longRanges) -> Examine.Search.IFacetOperations!
 Examine.Lucene.Search.LuceneFacetOperation.FacetString(string! field, System.Action<Examine.Search.IFacetQueryField!>? facetConfiguration = null, params string![]! values) -> Examine.Search.IFacetOperations!
 Examine.Lucene.Search.LuceneFacetOperation.LuceneFacetOperation(Examine.Lucene.Search.LuceneSearchQuery! search) -> void
-Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int take = 100, Examine.Lucene.Search.SearchAfterOptions? searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false) -> void
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.LuceneFacetSamplingQueryOptions(int sampleSize) -> void
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.LuceneFacetSamplingQueryOptions(int sampleSize, long seed) -> void
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.SampleSize.get -> int
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.Seed.get -> long
+Examine.Lucene.Search.LuceneQueryOptions.FacetRandomSampling.get -> Examine.Lucene.Search.LuceneFacetSamplingQueryOptions?
+Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int take = 100, Examine.Lucene.Search.SearchAfterOptions? searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false, Examine.Lucene.Search.LuceneFacetSamplingQueryOptions? facetSampling = null) -> void
 Examine.Lucene.Search.LuceneSearchQuery.LuceneSearchQuery(Examine.Lucene.Search.ISearchContext! searchContext, string? category, Lucene.Net.Analysis.Analyzer! analyzer, Examine.Lucene.Search.LuceneSearchOptions! searchOptions, Examine.Search.BooleanOperation occurance, Lucene.Net.Facet.FacetsConfig! facetsConfig) -> void
 Examine.Lucene.Search.LuceneSearchResults.Facets.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>!
 Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult!>! results, int totalItemCount, System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>! facets, float maxScore, Examine.Lucene.Search.SearchAfterOptions? searchAfterOptions) -> void
