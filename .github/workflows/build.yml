@@ -81,6 +81,9 @@ jobs:
     needs: test-matrix
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      actions: write
     steps:
     - name: Download matrix test result artifacts
       uses: actions/download-artifact@v4
@@ -94,6 +97,7 @@ jobs:
       with:
         name: examine-test-results
         path: ${{ github.workspace }}/_TestResultsMerged/*.trx
+        if-no-files-found: ignore
 
   build:
     needs: test-matrix
