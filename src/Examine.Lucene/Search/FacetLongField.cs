@@ -45,7 +45,7 @@ namespace Examine.Lucene.Search
                 yield break;
             }
 
-            yield return new KeyValuePair<string, IFacetResult>(Field, new Examine.Search.FacetResult(longFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
+            yield return new KeyValuePair<string, IFacetResult>(Field, new FacetResult(longFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
         }
     }
 }

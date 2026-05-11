@@ -1,4 +1,4 @@
-using Lucene.Net.Facet.Taxonomy;
+using LuceneFacetLabelType = Lucene.Net.Facet.Taxonomy.FacetLabel;
 
 namespace Examine.Lucene.Search
 {
@@ -7,13 +7,13 @@ namespace Examine.Lucene.Search
     /// </summary>
     public class LuceneFacetLabel : Examine.Search.IFacetLabel
     {
-        private readonly FacetLabel _facetLabel;
+        private readonly LuceneFacetLabelType _facetLabel;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="facetLabel">Lucene Facet Label</param>
-        public LuceneFacetLabel(FacetLabel facetLabel)
+        public LuceneFacetLabel(LuceneFacetLabelType facetLabel)
         {
             _facetLabel = facetLabel;
         }
@@ -25,7 +25,7 @@ namespace Examine.Lucene.Search
         public int Length => _facetLabel.Length;
 
         /// <inheritdoc/>
-        public int CompareTo(Examine.Search.IFacetLabel? other) => _facetLabel.CompareTo(new FacetLabel(other?.Components));
+        public int CompareTo(Examine.Search.IFacetLabel? other) => _facetLabel.CompareTo(new LuceneFacetLabelType(other?.Components));
 
         /// <inheritdoc/>
         public Examine.Search.IFacetLabel Subpath(int length) => new LuceneFacetLabel(_facetLabel.Subpath(length));

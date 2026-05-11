@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Examine.Search;
 
-namespace Examine.Search
+namespace Examine.Lucene.Search
 {
     /// <summary>
     /// Holds a sequence of string components, specifying the hierarchical name of a category.
     /// </summary>
-    public readonly struct FacetLabel : IFacetLabel
+    internal readonly struct FacetLabel : IFacetLabel
     {
         /// <summary>
         /// Constructor
@@ -21,7 +22,7 @@ namespace Examine.Search
         /// Constructor
         /// </summary>
         /// <param name="dimension">The name of the dimension that stores this FacetLabel</param>
-        /// <param name="components">>The components of this FacetLabel</param>
+        /// <param name="components">The components of this FacetLabel</param>
         public FacetLabel(string dimension, string[] components)
         {
             Components = new string[1 + components.Length];
@@ -35,19 +36,12 @@ namespace Examine.Search
         /// <inheritdoc/>
         public int Length => Components.Length;
 
-        /// <summary>
-        /// Compares one facet label to another.
-        /// </summary>
-        /// <remarks>
-        /// From Lucene.NET
-        /// </remarks>
-        /// <param name="other"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public int CompareTo(IFacetLabel? other)
         {
             if (other == null)
             {
-                return 1; // null sorts last
+                return 1;
             }
 
             int len = Length < other.Length ? Length : other.Length;
@@ -56,23 +50,21 @@ namespace Examine.Search
                 int cmp = StringComparer.Ordinal.Compare(Components[i], other.Components[j]);
                 if (cmp < 0)
                 {
-                    return -1; // this is 'before'
+                    return -1;
                 }
                 if (cmp > 0)
                 {
-                    return 1; // this is 'after'
+                    return 1;
                 }
             }
 
-            // one is a prefix of the other
             return Length - other.Length;
         }
-
 
         /// <inheritdoc/>
         public IFacetLabel Subpath(int length)
         {
-            if(Components.Length <= length)
+            if (Components.Length <= length)
             {
                 return new FacetLabel(Components);
             }

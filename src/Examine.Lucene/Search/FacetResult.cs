@@ -2,22 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Examine.Search;
 
-namespace Examine.Search
+namespace Examine.Lucene.Search
 {
     /// <inheritdoc/>
-    public class FacetResult : IFacetResult
+    internal sealed class FacetResult(IEnumerable<IFacetValue> values) : IFacetResult
     {
-        private readonly IEnumerable<IFacetValue> _values;
+        private readonly IEnumerable<IFacetValue> _values = values;
 
         [AllowNull]
-        private IDictionary<string, IFacetValue> _dictValues;
-
-        /// <inheritdoc/>
-        public FacetResult(IEnumerable<IFacetValue> values)
-        {
-            _values = values;
-        }
+        private Dictionary<string, IFacetValue> _dictValues;
 
         /// <inheritdoc/>
         public IEnumerator<IFacetValue> GetEnumerator() => _values.GetEnumerator();

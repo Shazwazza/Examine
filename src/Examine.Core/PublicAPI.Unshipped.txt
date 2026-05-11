@@ -35,24 +35,6 @@ Examine.Search.DoubleRange.MinInclusive.get -> bool
 Examine.Search.Examineness.Default = 100 -> Examine.Search.Examineness
 Examine.Search.Examineness.Phrase = 7 -> Examine.Search.Examineness
 Examine.Search.ExamineValueExtensions
-Examine.Search.FacetLabel
-Examine.Search.FacetLabel.CompareTo(Examine.Search.IFacetLabel other) -> int
-Examine.Search.FacetLabel.Components.get -> string[]
-Examine.Search.FacetLabel.FacetLabel() -> void
-Examine.Search.FacetLabel.FacetLabel(string dimension, string[] components) -> void
-Examine.Search.FacetLabel.FacetLabel(string[] components) -> void
-Examine.Search.FacetLabel.Length.get -> int
-Examine.Search.FacetLabel.Subpath(int length) -> Examine.Search.IFacetLabel
-Examine.Search.FacetResult
-Examine.Search.FacetResult.Facet(string label) -> Examine.Search.IFacetValue
-Examine.Search.FacetResult.FacetResult(System.Collections.Generic.IEnumerable<Examine.Search.IFacetValue> values) -> void
-Examine.Search.FacetResult.GetEnumerator() -> System.Collections.Generic.IEnumerator<Examine.Search.IFacetValue>
-Examine.Search.FacetResult.TryGetFacet(string label, out Examine.Search.IFacetValue facetValue) -> bool
-Examine.Search.FacetValue
-Examine.Search.FacetValue.FacetValue() -> void
-Examine.Search.FacetValue.FacetValue(string label, float value) -> void
-Examine.Search.FacetValue.Label.get -> string
-Examine.Search.FacetValue.Value.get -> float
 Examine.Search.FloatRange
 Examine.Search.FloatRange.FloatRange() -> void
 Examine.Search.FloatRange.FloatRange(string label, float min, bool minInclusive, float max, bool maxInclusive) -> void

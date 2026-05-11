@@ -1,7 +1,9 @@
-namespace Examine.Search
+using Examine.Search;
+
+namespace Examine.Lucene.Search
 {
     /// <inheritdoc/>
-    public readonly struct FacetValue : IFacetValue
+    internal readonly struct FacetValue : IFacetValue
     {
         /// <inheritdoc/>
         public string Label { get; }

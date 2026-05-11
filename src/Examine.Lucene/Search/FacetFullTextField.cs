@@ -42,7 +42,7 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
-            Facets facetCounts = facetExtractionContext.GetFacetCounts(FacetField, IsTaxonomyIndexed);
+            var facetCounts = facetExtractionContext.GetFacetCounts(FacetField, IsTaxonomyIndexed);
 
             if (Values != null && Values.Length > 0)
             {
@@ -52,7 +52,7 @@ namespace Examine.Lucene.Search
                     var value = facetCounts.GetSpecificValue(Field, label);
                     facetValues.Add(new FacetValue(label, value));
                 }
-                yield return new KeyValuePair<string, IFacetResult>(Field, new Examine.Search.FacetResult(facetValues.OrderBy(value => value.Value).Take(MaxCount).OfType<IFacetValue>()));
+                yield return new KeyValuePair<string, IFacetResult>(Field, new FacetResult(facetValues.OrderBy(value => value.Value).Take(MaxCount).OfType<IFacetValue>()));
             }
             else
             {
@@ -63,7 +63,7 @@ namespace Examine.Lucene.Search
                     yield break;
                 }
 
-                yield return new KeyValuePair<string, IFacetResult>(Field, new Examine.Search.FacetResult(sortedFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
+                yield return new KeyValuePair<string, IFacetResult>(Field, new FacetResult(sortedFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
             }
         }
     }
