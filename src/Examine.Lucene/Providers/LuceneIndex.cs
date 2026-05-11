@@ -953,12 +953,6 @@ namespace Examine.Lucene.Providers
         /// The generation number of the update operation, or null if the operation is not applicable.
         /// </returns>
         protected virtual long? UpdateLuceneDocument(Term term, Document doc)
-
-                // Ensure the NRT reader is refreshed before signaling commit completion.
-                // Without this, consumers reacting to IndexCommitted may search with
-                // a stale reader that doesn't yet reflect the committed changes.
-                _index.WaitForChanges();
-
         {
             var taxonomyWriter = TaxonomyWriter;
             if (taxonomyWriter != null)
