@@ -26,7 +26,7 @@
     <Company>Shannon Deminick</Company>
     <Authors>shandem</Authors>
     <PackageIcon>logo-round-small.png</PackageIcon>
-    <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <VersionPrefix>4.0.0</VersionPrefix>
   </PropertyGroup>
   
