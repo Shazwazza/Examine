@@ -77,6 +77,24 @@ jobs:
         path: ${{ github.workspace }}/_TestResults/**/*.trx
         reporter: dotnet-trx
 
+  upload-legacy-test-results:
+    needs: test-matrix
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+    - name: Download matrix test result artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: test-results-*
+        merge-multiple: true
+        path: ${{ github.workspace }}/_TestResultsMerged
+
+    - name: Upload legacy test result artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: examine-test-results
+        path: ${{ github.workspace }}/_TestResultsMerged/*.trx
+
   build:
     needs: test-matrix
     runs-on: ubuntu-latest
