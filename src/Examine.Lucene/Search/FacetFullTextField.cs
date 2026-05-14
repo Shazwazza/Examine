@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
@@ -40,8 +39,10 @@ namespace Examine.Lucene.Search
             IsTaxonomyIndexed = isTaxonomyIndexed;
         }
 
-        // Lucene.Net's internal PriorityQueue has a maximum size constraint
-        private const int LuceneMaxTopChildren = int.MaxValue - 256;
+        // Lucene.Net's internal PriorityQueue maximum is int.MaxValue - 5 (ArrayUtil.MAX_ARRAY_LENGTH).
+        // Use a conservative buffer so that any MaxCount value in that range triggers the two-pass probe.
+        private const int LucenePriorityQueueBuffer = 256;
+        private const int LuceneMaxTopChildren = int.MaxValue - LucenePriorityQueueBuffer;
 
         /// <inheritdoc/>
         public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
@@ -70,7 +71,11 @@ namespace Examine.Lucene.Search
                     {
                         yield break;
                     }
-                    topN = Math.Max(1, probe.ChildCount);
+                    topN = probe.ChildCount;
+                    if (topN == 0)
+                    {
+                        yield break;
+                    }
                 }
                 else
                 {
