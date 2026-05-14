@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
@@ -30,7 +31,7 @@ namespace Examine.Lucene.Search
         public bool IsTaxonomyIndexed { get; }
 
         /// <inheritdoc/>
-        public FacetFullTextField(string field, string[] values, string facetField, int maxCount = 10, bool isTaxonomyIndexed = false)
+        public FacetFullTextField(string field, string[] values, string facetField, int maxCount = int.MaxValue, bool isTaxonomyIndexed = false)
         {
             Field = field;
             Values = values;
@@ -38,6 +39,9 @@ namespace Examine.Lucene.Search
             MaxCount = maxCount;
             IsTaxonomyIndexed = isTaxonomyIndexed;
         }
+
+        // Lucene.Net's internal PriorityQueue has a maximum size constraint
+        private const int LuceneMaxTopChildren = int.MaxValue - 256;
 
         /// <inheritdoc/>
         public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
@@ -56,7 +60,24 @@ namespace Examine.Lucene.Search
             }
             else
             {
-                var sortedFacets = facetCounts.GetTopChildren(MaxCount, Field);
+                int topN;
+                if (MaxCount >= LuceneMaxTopChildren)
+                {
+                    // Use a two-pass approach: probe with topN=1 to get the total ChildCount
+                    // to avoid allocating a huge priority queue inside Lucene.Net
+                    var probe = facetCounts.GetTopChildren(1, Field);
+                    if (probe == null)
+                    {
+                        yield break;
+                    }
+                    topN = Math.Max(1, probe.ChildCount);
+                }
+                else
+                {
+                    topN = MaxCount;
+                }
+
+                var sortedFacets = facetCounts.GetTopChildren(topN, Field);
 
                 if (sortedFacets == null)
                 {
