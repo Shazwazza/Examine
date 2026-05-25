@@ -245,25 +245,20 @@ namespace Examine.Lucene.Search
 
                 var resultVals = new Dictionary<string, List<string>>();
 
+                // doc.Fields may list the same field name multiple times (once per stored value).
+                // doc.GetValues already returns all values for a field, so we only need to call it
+                // once per unique field name. Track processed names to skip redundant iterations.
+                var processedFields = new HashSet<string>();
+
                 foreach (var field in fields)
                 {
                     var fieldName = field.Name;
-                    var values = doc.GetValues(fieldName);
+                    if (!processedFields.Add(fieldName))
+                    {
+                        continue;
+                    }
 
-                    if (resultVals.TryGetValue(fieldName, out var resultFieldVals))
-                    {
-                        foreach (var value in values)
-                        {
-                            if (!resultFieldVals.Contains(value))
-                            {
-                                resultFieldVals.Add(value);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        resultVals[fieldName] = values.ToList();
-                    }
+                    resultVals[fieldName] = doc.GetValues(fieldName).ToList();
                 }
 
                 return resultVals;
