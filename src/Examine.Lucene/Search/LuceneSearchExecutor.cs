@@ -208,7 +208,7 @@ namespace Examine.Lucene.Search
         {
             FieldDoc scoreDocAfter;
 
-            object[] searchAfterSortFields = new object[0];
+            object[] searchAfterSortFields = Array.Empty<object>();
             if (searchAfterOptions.Fields != null && searchAfterOptions.Fields.Length > 0)
             {
                 searchAfterSortFields = searchAfterOptions.Fields;
@@ -229,13 +229,14 @@ namespace Examine.Lucene.Search
         {
             if (topDocs.TotalHits > 0)
             {
-                if (topDocs.ScoreDocs.LastOrDefault() is FieldDoc lastFieldDoc && lastFieldDoc != null)
+                var lastDoc = topDocs.ScoreDocs.LastOrDefault();
+                if (lastDoc is FieldDoc lastFieldDoc)
                 {
                     return new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields?.ToArray(), lastFieldDoc.ShardIndex);
                 }
-                if (topDocs.ScoreDocs.LastOrDefault() is ScoreDoc scoreDoc && scoreDoc != null)
+                if (lastDoc is ScoreDoc scoreDoc)
                 {
-                    return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, new object[0], scoreDoc.ShardIndex);
+                    return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, Array.Empty<object>(), scoreDoc.ShardIndex);
                 }
             }
 
