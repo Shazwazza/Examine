@@ -145,7 +145,7 @@ namespace Examine
             where TSearcher : ISearcher
             => serviceCollection.AddTransient<ISearcher>(services =>
             {
-                var parameters = parameterFactory(services);
+                var parameters = new List<object>(parameterFactory(services));
                 parameters.Insert(0, name);
                 return ActivatorUtilities.CreateInstance<TSearcher>(services, parameters.ToArray());
             });
