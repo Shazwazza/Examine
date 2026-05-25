@@ -73,7 +73,7 @@ Examine.Lucene.Search.FacetFloatField.IsTaxonomyIndexed.get -> bool
 Examine.Lucene.Search.FacetFullTextField
 Examine.Lucene.Search.FacetFullTextField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
 Examine.Lucene.Search.FacetFullTextField.FacetField.get -> string!
-Examine.Lucene.Search.FacetFullTextField.FacetFullTextField(string! field, string![]! values, string! facetField, int maxCount = 10, bool isTaxonomyIndexed = false) -> void
+Examine.Lucene.Search.FacetFullTextField.FacetFullTextField(string! field, string![]! values, string! facetField, int maxCount = 2147483647, bool isTaxonomyIndexed = false) -> void
 Examine.Lucene.Search.FacetFullTextField.Field.get -> string!
 Examine.Lucene.Search.FacetFullTextField.IsTaxonomyIndexed.get -> bool
 Examine.Lucene.Search.FacetFullTextField.MaxCount.get -> int
