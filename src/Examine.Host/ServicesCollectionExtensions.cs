@@ -75,6 +75,95 @@ namespace Examine
             Action<LuceneDirectoryIndexOptions>? configuration = null)
             where TIndex : LuceneIndex => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, configuration);
 
+        #region Binary compatibility shims for v3 callers
+
+        /// <inheritdoc cref="AddExamineLuceneIndex(IServiceCollection, string, Action{LuceneDirectoryIndexOptions}?)"/>
+        [Obsolete("Use the overload accepting Action<LuceneDirectoryIndexOptions> instead.")]
+        public static IServiceCollection AddExamineLuceneIndex(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection? fieldDefinitions,
+            Analyzer? analyzer,
+            IValueSetValidator? validator,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory)
+            => serviceCollection.AddExamineLuceneIndex(name, options =>
+            {
+                if (fieldDefinitions != null)
+                    options.FieldDefinitions = fieldDefinitions;
+                options.Analyzer = analyzer;
+                options.Validator = validator;
+                options.IndexValueTypesFactory = indexValueTypesFactory;
+            });
+
+        /// <inheritdoc cref="AddExamineLuceneIndex{TIndex}(IServiceCollection, string, Action{LuceneDirectoryIndexOptions}?)"/>
+        [Obsolete("Use the overload accepting Action<LuceneDirectoryIndexOptions> instead.")]
+        public static IServiceCollection AddExamineLuceneIndex<TIndex>(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection? fieldDefinitions,
+            Analyzer? analyzer,
+            IValueSetValidator? validator,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory)
+            where TIndex : LuceneIndex
+            => serviceCollection.AddExamineLuceneIndex<TIndex>(name, options =>
+            {
+                if (fieldDefinitions != null)
+                    options.FieldDefinitions = fieldDefinitions;
+                options.Analyzer = analyzer;
+                options.Validator = validator;
+                options.IndexValueTypesFactory = indexValueTypesFactory;
+            });
+
+        /// <inheritdoc cref="AddExamineLuceneIndex{TIndex, TDirectoryFactory}(IServiceCollection, string, Action{LuceneDirectoryIndexOptions}?)"/>
+        [Obsolete("Use the overload accepting Action<LuceneDirectoryIndexOptions> instead.")]
+        public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection? fieldDefinitions,
+            Analyzer? analyzer,
+            IValueSetValidator? validator,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory)
+            where TIndex : LuceneIndex
+            where TDirectoryFactory : class, IDirectoryFactory
+            => serviceCollection.AddExamineLuceneIndex<TIndex, TDirectoryFactory>(name, options =>
+            {
+                if (fieldDefinitions != null)
+                    options.FieldDefinitions = fieldDefinitions;
+                options.Analyzer = analyzer;
+                options.Validator = validator;
+                options.IndexValueTypesFactory = indexValueTypesFactory;
+            });
+
+        /// <summary>
+        /// Registers a standalone Examine searcher
+        /// </summary>
+        [Obsolete("Use AddExamineLuceneMultiSearcher or register ISearcher directly.")]
+        public static IServiceCollection AddExamineSearcher<TSearcher>(
+            this IServiceCollection serviceCollection,
+            string name,
+            Func<IServiceProvider, IList<object>> parameterFactory)
+            where TSearcher : ISearcher
+            => serviceCollection.AddTransient<ISearcher>(services =>
+            {
+                var parameters = new List<object>(parameterFactory(services));
+                parameters.Insert(0, name);
+                return ActivatorUtilities.CreateInstance<TSearcher>(services, parameters.ToArray());
+            });
+
+        /// <inheritdoc cref="AddExamineLuceneMultiSearcher(IServiceCollection, string, string[], Action{LuceneMultiSearcherOptions}?)"/>
+        [Obsolete("Use the overload accepting Action<LuceneMultiSearcherOptions> instead.")]
+        public static IServiceCollection AddExamineLuceneMultiSearcher(
+            this IServiceCollection serviceCollection,
+            string name,
+            string[] indexNames,
+            Analyzer? analyzer)
+            => serviceCollection.AddExamineLuceneMultiSearcher(name, indexNames, options =>
+            {
+                options.Analyzer = analyzer;
+            });
+
+        #endregion
+
         /// <summary>
         /// Registers a Lucene multi index searcher
         /// </summary>
