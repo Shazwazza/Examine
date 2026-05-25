@@ -8,18 +8,16 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
-    public class FileSystemDirectoryFactory : DirectoryFactoryBase
+    /// <summary>
+    /// Represents a directory factory for creating file system directories
+    /// </summary>
+    public class FileSystemDirectoryFactory : IDirectoryFactory, ITaxonomyDirectoryFactory
     {
         private readonly DirectoryInfo _baseDir;
 
-        [Obsolete("Use ctor with all dependencies")]
-        public FileSystemDirectoryFactory(
-            DirectoryInfo baseDir,
-            ILockFactory lockFactory)
-            : this (baseDir, lockFactory, new FakeLuceneDirectoryIndexOptionsOptionsMonitor())
-        {
-        }
-
+        /// <summary>
+        /// Creates an instance of <see cref="FileSystemDirectoryFactory"/>
+        /// </summary>
         public FileSystemDirectoryFactory(
             DirectoryInfo baseDir,
             ILockFactory lockFactory,
@@ -30,11 +28,18 @@ namespace Examine.Lucene.Directories
             IndexOptions = indexOptions;
         }
 
+        /// <summary>
+        /// The factory for creating locks
+        /// </summary>
         public ILockFactory LockFactory { get; }
 
+        /// <summary>
+        /// Provides access to index options for Lucene directories.
+        /// </summary>
         protected IOptionsMonitor<LuceneDirectoryIndexOptions> IndexOptions { get; }
 
-        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        /// <inheritdoc/>
+        public virtual Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var path = Path.Combine(_baseDir.FullName, luceneIndex.Name);
             var luceneIndexFolder = new DirectoryInfo(path);
@@ -46,6 +51,35 @@ namespace Examine.Lucene.Directories
             }
 
             var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
+            if (options.NrtEnabled)
+            {
+                return new NRTCachingDirectory(dir, options.NrtCacheMaxMergeSizeMB, options.NrtCacheMaxCachedMB);
+            }
+            else
+            {
+                return dir;
+            }
+        }
+
+        /// <inheritdoc/>
+        public Directory? CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        {
+            var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
+            
+            // If taxonomy is not enabled, return null
+            if (!options.UseTaxonomyIndex)
+            {
+                return null;
+            }
+            
+            var path = Path.Combine(_baseDir.FullName, luceneIndex.Name, "taxonomy");
+            var luceneIndexFolder = new DirectoryInfo(path);
+
+            var dir = FSDirectory.Open(luceneIndexFolder, LockFactory.GetLockFactory(luceneIndexFolder));
+            if (forceUnlock)
+            {
+                IndexWriter.Unlock(dir);
+            }
             if (options.NrtEnabled)
             {
                 return new NRTCachingDirectory(dir, options.NrtCacheMaxMergeSizeMB, options.NrtCacheMaxCachedMB);

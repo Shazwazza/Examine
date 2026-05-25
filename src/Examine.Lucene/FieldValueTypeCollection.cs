@@ -17,7 +17,7 @@ namespace Examine.Lucene
         /// <summary>
         /// Create a <see cref="FieldValueTypeCollection"/>
         /// </summary>
-        /// <param name="analyzer">The default <see cref="Analyzer"/> to use for the resulting <see cref="PerFieldAnalyzerWrapper"/> used for indexing</param>
+        /// <param name="defaultAnalyzer">The default <see cref="Analyzer"/> to use for the resulting <see cref="PerFieldAnalyzerWrapper"/> used for indexing</param>
         /// <param name="valueTypeFactories">List of value type factories to initialize the collection with</param>
         /// <param name="fieldDefinitionCollection"></param>
         public FieldValueTypeCollection(
@@ -27,7 +27,7 @@ namespace Examine.Lucene
         {
             ValueTypeFactories = new ValueTypeFactoryCollection(valueTypeFactories);
 
-            var fieldAnalyzers = new Dictionary<string, Analyzer>();
+            var fieldAnalyzers = new Dictionary<string, Analyzer?>();
 
             //initializes the collection of field aliases to it's correct IIndexFieldValueType
             _resolvedValueTypes = new Lazy<ConcurrentDictionary<string, IIndexFieldValueType>>(() =>
@@ -97,7 +97,7 @@ namespace Examine.Lucene
         /// </exception>
         public IIndexFieldValueType GetValueType(string fieldName)
         {
-            if (!_resolvedValueTypes.Value.TryGetValue(fieldName, out IIndexFieldValueType valueType))
+            if (!_resolvedValueTypes.Value.TryGetValue(fieldName, out IIndexFieldValueType? valueType))
             {
                 throw new InvalidOperationException($"No {nameof(IIndexFieldValueType)} was found for field name {fieldName}");
             }

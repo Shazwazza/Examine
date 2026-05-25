@@ -1,20 +1,29 @@
-using System.Collections.Concurrent;
+using System;
 using Examine.Lucene.Providers;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
+    /// <summary>
+    /// Provides a base class for creating and managing Lucene.NET directory instances.
+    /// </summary>
+    [Obsolete("Implement IDirectoryFactory (and optionally ITaxonomyDirectoryFactory) directly instead. This class will be removed in a future version.")]
     public abstract class DirectoryFactoryBase : IDirectoryFactory
     {
         Directory IDirectoryFactory.CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
             => CreateDirectory(luceneIndex, forceUnlock);
 
+        /// <inheritdoc/>
         protected abstract Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
+        /// <summary>
+        /// Releases the unmanaged resources used by the object and optionally releases the managed resources.
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
         }
 
+        /// <inheritdoc/>
         public void Dispose() =>
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);

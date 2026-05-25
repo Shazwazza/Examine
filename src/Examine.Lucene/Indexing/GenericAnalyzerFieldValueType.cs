@@ -15,6 +15,7 @@ namespace Examine.Lucene.Indexing
         private readonly Analyzer _analyzer;
         private readonly bool _sortable;
 
+        /// <inheritdoc/>
         public GenericAnalyzerFieldValueType(string fieldName, ILoggerFactory logger, Analyzer analyzer, bool sortable = false)
             : base(fieldName, logger, true)
         {
@@ -25,10 +26,12 @@ namespace Examine.Lucene.Indexing
         /// <summary>
         /// Can be sorted by a concatenated field name since to be sortable it cannot be analyzed
         /// </summary>
-        public override string SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
+        public override string? SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
 
+        /// <inheritdoc/>
         public override Analyzer Analyzer => _analyzer;
 
+        /// <inheritdoc/>
         protected override void AddSingleValue(Document doc, object value)
         {
             if (TryConvert<string>(value, out var str))

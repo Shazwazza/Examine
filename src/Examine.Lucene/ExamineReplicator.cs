@@ -24,62 +24,72 @@ namespace Examine.Lucene
         private readonly LuceneIndex _sourceIndex;
         private readonly Directory _sourceDirectory;
         private readonly Directory _destinationDirectory;
+        private readonly Directory? _destinationTaxonomyDirectory;
         private readonly Lazy<LoggingReplicationClient> _localReplicationClient;
         private readonly object _locker = new object();
         private bool _started = false;
         private readonly ILogger<ExamineReplicator> _logger;
+        private readonly bool _taxonomyEnabled;
 
-        [Obsolete("Use ctor specifying loggers instead")]
-        public ExamineReplicator(
-            ILoggerFactory loggerFactory,
-            LuceneIndex sourceIndex,
-            Directory destinationDirectory,
-            DirectoryInfo tempStorage)
-            : this(
-                  loggerFactory.CreateLogger<ExamineReplicator>(),
-                  loggerFactory.CreateLogger<LoggingReplicationClient>(),
-                  sourceIndex,
-                  destinationDirectory,
-                  tempStorage)
-        {
-        }
-
-        [Obsolete("Use ctor specifying source directory instead")]
-        public ExamineReplicator(
-            ILogger<ExamineReplicator> replicatorLogger,
-            ILogger<LoggingReplicationClient> clientLogger,
-            LuceneIndex sourceIndex,
-            Directory destinationDirectory,
-            DirectoryInfo tempStorage)
-            : this(
-                  replicatorLogger,
-                  clientLogger,
-                  sourceIndex,
-                  UnwrapSourceDirectory(sourceIndex.GetLuceneDirectory()),
-                  destinationDirectory,
-                  tempStorage)
-        {
-        }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExamineReplicator"/> class.
+        /// </summary>
+        /// <param name="replicatorLogger">The logger for the replicator.</param>
+        /// <param name="clientLogger">The logger for the replication client.</param>
+        /// <param name="sourceIndex">The source index to replicate from.</param>
+        /// <param name="sourceDirectory">The source directory of the index.</param>
+        /// <param name="destinationDirectory">The destination directory for replication.</param>
+        /// <param name="destinationTaxonomyDirectory">The destination taxonomy directory for replication. Can be null if taxonomy is disabled.</param>
+        /// <param name="tempStorage">The temporary storage directory used during replication.</param>
         public ExamineReplicator(
             ILogger<ExamineReplicator> replicatorLogger,
             ILogger<LoggingReplicationClient> clientLogger,
             LuceneIndex sourceIndex,
             Directory sourceDirectory,
             Directory destinationDirectory,
+            Directory? destinationTaxonomyDirectory,
             DirectoryInfo tempStorage)
         {
             _sourceIndex = sourceIndex;
             _sourceDirectory = sourceDirectory;
             _destinationDirectory = destinationDirectory;
+            _destinationTaxonomyDirectory = destinationTaxonomyDirectory;
+            _taxonomyEnabled = destinationTaxonomyDirectory != null;
             _replicator = new LocalReplicator();
             _logger = replicatorLogger;
 
-            _localReplicationClient = new Lazy<LoggingReplicationClient>(()
-                => new LoggingReplicationClient(
-                    clientLogger,
-                    _replicator,
-                    new IndexReplicationHandler(
+            _localReplicationClient = new Lazy<LoggingReplicationClient>(() =>
+            {
+                IReplicationHandler handler;
+                if (_taxonomyEnabled && destinationTaxonomyDirectory != null)
+                {
+                    handler = new IndexAndTaxonomyReplicationHandler(
+                        destinationDirectory,
+                        destinationTaxonomyDirectory,
+                        () =>
+                        {
+                            // Callback, can be used to notify when replication is done (i.e. to open the index)
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                var sourceDir = UnwrapDirectory(sourceDirectory);
+                                var destDir = UnwrapDirectory(destinationDirectory);
+                                var sourceTaxonomyDir = sourceIndex.GetLuceneTaxonomyDirectory() as FSDirectory;
+                                var destTaxonomyDir = destinationTaxonomyDirectory as FSDirectory;
+
+                                _logger.LogDebug(
+                                    "{IndexName} replication complete from {SourceDirectory} to {DestinationDirectory} and Taxonomy {TaxonomySourceDirectory} to {TaxonomyDestinationDirectory}",
+                                    sourceIndex.Name,
+                                    sourceDir?.Directory.ToString() ?? "InMemory",
+                                    destDir?.Directory.ToString() ?? "InMemory",
+                                    sourceTaxonomyDir?.Directory.ToString() ?? "InMemory",
+                                    destTaxonomyDir?.Directory.ToString() ?? "InMemory"
+                                );
+                            }
+                        });
+                }
+                else
+                {
+                    handler = new IndexReplicationHandler(
                         destinationDirectory,
                         () =>
                         {
@@ -93,10 +103,18 @@ namespace Examine.Lucene
                                     "{IndexName} replication complete from {SourceDirectory} to {DestinationDirectory}",
                                     sourceIndex.Name,
                                     sourceDir?.Directory.ToString() ?? "InMemory",
-                                    destDir?.Directory.ToString() ?? "InMemory");
+                                    destDir?.Directory.ToString() ?? "InMemory"
+                                );
                             }
-                        }),
-                    new PerSessionDirectoryFactory(tempStorage.FullName)));
+                        });
+                }
+
+                return new LoggingReplicationClient(
+                    clientLogger,
+                    _replicator,
+                    handler,
+                    new PerSessionDirectoryFactory(tempStorage.FullName));
+            });
         }
 
         /// <summary>
@@ -109,15 +127,20 @@ namespace Examine.Lucene
                 throw new InvalidOperationException("The destination directory is locked");
             }
 
+            if (_taxonomyEnabled && _destinationTaxonomyDirectory != null && IndexWriter.IsLocked(_destinationTaxonomyDirectory))
+            {
+                throw new InvalidOperationException("The destination taxonomy directory is locked");
+            }
+
             _logger.LogInformation(
                 "Replicating index from {SourceIndex} to {DestinationIndex}",
                 _sourceDirectory,
                 _destinationDirectory);
 
-            IndexRevision rev;
+            IRevision rev;
             try
             {
-                rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+                rev = CreateRevision();
             }
             catch (InvalidOperationException)
             {
@@ -134,7 +157,27 @@ namespace Examine.Lucene
                 _sourceDirectory,
                 _destinationDirectory);
         }
+        
+        /// <summary>
+        /// Creates a revision based on whether taxonomy is enabled
+        /// </summary>
+        private IRevision CreateRevision()
+        {
+            if (_taxonomyEnabled && _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory != null)
+            {
+                return new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory);
+            }
+            else
+            {
+                return new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+            }
+        }
 
+        /// <summary>
+        /// Starts index replication
+        /// </summary>
+        /// <param name="milliseconds"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         public void StartIndexReplicationOnSchedule(int milliseconds)
         {
             if (_started)
@@ -170,21 +213,29 @@ namespace Examine.Lucene
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SourceIndex_IndexCommitted(object sender, EventArgs e)
+        private void SourceIndex_IndexCommitted(object? sender, EventArgs e)
         {
-            var index = (LuceneIndex)sender;
+            var index = (LuceneIndex?)sender;
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("{IndexName} committed", index.Name);
+                if(index == null)
+                {
+                    _logger.LogWarning("Index is null in {method}", nameof(ExamineReplicator.SourceIndex_IndexCommitted));
+                }
+                _logger.LogDebug("{IndexName} committed", index?.Name ?? $"({nameof(index)} is null)");
             }
 
             if (!_sourceIndex.IsCancellationRequested)
             {
-                var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+                var rev = CreateRevision();
                 _replicator.Publish(rev);
             }
         }
 
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
+        /// <param name="disposing">If the call is coming from Dispose</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -220,11 +271,12 @@ namespace Examine.Lucene
             }
         }
 
+        /// <inheritdoc />
         public void Dispose() =>
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
 
-        private static FSDirectory UnwrapSourceDirectory(Directory dir)
+        private static FSDirectory? UnwrapSourceDirectory(Directory dir)
         {
             if (dir is SyncedFileSystemDirectory syncedDir)
             {
@@ -234,7 +286,7 @@ namespace Examine.Lucene
             return UnwrapDirectory(dir);
         }
 
-        private static FSDirectory UnwrapDirectory(Directory dir)
+        private static FSDirectory? UnwrapDirectory(Directory dir)
         {
             if (dir is FSDirectory fsDir)
             {

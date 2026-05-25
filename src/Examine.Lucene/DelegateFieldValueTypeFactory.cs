@@ -11,8 +11,13 @@ namespace Examine.Lucene
     {
         private readonly Func<string, IIndexFieldValueType> _factory;
 
-        public DelegateFieldValueTypeFactory(Func<string, IIndexFieldValueType> factory) => _factory = factory;
+        /// <inheritdoc/>
+        public DelegateFieldValueTypeFactory(Func<string, IIndexFieldValueType> factory)
+        {
+            _factory = factory;
+        }
 
+        /// <inheritdoc/>
         public IIndexFieldValueType Create(string fieldName) => _factory(fieldName);
     }
 }

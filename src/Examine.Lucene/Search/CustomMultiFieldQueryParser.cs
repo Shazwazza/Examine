@@ -7,30 +7,32 @@ using Lucene.Net.Util;
 
 namespace Examine.Lucene.Search
 {
-
     /// <summary>
     /// We use this to get at the protected methods directly since the new version makes them not public
     /// </summary>
-    public class CustomMultiFieldQueryParser : MultiFieldQueryParser
+    /// <inheritdoc/>
+    public class CustomMultiFieldQueryParser(
+        LuceneVersion matchVersion,
+        string[] fields,
+        Analyzer analyzer) : MultiFieldQueryParser(matchVersion, fields, analyzer)
     {
-        private QueryParser _keywordAnalyzerQueryParser;
-
-        public CustomMultiFieldQueryParser(LuceneVersion matchVersion, string[] fields, Analyzer analyzer)
-            : base(matchVersion, fields, analyzer)
-        {
-            SearchableFields = fields;
-        }
-
         // NOTE: Query parsers are not thread safe so we need to create a new instance here
-        internal QueryParser KeywordAnalyzerQueryParser => _keywordAnalyzerQueryParser ??= new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer());
+        internal QueryParser KeywordAnalyzerQueryParser { get => field ??= new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer()); private set; }
 
-        public string[] SearchableFields { get; }
+        /// <summary>
+        /// Fields that are searchable by the query parser
+        /// </summary>
+        public string[] SearchableFields { get; } = fields;
 
+        /// <summary>
+        /// Gets a fuzzy query
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         public virtual Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
         {
             if (string.IsNullOrWhiteSpace(termStr))
             {
-                throw new System.ArgumentException($"'{nameof(termStr)}' cannot be null or whitespace", nameof(termStr));
+                throw new ArgumentException($"'{nameof(termStr)}' cannot be null or whitespace", nameof(termStr));
             }
 
             return GetFuzzyQuery(field, termStr, minSimilarity);
@@ -39,11 +41,6 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Override to provide support for numerical range query parsing
         /// </summary>
-        /// <param name="field"></param>
-        /// <param name="part1"></param>
-        /// <param name="part2"></param>
-        /// <param name="startInclusive"></param>
-        /// <returns></returns>
         /// <remarks>
         /// By Default the lucene query parser only deals with strings and the result is a TermRangeQuery, however for numerics it needs to be a
         /// NumericRangeQuery. We can override this method to provide that behavior.
@@ -54,6 +51,10 @@ namespace Examine.Lucene.Search
         /// </remarks>
         protected override Query GetRangeQuery(string field, string part1, string part2, bool startInclusive, bool endInclusive) => base.GetRangeQuery(field, part1, part2, startInclusive, endInclusive);
 
+        /// <summary>
+        /// Gets a wildcard query
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         public virtual Query GetWildcardQueryInternal(string field, string termStr)
         {
             if (string.IsNullOrWhiteSpace(termStr))
@@ -67,10 +68,6 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Gets a proximity query
         /// </summary>
-        /// <param name="field"></param>
-        /// <param name="queryText"></param>
-        /// <param name="slop"></param>
-        /// <returns></returns>
         public virtual Query GetProximityQueryInternal(string field, string queryText, int slop)
         {
             if (string.IsNullOrWhiteSpace(queryText))
@@ -81,6 +78,10 @@ namespace Examine.Lucene.Search
             return GetFieldQuery(field, queryText, slop);
         }
 
+        /// <summary>
+        /// Gets a query field
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         public Query GetFieldQueryInternal(string field, string queryText)
         {
             if (string.IsNullOrWhiteSpace(queryText))
@@ -89,6 +90,24 @@ namespace Examine.Lucene.Search
             }
 
             var query = GetFieldQuery(field, queryText, false);
+
+            return query;
+        }
+
+        /// <summary>
+        /// Gets a phrase query
+        /// </summary>
+        /// <remarks>
+        /// This is essentially the same as GetFieldQueryInternal except it forces phrase mode
+        /// </remarks>
+        public Query GetPhraseQueryInternal(string field, string queryText)
+        {
+            if (string.IsNullOrWhiteSpace(queryText))
+            {
+                throw new ArgumentException($"'{nameof(queryText)}' cannot be null or whitespace", nameof(queryText));
+            }
+
+            var query = GetFieldQuery(field, queryText, true);
 
             return query;
         }

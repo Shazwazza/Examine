@@ -36,15 +36,21 @@ namespace Examine
         /// </summary>
         public string Type { get; }
 
+        /// <inheritdoc/>
         public bool Equals(FieldDefinition other) => string.Equals(Name, other.Name) && string.Equals(Type, other.Type);
 
-        public override bool Equals(object obj)
+        /// <inheritdoc/>
+        public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
+            {
                 return false;
+            }
+
             return obj is FieldDefinition definition && Equals(definition);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked
@@ -53,8 +59,10 @@ namespace Examine
             }
         }
 
+        /// <inheritdoc/>
         public static bool operator ==(FieldDefinition left, FieldDefinition right) => left.Equals(right);
 
+        /// <inheritdoc/>
         public static bool operator !=(FieldDefinition left, FieldDefinition right) => !left.Equals(right);
     }
 }

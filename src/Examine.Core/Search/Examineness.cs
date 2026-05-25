@@ -1,47 +1,59 @@
-﻿
+
+using System;
+
 namespace Examine.Search
 {
-
     /// <summary>
     /// Different ways to match terms
     /// </summary>
     public enum Examineness
     {
         /// <summary>
+        /// A normal field query
+        /// </summary>
+        Default = 100,
+
+        /// <summary>
         /// Matches terms using 'fuzzy' logic
         /// </summary>
-        Fuzzy,
+        Fuzzy = 0,
 
         /// <summary>
         /// Wildcard matching a single character
         /// </summary>
-        SimpleWildcard,
+        SimpleWildcard = 1,
 
         /// <summary>
         /// Wildcard matching multiple characters
         /// </summary>
-        ComplexWildcard,
+        ComplexWildcard = 2,
 
         /// <summary>
-        /// A normal phrase query
+        /// A normal field query
         /// </summary>
-        Explicit,
+        [Obsolete("Use default instead")]
+        Explicit = 3,
 
         /// <summary>
         /// Becomes exact match
         /// </summary>
-        Escaped,
+        [Obsolete("Use phrase instead")]
+        Escaped = 4,
 
         /// <summary>
         /// Makes the term rank differently than normal
         /// </summary>
-        Boosted,
+        [Obsolete("No longer used, use WithBoost instead.")]
+        Boosted = 5,
 
         /// <summary>
         /// Searches for terms within a proximity of each other
         /// </summary>
-        Proximity
+        Proximity = 6,
 
-
+        /// <summary>
+        /// Makes the term a phrase query
+        /// </summary>
+        Phrase = 7
     }
 }
