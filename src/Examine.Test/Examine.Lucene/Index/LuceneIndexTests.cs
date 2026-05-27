@@ -711,19 +711,8 @@ namespace Examine.Test.Examine.Lucene.Index
             }
             else
             {
-                // try to clear out old files
                 var tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
-                if (System.IO.Directory.Exists(tempBasePath))
-                {
-                    try
-                    {
-                        System.IO.Directory.Delete(tempBasePath, true);
-                    }
-                    catch
-                    {
-                    }
-                }
-
+                System.IO.Directory.CreateDirectory(tempBasePath);
                 var tempPath = Path.Combine(tempBasePath, Guid.NewGuid().ToString());
                 System.IO.Directory.CreateDirectory(tempPath);
                 temp = new DirectoryInfo(tempPath);
