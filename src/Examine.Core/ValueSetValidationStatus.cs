@@ -1,8 +1,5 @@
-namespace Examine
+﻿namespace Examine
 {
-    /// <summary>
-    /// Represents a value sets validation status
-    /// </summary>
     public enum ValueSetValidationStatus
     {
         /// <summary>

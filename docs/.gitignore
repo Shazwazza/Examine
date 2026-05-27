@@ -1,9 +1,5 @@
-###############
-#    folder   #
-###############
-/**/DROP/
-/**/TEMP/
-/**/packages/
-/**/bin/
-/**/obj/
 _site
+.sass-cache
+.jekyll-cache
+.jekyll-metadata
+vendor

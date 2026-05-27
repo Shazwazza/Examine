@@ -9,9 +9,6 @@ namespace Examine
     /// </summary>
     public interface IIndex
     {
-        /// <summary>
-        /// The index name
-        /// </summary>
         string Name { get; }
 
         /// <summary>

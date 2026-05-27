@@ -3,8 +3,6 @@ using System.Linq;
 using System.Text;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Providers;
-using Examine.Test.Examine.Lucene.Directories;
-using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
 namespace Examine.Test.Examine.Lucene.Search
@@ -12,20 +10,12 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class AnalyzerTests : ExamineBaseTest
     {
-        private readonly ILogger _logger;
-
-        public AnalyzerTests()
-        {
-            _logger = LoggerFactory.CreateLogger<AnalyzerTests>();
-        }
-
         [Test]
         public void Given_CultureInvariantWhitespaceAnalyzer_When_SearchingBothCharVariants_Then_BothAreFound()
         {
             var analyzer = new CultureInvariantWhitespaceAnalyzer();
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -59,8 +49,7 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             var analyzer = new CultureInvariantStandardAnalyzer();
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -107,8 +96,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         sb.Append(", ");
                     }                    
                 }
-
-                _logger.LogDebug(sb.ToString());
+                Console.WriteLine(sb.ToString());
             }
         }
     }

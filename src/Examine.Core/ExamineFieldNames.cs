@@ -1,8 +1,5 @@
-namespace Examine
+﻿namespace Examine
 {
-    /// <summary>
-    /// Constant names for speciffic fields
-    /// </summary>
     public static class ExamineFieldNames
     {
         /// <summary>
@@ -25,15 +22,7 @@ namespace Examine
         /// </summary>
         public const string ItemIdFieldName = "__NodeId";
 
-        /// <summary>
-        /// Used to store the item type for a document
-        /// </summary>
         public const string ItemTypeFieldName = "__NodeTypeAlias";
-
-        /// <summary>
-        /// The default field name for storing facet information
-        /// </summary>
-        public const string DefaultFacetsName = "$facets";
     }
 
     

@@ -1,10 +1,7 @@
-using System;
+﻿using System;
 
 namespace Examine.Search
 {
-    /// <summary>
-    /// Represents a nested boolean operation
-    /// </summary>
     public interface INestedBooleanOperation
     {
         /// <summary>

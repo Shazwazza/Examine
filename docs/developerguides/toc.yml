@@ -1,8 +1,0 @@
-- name: Build and Test
-  href: buildtest.md
-- name: Code Structure
-  href: codestructure.md
-- name: Documentation Site
-  href: docsite.md
-- name: Roadmap
-  href: roadmap.md

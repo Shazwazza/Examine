@@ -1,4 +1,3 @@
-using Lucene.Net.Facet;
 using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,31 +15,9 @@ namespace Examine.Web.Demo
 
             services.AddExamineLuceneIndex<LuceneIndex, SyncedFileSystemDirectoryFactory>("SyncedIndex");
 
-            var taxonomyFacetIndexFacetsConfig = new FacetsConfig();
-            taxonomyFacetIndexFacetsConfig.SetIndexFieldName("AddressState", "AddressState");
-
-            taxonomyFacetIndexFacetsConfig.SetIndexFieldName("AddressStateCity", "AddressStateCity");
-            taxonomyFacetIndexFacetsConfig.SetHierarchical("AddressStateCity", true);
-            taxonomyFacetIndexFacetsConfig.SetMultiValued("AddressStateCity", false);
-
-            taxonomyFacetIndexFacetsConfig.SetIndexFieldName("Tags", "Tags");
-            taxonomyFacetIndexFacetsConfig.SetMultiValued("Tags", true);
-
-            services.AddExamineLuceneIndex(
-                "TaxonomyFacetIndex",
-                cfg => cfg.FacetsConfig = taxonomyFacetIndexFacetsConfig);
-
-            var facetIndexFacetsConfig = new FacetsConfig();
-
-            services.AddExamineLuceneIndex(
-                "FacetIndex",
-                cfg => cfg.FacetsConfig = taxonomyFacetIndexFacetsConfig);
-
-
             services.AddExamineLuceneMultiSearcher(
                 "MultiIndexSearcher",
-                new[] { "MyIndex", "SyncedIndex", "FacetIndex" },
-                opt => opt.FacetConfiguration = new FacetsConfig());
+                new[] { "MyIndex", "SyncedIndex" });
 
             services.ConfigureOptions<ConfigureIndexOptions>();
 

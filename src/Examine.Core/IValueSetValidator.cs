@@ -5,11 +5,6 @@ namespace Examine
     /// </summary>
     public interface IValueSetValidator
     {
-        /// <summary>
-        /// Validates the value set
-        /// </summary>
-        /// <param name="valueSet"></param>
-        /// <returns></returns>
         ValueSetValidationResult Validate(ValueSet valueSet);
     }
 }

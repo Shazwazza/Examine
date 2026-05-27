@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Lucene.Search;
-using Microsoft.Extensions.Options;
+using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
 
 namespace Examine.Lucene.Providers
 {
@@ -13,11 +14,17 @@ namespace Examine.Lucene.Providers
     {
         private readonly Lazy<IEnumerable<ISearcher>> _searchers;
 
+
         /// <summary>
         /// Constructor to allow for creating a searcher at runtime
         /// </summary>
-        public MultiIndexSearcher(string name, IOptionsMonitor<LuceneMultiSearcherOptions> options, IEnumerable<IIndex> indexes)
-            : base(name, options)
+        /// <param name="name"></param>
+        /// <param name="indexes"></param>
+        /// <param name="analyzer"></param>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, Analyzer analyzer = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
         {
             _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.Searcher));
         }
@@ -25,8 +32,13 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Constructor to allow for creating a searcher at runtime
         /// </summary>
-        public MultiIndexSearcher(string name, IOptionsMonitor<LuceneMultiSearcherOptions> options, Lazy<IEnumerable<ISearcher>> searchers)
-            : base(name, options)
+        /// <param name="name"></param>
+        /// <param name="searchers"></param>
+        /// <param name="analyzer"></param>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, Analyzer analyzer = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
         {
             _searchers = searchers;
         }
@@ -34,19 +46,11 @@ namespace Examine.Lucene.Providers
         ///<summary>
         /// The underlying LuceneSearchers that will be searched across
         ///</summary>
-        public IEnumerable<BaseLuceneSearcher> Searchers => _searchers.Value.OfType<BaseLuceneSearcher>();
+        public IEnumerable<LuceneSearcher> Searchers => _searchers.Value.OfType<LuceneSearcher>();
 
-        /// <summary>
-        /// Are the searchers initialized
-        /// </summary>
+        // for tests
         public bool SearchersInitialized => _searchers.IsValueCreated;
 
-        /// <inheritdoc />
-        public override void Dispose()
-        {
-        }
-
-        /// <inheritdoc/>
         public override ISearchContext GetSearchContext()
             => new MultiSearchContext(Searchers.Select(s => s.GetSearchContext()).ToArray());
 

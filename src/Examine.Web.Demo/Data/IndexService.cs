@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Examine.Lucene.Providers;
-using Examine.Lucene.Search;
 using Examine.Search;
 using Examine.Web.Demo.Controllers;
 using Examine.Web.Demo.Data.Models;
@@ -8,13 +7,12 @@ using Lucene.Net.Search;
 
 namespace Examine.Web.Demo.Data
 {
-    public partial class IndexService
+    public class IndexService
     {
         private readonly IExamineManager _examineManager;
         private readonly BogusDataService _bogusDataService;
 
-        public IndexService(IExamineManager examineManager, BogusDataService bogusDataService)
-        {
+        public IndexService(IExamineManager examineManager, BogusDataService bogusDataService) {
             _examineManager = examineManager;
             _bogusDataService = bogusDataService;
         }
@@ -25,15 +23,7 @@ namespace Examine.Web.Demo.Data
 
             index.CreateIndex();
 
-            IEnumerable<ValueSet> data;
-            if (index.Name.Contains("Facet"))
-            {
-                data = _bogusDataService.GenerateFacetData(dataSize);
-            }
-            else
-            {
-                data = _bogusDataService.GenerateData(dataSize);
-            }
+            var data = _bogusDataService.GenerateData(dataSize);
 
             index.IndexItems(data);
         }
@@ -64,7 +54,10 @@ namespace Examine.Web.Demo.Data
             index.IndexItems(data);
         }
 
-        public IEnumerable<IIndex> GetAllIndexes() => _examineManager.Indexes;
+        public IEnumerable<IIndex> GetAllIndexes()
+        {
+            return _examineManager.Indexes;
+        }
 
         public ISearchResults SearchNativeQuery(string indexName, string query)
         {
@@ -105,17 +98,6 @@ namespace Examine.Web.Demo.Data
 
             return index;
         }
-
-        public ILuceneSearchResults SearchLucene(string indexName, Func<IQuery, IQueryExecutor> queryBuilder, QueryOptions queryOptions)
-        {
-            var index = GetIndex(indexName);
-
-            var searcher = index.Searcher;
-            var criteria = searcher.CreateQuery();
-            var finalCriteria = queryBuilder(criteria);
-            return finalCriteria.ExecuteWithLucene(queryOptions);
-        }
-
     }
 
 }

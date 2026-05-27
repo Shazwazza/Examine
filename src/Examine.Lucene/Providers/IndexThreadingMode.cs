@@ -1,8 +1,5 @@
-namespace Examine.Lucene.Providers
+﻿namespace Examine.Lucene.Providers
 {
-    /// <summary>
-    /// Represents the threading mode of indexing documents
-    /// </summary>
     public enum IndexThreadingMode
     {
         /// <summary>

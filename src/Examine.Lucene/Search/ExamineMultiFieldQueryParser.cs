@@ -12,7 +12,6 @@ namespace Examine.Lucene.Search
     {
         private readonly ISearchContext _searchContext;
 
-        /// <inheritdoc/>
         public ExamineMultiFieldQueryParser(ISearchContext searchContext, LuceneVersion matchVersion, Analyzer analyzer)
             : base(matchVersion, searchContext.SearchableFields, analyzer)
         {
@@ -25,8 +24,7 @@ namespace Examine.Lucene.Search
         /// <param name="field"></param>
         /// <param name="part1"></param>
         /// <param name="part2"></param>
-        /// <param name="startInclusive"></param>
-        /// <param name="endInclusive"></param>
+        /// <param name="inclusive"></param>
         /// <returns></returns>
         /// <remarks>
         /// By Default the lucene query parser only deals with strings and the result is a TermRangeQuery, however for numerics it needs to be a

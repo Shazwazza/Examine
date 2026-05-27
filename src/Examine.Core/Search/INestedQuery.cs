@@ -1,12 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Examine.Search
 {
-    /// <summary>
-    /// Represents a nested query
-    /// </summary>
     public interface INestedQuery
     {
+
+
         /// <summary>
         /// Query on the specified field for a struct value which will try to be auto converted with the correct query
         /// </summary>
@@ -86,7 +85,7 @@ namespace Examine.Search
         /// <param name="query"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
-        INestedBooleanOperation ManagedQuery(string query, string[]? fields = null);
+        INestedBooleanOperation ManagedQuery(string query, string[] fields = null);
 
         /// <summary>
         /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 

@@ -53,12 +53,16 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Executes the query
         /// </summary>
-        public static ILuceneSearchResults ExecuteWithLucene(this IQueryExecutor queryExecutor, QueryOptions? options = null)
+        public static ILuceneSearchResults ExecuteWithLucene(this IQueryExecutor queryExecutor, QueryOptions options = null)
         {
-            var results = queryExecutor.Execute(options);
-            if (results is ILuceneSearchResults luceneSearchResults)
+            if(queryExecutor is LuceneBooleanOperation
+                || queryExecutor is LuceneSearchQuery)
             {
-                return luceneSearchResults;
+                var results = queryExecutor.Execute(options);
+                if(results is ILuceneSearchResults luceneSearchResults)
+                {
+                    return luceneSearchResults;
+                }
             }
             throw new NotSupportedException("QueryExecutor is not Lucene.NET");
         }

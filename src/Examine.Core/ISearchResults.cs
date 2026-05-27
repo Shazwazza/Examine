@@ -2,9 +2,6 @@ using System.Collections.Generic;
 
 namespace Examine
 {
-    /// <summary>
-    /// Represents search results from a query
-    /// </summary>
     public interface ISearchResults : IEnumerable<ISearchResult>
     {
         /// <summary>

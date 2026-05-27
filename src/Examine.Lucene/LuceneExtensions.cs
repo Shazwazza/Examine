@@ -46,12 +46,10 @@ namespace Examine.Lucene
 
             // Verify that remainder is 0
             if (remainder != 0)
-            {
                 throw new InvalidOperationException(
                         "Non-zero remainder length after copying [" + remainder
                                 + "] (id [" + name + "] length [" + length
                                 + "] buffer size [" + chunk + "])");
-            }
         }
 
     }

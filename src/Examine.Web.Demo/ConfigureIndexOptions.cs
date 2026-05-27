@@ -40,20 +40,6 @@ namespace Examine.Web.Demo
                     // to a Value Type called "phone" defined above.
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
                     break;
-                case "TaxonomyFacetIndex":
-                    options.FacetsConfig.SetMultiValued("Tags", true);
-                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetTaxonomyFullText));
-                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressStateCity", FieldDefinitionTypes.FacetTaxonomyFullText));
-                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("Tags", FieldDefinitionTypes.FacetTaxonomyFullText));
-                   break;
-
-                case "FacetIndex":
-                    options.FacetsConfig.SetMultiValued("Tags", true);
-                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetFullText));
-                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressStateCity", FieldDefinitionTypes.FacetFullText));
-                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("Tags", FieldDefinitionTypes.FacetFullText));
-                    break;
-
             }
         }
 

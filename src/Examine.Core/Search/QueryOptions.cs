@@ -2,38 +2,16 @@ using System;
 
 namespace Examine.Search
 {
-    /// <summary>
-    /// Represents options for querying
-    /// </summary>
     public class QueryOptions
     {
-        /// <summary>
-        /// The absolute maximum results returned from a query
-        /// </summary>
-        /// <remarks>
-        /// This limit is applied to prevent excessive resource usage and potential performance issues.
-        /// </remarks>
         public const int AbsoluteMaxResults = 10000;
 
-        /// <summary>
-        /// The default maximum amount of results
-        /// </summary>
         public const int DefaultMaxResults = 100;
 
-        /// <summary>
-        /// Creates a <see cref="QueryOptions"/> with the specified parameters
-        /// </summary>
-        /// <param name="skip"></param>
-        /// <param name="take"></param>
-        /// <returns></returns>
         public static QueryOptions SkipTake(int skip, int? take = null) => new QueryOptions(skip, take ?? DefaultMaxResults);
 
-        /// <summary>
-        /// Creates a default <see cref="QueryOptions"/>
-        /// </summary>
         public static QueryOptions Default { get; } = new QueryOptions(0, DefaultMaxResults);
 
-        /// <inheritdoc/>
         public QueryOptions(int skip, int? take = null)
         {
             if (skip < 0)

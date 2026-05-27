@@ -1,4 +1,3 @@
-using System;
 using Examine.Search;
 
 namespace Examine.Lucene.Search
@@ -13,21 +12,19 @@ namespace Examine.Lucene.Search
         /// </summary>
         /// <param name="skip">Number of result documents to skip.</param>
         /// <param name="take">Optional number of result documents to take.</param>
-        /// <param name="searchAfter">Optionally skip to results after the results from the previous search execution. Used for efficent deep paging.</param>
+        /// <param name="searchAfter">Optionally skip to results after the results from the previous search execution. Used for efficient deep paging.</param>
+        /// <param name="trackDocumentScores">Whether to Track Document Scores. For best performance, if not needed, leave false.</param>
         /// <param name="trackDocumentMaxScore">Whether to track the maximum document score. For best performance, if not needed, leave false.</param>
         /// <param name="skipTakeMaxResults">When using Skip/Take (not SearchAfter) this will be the maximum data set size that can be paged.</param>
         /// <param name="autoCalculateSkipTakeMaxResults">If enabled, this will pre-calculate the document count in the index to use for <see cref="SkipTakeMaxResults"/>.</param>
-        /// <param name="trackDocumentScores">Whether to Track Document Scores. For best performance, if not needed, leave false.</param>
-        /// <param name="facetSampling">Whether to apply Facet sampling to improve performance. If not required, leave null.</param>
         public LuceneQueryOptions(
             int skip,
-            int take = DefaultMaxResults,
-            SearchAfterOptions? searchAfter = null,
+            int? take = null,
+            SearchAfterOptions searchAfter = null,
             bool trackDocumentScores = false,
             bool trackDocumentMaxScore = false,
             int skipTakeMaxResults = AbsoluteMaxResults,
-            bool autoCalculateSkipTakeMaxResults = false,
-            LuceneFacetSamplingQueryOptions? facetSampling = null)
+            bool autoCalculateSkipTakeMaxResults = false)
             : base(skip, take)
         {
             SearchAfter = searchAfter;
@@ -35,7 +32,6 @@ namespace Examine.Lucene.Search
             TrackDocumentMaxScore = trackDocumentMaxScore;
             SkipTakeMaxResults = skipTakeMaxResults;
             AutoCalculateSkipTakeMaxResults = autoCalculateSkipTakeMaxResults;
-            FacetRandomSampling = facetSampling;
         }
 
         /// <summary>
@@ -51,15 +47,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Options for Searching After. Used for efficient deep paging.
         /// </summary>
-        public SearchAfterOptions? SearchAfter { get; }
-
-        /// <summary>
-        /// Options for Lucene Facet Sampling. If not set, no Facet Sampling is applied.
-        /// </summary>
-        /// <remarks>
-        /// Performance optimization for large result sets.
-        /// </remarks>
-        public LuceneFacetSamplingQueryOptions? FacetRandomSampling { get; }
+        public SearchAfterOptions SearchAfter { get; } = null;
 
         /// <summary>
         /// When using Skip/Take (not SearchAfter) this will be the maximum data set size that can be paged.

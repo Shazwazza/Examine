@@ -15,8 +15,7 @@ namespace Examine.Benchmarks
             System.IO.Directory.CreateDirectory(tempPath);
             indexDir = new DirectoryInfo(tempPath);
             var luceneDirectory = FSDirectory.Open(indexDir);
-            var luceneTaxonomyDir = FSDirectory.Open(Path.Combine(tempPath, "Taxonomy"));
-            var indexer = examineBaseTest.GetTestIndex(luceneDirectory, luceneTaxonomyDir, analyzer);
+            var indexer = examineBaseTest.GetTestIndex(luceneDirectory, analyzer);
             return indexer;
         }
 

@@ -1,36 +1,27 @@
 using System;
+using Lucene.Net.Analysis;
+using Lucene.Net.Search;
 using Examine.Lucene.Search;
 using Examine.Search;
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Facet;
-using Lucene.Net.Search;
-using Microsoft.Extensions.Options;
 
 namespace Examine.Lucene.Providers
 {
     ///<summary>
     /// Simple abstract class containing basic properties for Lucene searchers
     ///</summary>
-    public abstract class BaseLuceneSearcher : BaseSearchProvider, IDisposable
+    public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
-        private readonly FacetsConfig _facetsConfig;
-
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
-        protected BaseLuceneSearcher(string name, IOptionsMonitor<LuceneSearcherOptions> options)
+        /// <param name="name"></param>
+        /// <param name="analyzer"></param>
+        protected BaseLuceneSearcher(string name, Analyzer analyzer)
             : base(name)
         {
             if (string.IsNullOrWhiteSpace(name))
-            {
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
-            }
-
-            var searchOptions = options.Get(name);
-
-            LuceneAnalyzer = searchOptions.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
-            _facetsConfig = searchOptions.FacetConfiguration ?? new FacetsConfig();
+            LuceneAnalyzer = analyzer;
         }
 
         /// <summary>
@@ -38,13 +29,12 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public Analyzer LuceneAnalyzer { get; }
 
-        /// <summary>
-        /// Gets the search context
-        /// </summary>
         public abstract ISearchContext GetSearchContext();
 
         /// <inheritdoc />
-        public override IQuery CreateQuery(string? category = null, BooleanOperation defaultOperation = BooleanOperation.And)
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+        public override IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
             => CreateQuery(category, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
 
         /// <summary>
@@ -55,25 +45,20 @@ namespace Examine.Lucene.Providers
         /// <param name="luceneAnalyzer"></param>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
-        public IQuery CreateQuery(string? category, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
+        public IQuery CreateQuery(string category, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
             if (luceneAnalyzer == null)
-            {
                 throw new ArgumentNullException(nameof(luceneAnalyzer));
-            }
 
-            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation, _facetsConfig);
+            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation);
         }
 
         /// <inheritdoc />
-        public override ISearchResults Search(string searchText, QueryOptions? options = null)
+        public override ISearchResults Search(string searchText, QueryOptions options = null)
         {
             var sc = CreateQuery().ManagedQuery(searchText);
             return sc.Execute(options);
         }
-
-        /// <inheritdoc />
-        public abstract void Dispose();
 
         ///// <summary>
         ///// This is NOT used! however I'm leaving this here as example code

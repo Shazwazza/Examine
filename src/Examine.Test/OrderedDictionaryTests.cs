@@ -11,7 +11,7 @@ namespace Examine.Test
     [TestFixture]
     public class OrderedDictionaryTests
     {
-        private OrderedDictionary<string, string> GetAlphabetDictionary(IEqualityComparer<string>? comparer = null)
+        private OrderedDictionary<string, string> GetAlphabetDictionary(IEqualityComparer<string> comparer = null)
         {
             var alphabet = (comparer == null ? new OrderedDictionary<string, string>() : new OrderedDictionary<string, string>(comparer));
             for (var a = Convert.ToInt32('a'); a <= Convert.ToInt32('z'); a++)
@@ -54,10 +54,9 @@ namespace Examine.Test
         [Test]
         public void TestRemove()
         {
-            var od = new OrderedDictionary<string, string>
-            {
-                { "foo", "bar" }
-            };
+            var od = new OrderedDictionary<string, string>();
+
+            od.Add("foo", "bar");
             Assert.AreEqual(1, od.Count);
 
             od.Remove("foo");
@@ -67,10 +66,9 @@ namespace Examine.Test
         [Test]
         public void TestRemoveAt()
         {
-            var od = new OrderedDictionary<string, string>
-            {
-                { "foo", "bar" }
-            };
+            var od = new OrderedDictionary<string, string>();
+
+            od.Add("foo", "bar");
             Assert.AreEqual(1, od.Count);
 
             od.RemoveAt(0);
@@ -114,9 +112,7 @@ namespace Examine.Test
         public void TestTryGetValue()
         {
             var alphabetDict = GetAlphabetDictionary();
-#pragma warning disable IDE0018 // Inline variable declaration
-            string? result = null;
-#pragma warning restore IDE0018 // Inline variable declaration
+            string result = null;
             Assert.IsFalse(alphabetDict.TryGetValue("abc", out result));
             Assert.IsNull(result);
             Assert.IsTrue(alphabetDict.TryGetValue("z", out result));

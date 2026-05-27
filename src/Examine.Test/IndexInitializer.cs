@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Examine.Test
 {
@@ -123,7 +123,10 @@ namespace Examine.Test
         //}
 
 
-        internal static void IndexingError(object? sender, IndexingErrorEventArgs e) => throw new ApplicationException(e.Message, e.Exception);
+        internal static void IndexingError(object sender, IndexingErrorEventArgs e)
+        {
+            throw new ApplicationException(e.Message, e.Exception);
+        }
 
 
     }

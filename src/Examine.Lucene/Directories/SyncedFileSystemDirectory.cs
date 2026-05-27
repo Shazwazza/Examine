@@ -6,7 +6,7 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
-    internal sealed class SyncedFileSystemDirectory : FilterDirectory
+    internal class SyncedFileSystemDirectory : FilterDirectory
     {
         private readonly ExamineReplicator _replicator;
 
@@ -15,20 +15,12 @@ namespace Examine.Lucene.Directories
             ILogger<LoggingReplicationClient> clientLogger,
             Directory localLuceneDirectory,
             Directory mainLuceneDirectory,
-            Directory? mainTaxonomyLuceneDirectory,
             LuceneIndex luceneIndex,
             DirectoryInfo tempDir)
             : base(localLuceneDirectory)
         {
             // now create the replicator that will copy from local to main on schedule
-            _replicator = new ExamineReplicator(
-                replicatorLogger,
-                clientLogger,
-                luceneIndex,
-                localLuceneDirectory,
-                mainLuceneDirectory,
-                mainTaxonomyLuceneDirectory,
-                tempDir);
+            _replicator = new ExamineReplicator(replicatorLogger, clientLogger, luceneIndex, localLuceneDirectory, mainLuceneDirectory, tempDir);
             LocalLuceneDirectory = localLuceneDirectory;
             MainLuceneDirectory = mainLuceneDirectory;
         }

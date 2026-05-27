@@ -1,16 +1,16 @@
+using System;
 using Examine.Lucene.Providers;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
     /// <summary>
-    /// Creates a Lucene <see cref="Directory"/> for an index
+    /// Creates a Lucene <see cref="Lucene.Net.Store.Directory"/> for an index
     /// </summary>
     /// <remarks>
-    /// Used by the index to create directory instance for the index. The index is responsible for managing the lifetime of the directory instance.
-    /// To enable taxonomy-based faceting, also implement <see cref="ITaxonomyDirectoryFactory"/>.
+    /// The directory created must only be created ONCE per index and disposed when the index is disposed.
     /// </remarks>
-    public interface IDirectoryFactory
+    public interface IDirectoryFactory : IDisposable
     {
         /// <summary>
         /// Creates the directory instance
@@ -21,6 +21,7 @@ namespace Examine.Lucene.Directories
         /// <remarks>
         /// Any subsequent calls for the same index will return the same directory instance
         /// </remarks>
-        public Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
+        Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
+
     }
 }

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -21,9 +21,7 @@ namespace Examine.Web.Demo.Pages
 
         public void OnGet()
         {
-#pragma warning disable IDE0022 // Use expression body for method
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
-#pragma warning restore IDE0022 // Use expression body for method
         }
     }
 }

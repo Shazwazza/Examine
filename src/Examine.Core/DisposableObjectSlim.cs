@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Examine
 {   
@@ -10,36 +10,28 @@ namespace Examine
     {
         private readonly object _locko = new object();
 
-        /// <summary>
-        /// Gets a value indicating whether this instance is disposed.
-        /// for internal tests only (not thread safe)
-        /// </summary>
+        // gets a value indicating whether this instance is disposed.
+        // for internal tests only (not thread safe)
         protected bool Disposed { get; private set; }
 
-        /// <inheritdoc/>
-        public void Dispose() => Dispose(true);
+        // implements IDisposable
+        public void Dispose()
+        {
+            Dispose(true);
+        }
 
         private void Dispose(bool disposing)
         {
             lock (_locko)
             {
-                if (Disposed)
-                {
-                    return;
-                }
-
+                if (Disposed) return;
                 Disposed = true;
             }
 
             if (disposing)
-            {
                 DisposeResources();
-            }
         }
 
-        /// <summary>
-        /// Used to dispose resources
-        /// </summary>
         protected abstract void DisposeResources();
     }
 }
