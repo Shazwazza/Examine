@@ -60,9 +60,9 @@ namespace Examine
                     name,
                     (options) =>
                     {
-                        options.Analyzer = analyzer;
-                        options.Validator = validator;
-                        options.IndexValueTypesFactory = indexValueTypesFactory;
+                        options.Analyzer = analyzer ?? options.Analyzer;
+                        options.Validator = validator ?? options.Validator;
+                        options.IndexValueTypesFactory = indexValueTypesFactory ?? options.IndexValueTypesFactory;
                         options.FieldDefinitions = fieldDefinitions ?? options.FieldDefinitions;
                         options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
                     }));

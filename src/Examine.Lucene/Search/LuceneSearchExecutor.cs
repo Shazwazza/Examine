@@ -170,7 +170,7 @@ namespace Examine.Lucene.Search
             FieldDoc scoreDocAfter;
             var searchAfter = luceneQueryOptions.SearchAfter;
 
-            object[] searchAfterSortFields = new object[0];
+            object[] searchAfterSortFields = Array.Empty<object>();
             if (luceneQueryOptions.SearchAfter.Fields != null && luceneQueryOptions.SearchAfter.Fields.Length > 0)
             {
                 searchAfterSortFields = luceneQueryOptions.SearchAfter.Fields;
@@ -191,13 +191,14 @@ namespace Examine.Lucene.Search
         {
             if (topDocs.TotalHits > 0)
             {
-                if (topDocs.ScoreDocs.LastOrDefault() is FieldDoc lastFieldDoc && lastFieldDoc != null)
+                var lastDoc = topDocs.ScoreDocs.LastOrDefault();
+                if (lastDoc is FieldDoc lastFieldDoc)
                 {
                     return new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields?.ToArray(), lastFieldDoc.ShardIndex);
                 }
-                if (topDocs.ScoreDocs.LastOrDefault() is ScoreDoc scoreDoc && scoreDoc != null)
+                if (lastDoc is ScoreDoc scoreDoc)
                 {
-                    return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, new object[0], scoreDoc.ShardIndex);
+                    return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, Array.Empty<object>(), scoreDoc.ShardIndex);
                 }
             }
 
@@ -245,25 +246,20 @@ namespace Examine.Lucene.Search
 
                 var resultVals = new Dictionary<string, List<string>>();
 
+                // doc.Fields may list the same field name multiple times (once per stored value).
+                // doc.GetValues already returns all values for a field, so we only need to call it
+                // once per unique field name. Track processed names to skip redundant iterations.
+                var processedFields = new HashSet<string>();
+
                 foreach (var field in fields)
                 {
                     var fieldName = field.Name;
-                    var values = doc.GetValues(fieldName);
+                    if (!processedFields.Add(fieldName))
+                    {
+                        continue;
+                    }
 
-                    if (resultVals.TryGetValue(fieldName, out var resultFieldVals))
-                    {
-                        foreach (var value in values)
-                        {
-                            if (!resultFieldVals.Contains(value))
-                            {
-                                resultFieldVals.Add(value);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        resultVals[fieldName] = values.ToList();
-                    }
+                    resultVals[fieldName] = doc.GetValues(fieldName).ToList();
                 }
 
                 return resultVals;
