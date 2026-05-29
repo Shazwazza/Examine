@@ -44,7 +44,7 @@ safe-outputs:
     hide-older-comments: true
   create-pull-request:
     max: 3
-    draft: true
+    draft: false
     title-prefix: "[efficiency-improver] "
     labels: [automation, efficiency, green-software]
   push-to-pull-request-branch:
