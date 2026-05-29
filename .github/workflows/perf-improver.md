@@ -48,7 +48,7 @@ safe-outputs:
     target: "*"
     hide-older-comments: true
   create-pull-request:
-    draft: true
+    draft: false
     title-prefix: "[perf-improver] "
     labels: [automation, performance]
     max: 4
