@@ -194,7 +194,11 @@ namespace Examine.Lucene.Search
                 var lastDoc = topDocs.ScoreDocs.LastOrDefault();
                 if (lastDoc is FieldDoc lastFieldDoc)
                 {
-                    return new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields?.ToArray(), lastFieldDoc.ShardIndex);
+                    return new SearchAfterOptions(
+                        lastFieldDoc.Doc,
+                        lastFieldDoc.Score,
+                        lastFieldDoc.Fields is { Length: > 0 } fields ? (object[])fields.Clone() : Array.Empty<object>(),
+                        lastFieldDoc.ShardIndex);
                 }
                 if (lastDoc is ScoreDoc scoreDoc)
                 {
@@ -288,14 +292,16 @@ namespace Examine.Lucene.Search
                 return CheckQueryForExtractTerms(lbq.Wrapped);
             }
 
-            var queryType = query.GetType();
-
-            if (typeof(TermRangeQuery).IsAssignableFrom(queryType)
-                || typeof(WildcardQuery).IsAssignableFrom(queryType)
-                || typeof(FuzzyQuery).IsAssignableFrom(queryType)
-                || (queryType.IsGenericType && queryType.GetGenericTypeDefinition().IsAssignableFrom(typeof(NumericRangeQuery<>))))
+            // Use pattern matching (isinst IL instruction) instead of reflection for the common query types
+            if (query is TermRangeQuery or WildcardQuery or FuzzyQuery)
             {
-                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException 
+                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException
+            }
+
+            var queryType = query.GetType();
+            if (queryType.IsGenericType && queryType.GetGenericTypeDefinition() == typeof(NumericRangeQuery<>))
+            {
+                return false; //ExtractTerms() not supported by NumericRangeQuery and will throw NotSupportedException
             }
 
             return true;
