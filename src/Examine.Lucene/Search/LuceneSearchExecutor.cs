@@ -194,7 +194,11 @@ namespace Examine.Lucene.Search
                 var lastDoc = topDocs.ScoreDocs.LastOrDefault();
                 if (lastDoc is FieldDoc lastFieldDoc)
                 {
-                    return new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields ?? Array.Empty<object>(), lastFieldDoc.ShardIndex);
+                    return new SearchAfterOptions(
+                        lastFieldDoc.Doc,
+                        lastFieldDoc.Score,
+                        lastFieldDoc.Fields is { Length: > 0 } fields ? (object[])fields.Clone() : Array.Empty<object>(),
+                        lastFieldDoc.ShardIndex);
                 }
                 if (lastDoc is ScoreDoc scoreDoc)
                 {
