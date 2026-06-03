@@ -29,13 +29,18 @@ namespace Examine.Lucene
         private readonly object _locker = new object();
         private T _value;
 
+        // A dedicated flag (rather than a null check on _value) is used to track creation so that a
+        // factory which legitimately returns null is treated as "created" instead of being re-invoked
+        // on every subsequent access. Declared volatile so that a true read also publishes _value.
+        private volatile bool _isValueCreated;
+
         public ResettableLazy(Func<T> valueFactory)
             => _valueFactory = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
 
         /// <summary>
         /// Returns true once a value has been successfully created.
         /// </summary>
-        public bool IsValueCreated => Volatile.Read(ref _value) != null;
+        public bool IsValueCreated => _isValueCreated;
 
         /// <summary>
         /// Gets the lazily created value, creating it on first successful access.
@@ -48,22 +53,24 @@ namespace Examine.Lucene
         {
             get
             {
-                var value = Volatile.Read(ref _value);
-                if (value != null)
+                if (_isValueCreated)
                 {
-                    return value;
+                    return _value;
                 }
 
                 lock (_locker)
                 {
-                    if (_value != null)
+                    if (_isValueCreated)
                     {
                         return _value;
                     }
 
                     // If this throws, the exception is not cached - a later access will retry.
                     var created = _valueFactory();
-                    Volatile.Write(ref _value, created);
+                    _value = created;
+
+                    // Volatile write publishes _value to other threads and marks creation complete.
+                    _isValueCreated = true;
                     return created;
                 }
             }

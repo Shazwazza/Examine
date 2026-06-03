@@ -66,6 +66,26 @@ namespace Examine.Test.Examine.Lucene
         }
 
         [Test]
+        public void Null_Value_Is_Created_Once_And_Not_Re_Invoked()
+        {
+            var calls = 0;
+            var lazy = new ResettableLazy<object>(() =>
+            {
+                calls++;
+                return null;
+            });
+
+            Assert.IsFalse(lazy.IsValueCreated);
+
+            // A factory that legitimately returns null must be treated as "created" so that it is
+            // not re-invoked indefinitely on every subsequent access.
+            Assert.IsNull(lazy.Value);
+            Assert.IsTrue(lazy.IsValueCreated);
+            Assert.IsNull(lazy.Value);
+            Assert.AreEqual(1, calls);
+        }
+
+        [Test]
         public void Concurrent_Access_Creates_Value_Only_Once()
         {
             var calls = 0;
