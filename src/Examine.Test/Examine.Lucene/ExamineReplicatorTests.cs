@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using Examine.Lucene;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
+using Lucene.Net.Replicator;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
@@ -188,6 +190,29 @@ namespace Examine.Test.Examine.Lucene.Sync
                     {
                         var mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
                         Assert.AreEqual(110, mainReader.NumDocs);
+                    }
+
+                    [Test]
+                    public void GivenTaxonomyEnabledIndexWithoutInitializedTaxonomyWriter_WhenCreatingRevision_ThenNoExceptionThrown()
+                    {
+                        var tempStorage = new System.IO.DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+
+                        using (var mainDir = new RandomIdRAMDirectory())
+                        using (var mainTaxonomyDir = new RandomIdRAMDirectory())
+                        using (var localDir = new RandomIdRAMDirectory())
+                        using (var localTaxonomyDir = new RandomIdRAMDirectory())
+                        using (var mainIndex = GetTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                        using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, localTaxonomyDir, tempStorage))
+                        {
+                            mainIndex.CreateIndex();
+
+                            var createRevisionMethod = typeof(ExamineReplicator).GetMethod("CreateRevision", BindingFlags.Instance | BindingFlags.NonPublic);
+                            Assert.IsNotNull(createRevisionMethod);
+
+                            object? revision = null;
+                            Assert.DoesNotThrow(() => revision = createRevisionMethod!.Invoke(replicator, null));
+                            Assert.IsInstanceOf<IndexRevision>(revision);
+                        }
                     }
                 }
             }

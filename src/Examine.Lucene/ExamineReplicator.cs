@@ -163,14 +163,23 @@ namespace Examine.Lucene
         /// </summary>
         private IRevision CreateRevision()
         {
-            if (_taxonomyEnabled && _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory != null)
+            if (_taxonomyEnabled)
             {
-                return new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory);
+                var taxonomyWriterFactory = _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory;
+                if (taxonomyWriterFactory?.IndexWriter == null)
+                {
+                    // Ensure the taxonomy writer has been initialized before attempting to create a taxonomy revision.
+                    _ = _sourceIndex.TaxonomyWriter;
+                    taxonomyWriterFactory = _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory;
+                }
+
+                if (taxonomyWriterFactory?.IndexWriter != null)
+                {
+                    return new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, taxonomyWriterFactory);
+                }
             }
-            else
-            {
-                return new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
-            }
+
+            return new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
         }
 
         /// <summary>
