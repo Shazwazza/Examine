@@ -1,6 +1,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using Examine.Lucene.Providers;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
@@ -243,7 +244,54 @@ namespace Examine.Lucene.Directories
             {
                 foreach (var file in directoryInfo.EnumerateFiles())
                 {
+                    DeleteFileWithRetry(file);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Deletes a file, retrying a number of times if it is transiently locked or access is denied.
+        /// </summary>
+        /// <remarks>
+        /// On Azure App Service / Umbraco Cloud, overlapped recycles ("warm boots") and platform file
+        /// storage recycles can leave index files in the local %temp% folder momentarily locked by a
+        /// dying instance, resulting in <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/>.
+        /// Retrying with a short backoff lets these transient conditions clear instead of failing the
+        /// whole index initialization on a single locked file.
+        /// </remarks>
+        private void DeleteFileWithRetry(FileInfo file)
+        {
+            const int maxAttempts = 5;
+
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
                     file.Delete();
+                    return;
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                {
+                    if (attempt >= maxAttempts)
+                    {
+                        _logger.LogError(
+                            ex,
+                            "Could not delete file {FileName} after {Attempts} attempts while clearing directory {Directory}.",
+                            file.FullName,
+                            attempt,
+                            file.DirectoryName);
+
+                        throw;
+                    }
+
+                    _logger.LogWarning(
+                        ex,
+                        "Could not delete file {FileName} (attempt {Attempt} of {MaxAttempts}), retrying...",
+                        file.FullName,
+                        attempt,
+                        maxAttempts);
+
+                    Thread.Sleep(TimeSpan.FromMilliseconds(100 * attempt));
                 }
             }
         }
