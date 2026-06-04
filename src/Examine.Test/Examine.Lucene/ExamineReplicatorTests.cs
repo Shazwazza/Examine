@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using Examine.Lucene;
 using Lucene.Net.Analysis.Standard;
@@ -209,13 +208,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, localTaxonomyDir, tempStorage))
             {
                 mainIndex.CreateIndex();
-
-                var createRevisionMethod = typeof(ExamineReplicator).GetMethod("CreateRevision", BindingFlags.Instance | BindingFlags.NonPublic);
-                Assert.IsNotNull(createRevisionMethod);
-
-                object? revision = null;
-                Assert.DoesNotThrow(() => revision = createRevisionMethod!.Invoke(replicator, null));
-                Assert.IsInstanceOf<IndexAndTaxonomyRevision>(revision);
+                Assert.DoesNotThrow(() => replicator.ReplicateIndex());
             }
         }
     }

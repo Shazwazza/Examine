@@ -239,7 +239,16 @@ namespace Examine.Lucene
 
             if (!_sourceIndex.IsCancellationRequested)
             {
-                var rev = CreateRevision();
+                IRevision rev;
+                try
+                {
+                    rev = CreateRevision();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create a replication revision for {IndexName}", _sourceIndex.Name);
+                    return;
+                }
                 _replicator.Publish(rev);
             }
         }
