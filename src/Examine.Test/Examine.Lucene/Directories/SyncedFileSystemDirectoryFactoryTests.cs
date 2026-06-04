@@ -272,6 +272,77 @@ namespace Examine.Test.Examine.Lucene.Directories
             }
         }
 
+        /// <summary>
+        /// Regression test for https://github.com/Shazwazza/Examine/issues/434.
+        /// When a single file in the local temp folder is locked while syncing from main storage,
+        /// directory creation fails - but once the lock is released a subsequent attempt must recover
+        /// (previously the exception was permanently cached by the index's Lazy directory).
+        /// File locking semantics differ across platforms, so this reproduction is Windows-only.
+        /// </summary>
+        [Test]
+        [Platform(Include = "Win")]
+        public void Given_LockedFileInLocalTemp_When_CreatingDirectory_Then_RecoversAfterLockReleased()
+        {
+            var mainPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            try
+            {
+                // healthy main index
+                CreateIndex(mainPath, false, false);
+
+                // place a locked file in the local temp index folder that ClearDirectory will try to delete
+                var localIndexFolder = new DirectoryInfo(Path.Combine(tempPath, TestIndex.TestIndexName));
+                localIndexFolder.Create();
+                var lockedFilePath = Path.Combine(localIndexFolder.FullName, "locked.tmp");
+                File.WriteAllText(lockedFilePath, "locked");
+
+                using var syncedDirFactory = new SyncedFileSystemDirectoryFactory(
+                    new DirectoryInfo(tempPath),
+                    new DirectoryInfo(mainPath),
+                    new DefaultLockFactory(),
+                    LoggerFactory,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions()),
+                    false);
+
+                using var index = new LuceneIndex(
+                    LoggerFactory,
+                    TestIndex.TestIndexName,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        DirectoryFactory = syncedDirFactory
+                    }));
+
+                using (var lockStream = new FileStream(lockedFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    // the locked file cannot be deleted, so directory creation fails
+                    Assert.Throws<IOException>(() =>
+                    {
+                        syncedDirFactory.TryCreateDirectory(index, false, out _);
+                    });
+                }
+
+                // lock released - a subsequent attempt must recover
+                Directory dir = null;
+                try
+                {
+                    Assert.DoesNotThrow(() =>
+                    {
+                        syncedDirFactory.TryCreateDirectory(index, false, out dir);
+                    });
+                }
+                finally
+                {
+                    dir?.Dispose();
+                }
+            }
+            finally
+            {
+                System.IO.Directory.Delete(mainPath, true);
+                System.IO.Directory.Delete(tempPath, true);
+            }
+        }
+
         private void CreateIndex(string rootPath, bool corruptIndex, bool removeSegments)
         {
             var logger = LoggerFactory.CreateLogger<SyncedFileSystemDirectoryFactoryTests>();

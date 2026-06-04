@@ -1,6 +1,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using Examine.Lucene.Providers;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
@@ -91,83 +92,99 @@ namespace Examine.Lucene.Directories
             var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
 
             var mainLuceneDir = base.CreateDirectory(luceneIndex, forceUnlock);
-            var localLuceneDir = FSDirectory.Open(
-                localLuceneIndexFolder,
-                LockFactory.GetLockFactory(localLuceneIndexFolder));
+            Directory localLuceneDir = null;
 
-            var mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
-            var localIndexExists = DirectoryReader.IndexExists(localLuceneDir);
-
-            var mainResult = CreateResult.Init;
-
-            if (mainIndexExists)
+            try
             {
-                mainResult = CheckIndexHealthAndFix(mainLuceneDir, mainLuceneIndexFolder, luceneIndex.Name, _tryFixMainIndexIfCorrupt);
-            }
+                localLuceneDir = FSDirectory.Open(
+                    localLuceneIndexFolder,
+                    LockFactory.GetLockFactory(localLuceneIndexFolder));
 
-            // the main index is/was unhealthy or missing, lets check the local index if it exists
-            if (localIndexExists && (!mainIndexExists || mainResult.HasFlag(CreateResult.NotClean) || mainResult.HasFlag(CreateResult.MissingSegments)))
-            {
-                // TODO: add details here and more below too
+                var mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
+                var localIndexExists = DirectoryReader.IndexExists(localLuceneDir);
 
-                var localResult = CheckIndexHealthAndFix(localLuceneDir, localLuceneIndexFolder, luceneIndex.Name, false);
+                var mainResult = CreateResult.Init;
 
-                if (localResult == CreateResult.Init)
+                if (mainIndexExists)
                 {
-                    // it was read successfully, we can sync back to main
-                    localResult |= TryGetIndexWriter(OpenMode.APPEND, localLuceneDir, localLuceneIndexFolder, false, luceneIndex.Name, out var indexWriter);
-                    using (indexWriter)
+                    mainResult = CheckIndexHealthAndFix(mainLuceneDir, mainLuceneIndexFolder, luceneIndex.Name, _tryFixMainIndexIfCorrupt);
+                }
+
+                // the main index is/was unhealthy or missing, lets check the local index if it exists
+                if (localIndexExists && (!mainIndexExists || mainResult.HasFlag(CreateResult.NotClean) || mainResult.HasFlag(CreateResult.MissingSegments)))
+                {
+                    // TODO: add details here and more below too
+
+                    var localResult = CheckIndexHealthAndFix(localLuceneDir, localLuceneIndexFolder, luceneIndex.Name, false);
+
+                    if (localResult == CreateResult.Init)
                     {
-                        if (localResult.HasFlag(CreateResult.OpenedSuccessfully))
+                        // it was read successfully, we can sync back to main
+                        localResult |= TryGetIndexWriter(OpenMode.APPEND, localLuceneDir, localLuceneIndexFolder, false, luceneIndex.Name, out var indexWriter);
+                        using (indexWriter)
                         {
-                            SyncIndex(indexWriter, true, luceneIndex.Name, mainLuceneIndexFolder, tempDir);
-                            mainResult |= CreateResult.SyncedFromLocal;
-                            // we need to check the main index again, as it may have been fixed by the sync
-                            mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
+                            if (localResult.HasFlag(CreateResult.OpenedSuccessfully))
+                            {
+                                SyncIndex(indexWriter, true, luceneIndex.Name, mainLuceneIndexFolder, tempDir);
+                                mainResult |= CreateResult.SyncedFromLocal;
+                                // we need to check the main index again, as it may have been fixed by the sync
+                                mainIndexExists = DirectoryReader.IndexExists(mainLuceneDir);
+                            }
                         }
                     }
                 }
-            }
 
-            if (mainIndexExists)
-            {
-                // when the lucene directory is going to be created, we'll sync from main storage to local
-                // storage before any index/writer is opened.
-
-                var openMode = mainResult == CreateResult.Init || mainResult.HasFlag(CreateResult.Fixed) || mainResult.HasFlag(CreateResult.SyncedFromLocal)
-                            ? OpenMode.APPEND
-                            : OpenMode.CREATE;
-
-                mainResult |= TryGetIndexWriter(openMode, mainLuceneDir, mainLuceneIndexFolder, true, luceneIndex.Name, out var indexWriter);
-                using (indexWriter)
+                if (mainIndexExists)
                 {
-                    if (!mainResult.HasFlag(CreateResult.SyncedFromLocal))
+                    // when the lucene directory is going to be created, we'll sync from main storage to local
+                    // storage before any index/writer is opened.
+
+                    var openMode = mainResult == CreateResult.Init || mainResult.HasFlag(CreateResult.Fixed) || mainResult.HasFlag(CreateResult.SyncedFromLocal)
+                                ? OpenMode.APPEND
+                                : OpenMode.CREATE;
+
+                    mainResult |= TryGetIndexWriter(openMode, mainLuceneDir, mainLuceneIndexFolder, true, luceneIndex.Name, out var indexWriter);
+                    using (indexWriter)
                     {
-                        SyncIndex(indexWriter, forceUnlock, luceneIndex.Name, localLuceneIndexFolder, tempDir);
+                        if (!mainResult.HasFlag(CreateResult.SyncedFromLocal))
+                        {
+                            SyncIndex(indexWriter, forceUnlock, luceneIndex.Name, localLuceneIndexFolder, tempDir);
+                        }
                     }
                 }
-            }
 
-            if (forceUnlock)
+                if (forceUnlock)
+                {
+                    IndexWriter.Unlock(localLuceneDir);
+                }
+
+                Directory luceneDir;
+
+                var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
+                if (options.NrtEnabled)
+                {
+                    luceneDir = new NRTCachingDirectory(localLuceneDir, options.NrtCacheMaxMergeSizeMB, options.NrtCacheMaxCachedMB);
+                }
+                else
+                {
+                    luceneDir = localLuceneDir;
+                }
+
+                directory = new SyncedFileSystemDirectory(_replicatorLogger, _clientLogger, luceneDir, mainLuceneDir, luceneIndex, tempDir);
+
+                return mainResult;
+            }
+            catch
             {
-                IndexWriter.Unlock(localLuceneDir);
+                // Dispose the directories opened above so a failed attempt doesn't leak Lucene
+                // directory handles (which on Windows can include memory-mapped index segments).
+                // This matters because directory creation can be retried (ResettableLazy does not
+                // cache exceptions), so without this each transient failure would leak a pair of
+                // handles. Ownership is transferred to SyncedFileSystemDirectory only on success.
+                localLuceneDir?.Dispose();
+                mainLuceneDir?.Dispose();
+                throw;
             }
-
-            Directory luceneDir;
-
-            var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
-            if (options.NrtEnabled)
-            {
-                luceneDir = new NRTCachingDirectory(localLuceneDir, options.NrtCacheMaxMergeSizeMB, options.NrtCacheMaxCachedMB);
-            }
-            else
-            {
-                luceneDir = localLuceneDir;
-            }
-
-            directory = new SyncedFileSystemDirectory(_replicatorLogger, _clientLogger, luceneDir, mainLuceneDir, luceneIndex, tempDir);
-
-            return mainResult;
         }
 
         [Flags]
@@ -243,7 +260,54 @@ namespace Examine.Lucene.Directories
             {
                 foreach (var file in directoryInfo.EnumerateFiles())
                 {
+                    DeleteFileWithRetry(file);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Deletes a file, retrying a number of times if it is transiently locked or access is denied.
+        /// </summary>
+        /// <remarks>
+        /// On Azure App Service / Umbraco Cloud, overlapped recycles ("warm boots") and platform file
+        /// storage recycles can leave index files in the local %temp% folder momentarily locked by a
+        /// dying instance, resulting in <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/>.
+        /// Retrying with a short backoff lets these transient conditions clear instead of failing the
+        /// whole index initialization on a single locked file.
+        /// </remarks>
+        private void DeleteFileWithRetry(FileInfo file)
+        {
+            const int maxAttempts = 5;
+
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
                     file.Delete();
+                    return;
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                {
+                    if (attempt >= maxAttempts)
+                    {
+                        _logger.LogError(
+                            ex,
+                            "Could not delete file {FileName} after {Attempts} attempts while clearing directory {Directory}.",
+                            file.FullName,
+                            attempt,
+                            file.DirectoryName);
+
+                        throw;
+                    }
+
+                    _logger.LogWarning(
+                        ex,
+                        "Could not delete file {FileName} (attempt {Attempt} of {MaxAttempts}), retrying...",
+                        file.FullName,
+                        attempt,
+                        maxAttempts);
+
+                    Thread.Sleep(TimeSpan.FromMilliseconds(100 * attempt));
                 }
             }
         }
