@@ -126,7 +126,7 @@ namespace Examine
             Id = id;
             Category = category;
             ItemType = itemType;
-            Values = values.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList());
+            Values = values;
         }
 
         /// <summary>

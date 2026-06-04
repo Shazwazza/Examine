@@ -60,7 +60,13 @@ namespace Examine.Lucene.Providers
                 return null;
             });
 
-            _lazyDirectory = new Lazy<Directory>(() =>
+            // Note: ResettableLazy is used instead of Lazy<T> because Lazy<T> (in its default
+            // ExecutionAndPublication mode) caches the first exception thrown by the factory and
+            // re-throws it on every subsequent access. That turns a transient directory creation
+            // failure (e.g. a momentarily locked index file during a host overlap/recycle) into a
+            // permanent outage until the process restarts. ResettableLazy does not cache exceptions
+            // so a later access can retry and recover once the transient condition clears.
+            _lazyDirectory = new ResettableLazy<Directory>(() =>
             {
                 _isDirectoryExternallyManaged = directoryOptions.DirectoryFactory is GenericDirectoryFactory gdf && gdf.ExternallyManaged;
                 return directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex);
@@ -121,7 +127,7 @@ namespace Examine.Lucene.Providers
         private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>? _nrtReopenThread;
         private ControlledRealTimeReopenThread<IndexSearcher>? _nrtReopenThreadNoTaxonomy;
         private readonly ILogger<LuceneIndex> _logger;
-        private readonly Lazy<Directory>? _lazyDirectory;
+        private readonly ResettableLazy<Directory>? _lazyDirectory;
         private bool _isDirectoryExternallyManaged = false;
         private bool _disposedValue;
         private readonly IIndexCommitter _committer;

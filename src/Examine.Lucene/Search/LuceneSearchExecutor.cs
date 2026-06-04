@@ -208,7 +208,7 @@ namespace Examine.Lucene.Search
         {
             FieldDoc scoreDocAfter;
 
-            object[] searchAfterSortFields = new object[0];
+            object[] searchAfterSortFields = Array.Empty<object>();
             if (searchAfterOptions.Fields != null && searchAfterOptions.Fields.Length > 0)
             {
                 searchAfterSortFields = searchAfterOptions.Fields;
@@ -227,15 +227,21 @@ namespace Examine.Lucene.Search
 
         internal static SearchAfterOptions? GetSearchAfterOptions(TopDocs topDocs)
         {
-            if (topDocs.TotalHits > 0)
+            var scoreDocs = topDocs.ScoreDocs;
+            if (scoreDocs is { Length: > 0 })
             {
-                if (topDocs.ScoreDocs.LastOrDefault() is FieldDoc lastFieldDoc && lastFieldDoc != null)
+                var lastDoc = scoreDocs[scoreDocs.Length - 1];
+                if (lastDoc is FieldDoc lastFieldDoc)
                 {
-                    return new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields?.ToArray(), lastFieldDoc.ShardIndex);
+                    return new SearchAfterOptions(
+                        lastFieldDoc.Doc,
+                        lastFieldDoc.Score,
+                        lastFieldDoc.Fields is { Length: > 0 } fields ? (object[])fields.Clone() : Array.Empty<object>(),
+                        lastFieldDoc.ShardIndex);
                 }
-                if (topDocs.ScoreDocs.LastOrDefault() is ScoreDoc scoreDoc && scoreDoc != null)
+                if (lastDoc is ScoreDoc scoreDoc)
                 {
-                    return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, new object[0], scoreDoc.ShardIndex);
+                    return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, Array.Empty<object>(), scoreDoc.ShardIndex);
                 }
             }
 
@@ -318,25 +324,20 @@ namespace Examine.Lucene.Search
 
                 var resultVals = new Dictionary<string, List<string>>();
 
+                // doc.Fields may list the same field name multiple times (once per stored value).
+                // doc.GetValues already returns all values for a field, so we only need to call it
+                // once per unique field name. Track processed names to skip redundant iterations.
+                var processedFields = new HashSet<string>();
+
                 foreach (var field in fields)
                 {
                     var fieldName = field.Name;
-                    var values = doc.GetValues(fieldName);
+                    if (!processedFields.Add(fieldName))
+                    {
+                        continue;
+                    }
 
-                    if (resultVals.TryGetValue(fieldName, out var resultFieldVals))
-                    {
-                        foreach (var value in values)
-                        {
-                            if (!resultFieldVals.Contains(value))
-                            {
-                                resultFieldVals.Add(value);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        resultVals[fieldName] = values.ToList();
-                    }
+                    resultVals[fieldName] = doc.GetValues(fieldName).ToList();
                 }
 
                 return resultVals;
@@ -365,14 +366,16 @@ namespace Examine.Lucene.Search
                 return CheckQueryForExtractTerms(lbq.Wrapped);
             }
 
-            var queryType = query.GetType();
-
-            if (typeof(TermRangeQuery).IsAssignableFrom(queryType)
-                || typeof(WildcardQuery).IsAssignableFrom(queryType)
-                || typeof(FuzzyQuery).IsAssignableFrom(queryType)
-                || (queryType.IsGenericType && queryType.GetGenericTypeDefinition().IsAssignableFrom(typeof(NumericRangeQuery<>))))
+            // Use pattern matching (isinst IL instruction) instead of reflection for the common query types
+            if (query is TermRangeQuery or WildcardQuery or FuzzyQuery)
             {
-                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException 
+                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException
+            }
+
+            var queryType = query.GetType();
+            if (queryType.IsGenericType && queryType.GetGenericTypeDefinition() == typeof(NumericRangeQuery<>))
+            {
+                return false; //ExtractTerms() not supported by NumericRangeQuery and will throw NotSupportedException
             }
 
             return true;
