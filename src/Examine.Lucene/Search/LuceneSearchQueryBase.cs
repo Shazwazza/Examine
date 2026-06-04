@@ -417,7 +417,7 @@ namespace Examine.Lucene.Search
         private static Query CreatePhraseQuery(string field, string txt)
         {
             var phraseQuery = new PhraseQuery { Slop = 0 };
-            foreach (var val in txt.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var val in txt.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             {
                 phraseQuery.Add(new Term(field, val));
             }
