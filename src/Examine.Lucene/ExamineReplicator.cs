@@ -19,6 +19,7 @@ namespace Examine.Lucene
     /// </remarks>
     public class ExamineReplicator : IDisposable
     {
+        private const string TaxonomyWriterInitializationFailureMessage = "Taxonomy replication is enabled but the taxonomy writer could not be initialized.";
         private bool _disposedValue;
         private readonly LocalReplicator _replicator;
         private readonly LuceneIndex _sourceIndex;
@@ -142,7 +143,7 @@ namespace Examine.Lucene
             {
                 rev = CreateRevision();
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex) when (ex.Message != TaxonomyWriterInitializationFailureMessage)
             {
                 // will occur if there is nothing to sync
                 _logger.LogInformation("There was nothing to replicate to {DestinationIndex}", _destinationDirectory);
@@ -163,14 +164,25 @@ namespace Examine.Lucene
         /// </summary>
         private IRevision CreateRevision()
         {
-            if (_taxonomyEnabled && _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory != null)
+            if (_taxonomyEnabled)
             {
-                return new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory);
+                var taxonomyWriterFactory = _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory;
+                if (taxonomyWriterFactory?.IndexWriter == null)
+                {
+                    // Ensure the taxonomy writer has been initialized before attempting to create a taxonomy revision.
+                    _ = _sourceIndex.TaxonomyWriter;
+                    taxonomyWriterFactory = _sourceIndex.SnapshotDirectoryTaxonomyIndexWriterFactory;
+                }
+
+                if (taxonomyWriterFactory?.IndexWriter != null)
+                {
+                    return new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, taxonomyWriterFactory);
+                }
+
+                throw new InvalidOperationException(TaxonomyWriterInitializationFailureMessage);
             }
-            else
-            {
-                return new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
-            }
+
+            return new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
         }
 
         /// <summary>
@@ -227,7 +239,16 @@ namespace Examine.Lucene
 
             if (!_sourceIndex.IsCancellationRequested)
             {
-                var rev = CreateRevision();
+                IRevision rev;
+                try
+                {
+                    rev = CreateRevision();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create a replication revision for {IndexName}", _sourceIndex.Name);
+                    return;
+                }
                 _replicator.Publish(rev);
             }
         }
