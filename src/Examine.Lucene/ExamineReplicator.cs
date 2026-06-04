@@ -19,6 +19,7 @@ namespace Examine.Lucene
     /// </remarks>
     public class ExamineReplicator : IDisposable
     {
+        private const string TaxonomyWriterInitializationFailureMessage = "Taxonomy replication is enabled but the taxonomy writer could not be initialized.";
         private bool _disposedValue;
         private readonly LocalReplicator _replicator;
         private readonly LuceneIndex _sourceIndex;
@@ -142,7 +143,7 @@ namespace Examine.Lucene
             {
                 rev = CreateRevision();
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex) when (ex.Message != TaxonomyWriterInitializationFailureMessage)
             {
                 // will occur if there is nothing to sync
                 _logger.LogInformation("There was nothing to replicate to {DestinationIndex}", _destinationDirectory);
@@ -177,6 +178,8 @@ namespace Examine.Lucene
                 {
                     return new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, taxonomyWriterFactory);
                 }
+
+                throw new InvalidOperationException(TaxonomyWriterInitializationFailureMessage);
             }
 
             return new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
