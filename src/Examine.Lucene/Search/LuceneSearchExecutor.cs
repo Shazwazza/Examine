@@ -189,9 +189,10 @@ namespace Examine.Lucene.Search
 
         internal static SearchAfterOptions GetSearchAfterOptions(TopDocs topDocs)
         {
-            if (topDocs.TotalHits > 0)
+            var scoreDocs = topDocs.ScoreDocs;
+            if (scoreDocs is { Length: > 0 })
             {
-                var lastDoc = topDocs.ScoreDocs.LastOrDefault();
+                var lastDoc = scoreDocs[scoreDocs.Length - 1];
                 if (lastDoc is FieldDoc lastFieldDoc)
                 {
                     return new SearchAfterOptions(

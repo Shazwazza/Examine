@@ -299,7 +299,7 @@ namespace Examine.Lucene.Search
 
         internal IBooleanOperation SelectFieldInternal(string fieldName)
         {
-            _fieldsToLoad = new HashSet<string>(new string[] { fieldName });
+            _fieldsToLoad = new HashSet<string>(1) { fieldName };
             return CreateOp();
         }
 
