@@ -144,23 +144,35 @@ namespace Examine.Lucene
 
             lock (_locker)
             {
-                _started = true;
+                if (_started)
+                {
+                    return;
+                }
 
                 if (_sourceIndex.IsCancellationRequested)
                 {
                     return;
                 }
 
-                if (IndexWriter.IsLocked(_destinationDirectory))
+                try
                 {
-                    throw new InvalidOperationException("The destination directory is locked");
+                    if (IndexWriter.IsLocked(_destinationDirectory))
+                    {
+                        throw new InvalidOperationException("The destination directory is locked");
+                    }
+
+                    _sourceIndex.IndexCommitted += SourceIndex_IndexCommitted;
+
+                    // this will update the destination every second if there are changes.
+                    // the change monitor will be stopped when this is disposed.
+                    _localReplicationClient.Value.StartUpdateThread(milliseconds, $"IndexRep{_sourceIndex.Name}");
+                    _started = true;
                 }
-
-                _sourceIndex.IndexCommitted += SourceIndex_IndexCommitted;
-
-                // this will update the destination every second if there are changes.
-                // the change monitor will be stopped when this is disposed.
-                _localReplicationClient.Value.StartUpdateThread(milliseconds, $"IndexRep{_sourceIndex.Name}");
+                catch (Exception ex)
+                {
+                    _sourceIndex.IndexCommitted -= SourceIndex_IndexCommitted;
+                    _logger.LogError(ex, "Failed to start replication schedule for {IndexName}", _sourceIndex.Name);
+                }
             }
 
         }
@@ -180,8 +192,15 @@ namespace Examine.Lucene
 
             if (!_sourceIndex.IsCancellationRequested)
             {
-                var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
-                _replicator.Publish(rev);
+                try
+                {
+                    var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+                    _replicator.Publish(rev);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to publish replication revision for {IndexName}", _sourceIndex.Name);
+                }
             }
         }
 

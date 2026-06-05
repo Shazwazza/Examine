@@ -87,6 +87,32 @@ namespace Examine.Test.Examine.Lucene.Sync
         }
 
         [Test]
+        public void GivenALockedDestination_WhenStartingScheduledReplication_ThenNoExceptionIsThrown()
+        {
+            var tempStorage = new System.IO.DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+            var indexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy());
+
+            using (var mainDir = new RandomIdRAMDirectory())
+            using (var localDir = new RandomIdRAMDirectory())
+            using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+            using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, tempStorage))
+            using (var localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            {
+                mainIndex.CreateIndex();
+
+                // Open and keep destination writer active so the replicator cannot start.
+                localIndex.IndexItem(new ValueSet(9999.ToString(), "content",
+                    new Dictionary<string, IEnumerable<object>>
+                    {
+                        {"item1", new List<object>(new[] {"value1"})},
+                        {"item2", new List<object>(new[] {"value2"})}
+                    }));
+
+                Assert.DoesNotThrow(() => replicator.StartIndexReplicationOnSchedule(1000));
+            }
+        }
+
+        [Test]
         public void GivenASyncedLocalIndex_WhenTriggered_ThenSyncedBackToMainIndex()
         {
             var tempStorage = new System.IO.DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
