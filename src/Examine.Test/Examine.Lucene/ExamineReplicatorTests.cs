@@ -140,6 +140,45 @@ namespace Examine.Test.Examine.Lucene.Sync
         }
 
         [Test]
+        public void GivenRepeatedReplicationFailures_WhenThresholdReached_ThenReplicationIsUnhealthyAndStopped()
+        {
+            var tempStorage = new System.IO.DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+            var indexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy());
+
+            using (var mainDir = new RandomIdRAMDirectory())
+            using (var mainTaxonomyDir = new RandomIdRAMDirectory())
+            using (var localDir = new RandomIdRAMDirectory())
+            using (var mainIndex = GetTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+            {
+                var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, null, tempStorage);
+
+                mainIndex.CreateIndex();
+                mainIndex.IndexItems(TestIndex.AllData());
+
+                replicator.MaxConsecutiveReplicationFailures = 2;
+                Assert.IsTrue(replicator.IsReplicationHealthy);
+                Assert.AreEqual(0, replicator.ConsecutiveReplicationFailures);
+
+                // Dispose the replicator so the underlying LocalReplicator is closed and every
+                // subsequent publish attempt fails, simulating a persistent replication failure.
+                replicator.Dispose();
+
+                var commitHandler = typeof(ExamineReplicator).GetMethod("SourceIndex_IndexCommitted", BindingFlags.NonPublic | BindingFlags.Instance);
+                Assert.That(commitHandler, Is.Not.Null);
+
+                // First failure: still considered healthy (below threshold).
+                commitHandler!.Invoke(replicator, new object?[] { mainIndex, EventArgs.Empty });
+                Assert.AreEqual(1, replicator.ConsecutiveReplicationFailures);
+                Assert.IsTrue(replicator.IsReplicationHealthy);
+
+                // Second failure: threshold reached, replication stops and is reported as unhealthy.
+                commitHandler!.Invoke(replicator, new object?[] { mainIndex, EventArgs.Empty });
+                Assert.AreEqual(2, replicator.ConsecutiveReplicationFailures);
+                Assert.IsFalse(replicator.IsReplicationHealthy);
+            }
+        }
+
+        [Test]
         public void GivenASyncedLocalIndex_WhenTriggered_ThenSyncedBackToMainIndex()
         {
             var tempStorage = new System.IO.DirectoryInfo(TestContext.CurrentContext.WorkDirectory);

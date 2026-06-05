@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
 using Lucene.Net.Index;
@@ -20,6 +21,7 @@ namespace Examine.Lucene
     public class ExamineReplicator : IDisposable
     {
         private const string TaxonomyWriterInitializationFailureMessage = "Taxonomy replication is enabled but the taxonomy writer could not be initialized.";
+        private const int DefaultMaxConsecutiveReplicationFailures = 5;
         private bool _disposedValue;
         private readonly LocalReplicator _replicator;
         private readonly LuceneIndex _sourceIndex;
@@ -29,6 +31,7 @@ namespace Examine.Lucene
         private readonly Lazy<LoggingReplicationClient> _localReplicationClient;
         private readonly object _locker = new object();
         private bool _started = false;
+        private int _consecutiveFailures;
         private readonly ILogger<ExamineReplicator> _logger;
         private readonly bool _taxonomyEnabled;
 
@@ -117,6 +120,30 @@ namespace Examine.Lucene
                     new PerSessionDirectoryFactory(tempStorage.FullName));
             });
         }
+
+        /// <summary>
+        /// The number of consecutive scheduled replication failures that are tolerated before replication is
+        /// automatically stopped and reported as unhealthy via <see cref="IsReplicationHealthy"/>.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to <c>5</c>. Set to a value of <c>0</c> or less to never stop replication automatically.
+        /// </remarks>
+        public int MaxConsecutiveReplicationFailures { get; set; } = DefaultMaxConsecutiveReplicationFailures;
+
+        /// <summary>
+        /// The number of consecutive times scheduled replication has failed to publish a revision.
+        /// </summary>
+        /// <remarks>
+        /// This is reset to zero after a successful publish or when scheduled replication is (re)started.
+        /// </remarks>
+        public int ConsecutiveReplicationFailures => Volatile.Read(ref _consecutiveFailures);
+
+        /// <summary>
+        /// Returns <c>false</c> once scheduled replication has failed <see cref="MaxConsecutiveReplicationFailures"/>
+        /// consecutive times and has therefore been stopped, allowing callers to monitor replication health.
+        /// </summary>
+        public bool IsReplicationHealthy =>
+            MaxConsecutiveReplicationFailures <= 0 || Volatile.Read(ref _consecutiveFailures) < MaxConsecutiveReplicationFailures;
 
         /// <summary>
         /// Will sync from the active index to the destination directory
@@ -221,6 +248,9 @@ namespace Examine.Lucene
                     // this will update the destination every second if there are changes.
                     // the change monitor will be stopped when this is disposed.
                     _localReplicationClient.Value.StartUpdateThread(milliseconds, $"IndexRep{_sourceIndex.Name}");
+
+                    // Reset any previous failure state now that replication has (re)started successfully.
+                    Volatile.Write(ref _consecutiveFailures, 0);
                     _started = true;
                 }
                 catch (Exception ex)
@@ -255,10 +285,32 @@ namespace Examine.Lucene
                 {
                     var rev = CreateRevision();
                     _replicator.Publish(rev);
+
+                    // Successful publish, reset the consecutive failure counter.
+                    Volatile.Write(ref _consecutiveFailures, 0);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to publish replication revision for {IndexName}", _sourceIndex.Name);
+                    var failures = Interlocked.Increment(ref _consecutiveFailures);
+                    _logger.LogError(
+                        ex,
+                        "Failed to publish replication revision for {IndexName} (consecutive failure {FailureCount} of {MaxFailures})",
+                        _sourceIndex.Name,
+                        failures,
+                        MaxConsecutiveReplicationFailures);
+
+                    if (MaxConsecutiveReplicationFailures > 0 && failures >= MaxConsecutiveReplicationFailures)
+                    {
+                        // Persistent (non-transient) failure. Stop reacting to commits so the failing operation is
+                        // not retried indefinitely and surface the condition via IsReplicationHealthy so operators
+                        // can detect that replication has stopped working.
+                        _sourceIndex.IndexCommitted -= SourceIndex_IndexCommitted;
+                        _logger.LogCritical(
+                            ex,
+                            "Replication for {IndexName} has failed {FailureCount} consecutive times and has been stopped. The destination index will no longer be updated until replication is restarted",
+                            _sourceIndex.Name,
+                            failures);
+                    }
                 }
             }
         }
