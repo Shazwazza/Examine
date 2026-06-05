@@ -310,6 +310,13 @@ namespace Examine.Lucene
                         // re-enter the startup path and restart replication once the underlying issue is resolved.
                         lock (_locker)
                         {
+                            // Stop the background update thread so a later restart can start a new one;
+                            // StartUpdateThread throws if a thread is still running.
+                            if (_localReplicationClient.IsValueCreated)
+                            {
+                                _localReplicationClient.Value.StopUpdateThread();
+                            }
+
                             _started = false;
                         }
 

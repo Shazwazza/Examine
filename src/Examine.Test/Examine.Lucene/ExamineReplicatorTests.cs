@@ -179,6 +179,58 @@ namespace Examine.Test.Examine.Lucene.Sync
         }
 
         [Test]
+        public void GivenReplicationStoppedAfterThreshold_WhenRestarted_ThenReplicationRecoversAndIsHealthy()
+        {
+            var tempStorage = new System.IO.DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+            var indexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy());
+
+            using (var mainDir = new RandomIdRAMDirectory())
+            using (var mainTaxonomyDir = new RandomIdRAMDirectory())
+            using (var localDir = new RandomIdRAMDirectory())
+            using (var mainIndex = GetTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+            {
+                using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, null, tempStorage))
+                {
+                    mainIndex.CreateIndex();
+                    mainIndex.IndexItems(TestIndex.AllData());
+
+                    replicator.MaxConsecutiveReplicationFailures = 1;
+
+                    // Use a long interval so the background update thread does not interfere; failures are
+                    // driven deterministically by invoking the commit handler directly.
+                    replicator.StartIndexReplicationOnSchedule(60000);
+
+                    var startedField = typeof(ExamineReplicator).GetField("_started", BindingFlags.NonPublic | BindingFlags.Instance);
+                    Assert.That(startedField, Is.Not.Null);
+                    Assert.IsTrue((bool)startedField!.GetValue(replicator)!);
+
+                    // Dispose only the underlying LocalReplicator so every publish fails while the replication
+                    // client itself stays open, simulating a persistent (non-transient) replication failure.
+                    var replicatorField = typeof(ExamineReplicator).GetField("_replicator", BindingFlags.NonPublic | BindingFlags.Instance);
+                    Assert.That(replicatorField, Is.Not.Null);
+                    var localReplicator = (IDisposable)replicatorField!.GetValue(replicator)!;
+                    localReplicator.Dispose();
+
+                    var commitHandler = typeof(ExamineReplicator).GetMethod("SourceIndex_IndexCommitted", BindingFlags.NonPublic | BindingFlags.Instance);
+                    Assert.That(commitHandler, Is.Not.Null);
+
+                    // Reaching the threshold (1) stops replication: unhealthy, the update thread is stopped and
+                    // _started is reset so a restart is possible.
+                    commitHandler!.Invoke(replicator, new object?[] { mainIndex, EventArgs.Empty });
+                    Assert.IsFalse(replicator.IsReplicationHealthy);
+                    Assert.IsFalse((bool)startedField.GetValue(replicator)!);
+
+                    // Restarting must not throw (the previous update thread was stopped) and replication recovers:
+                    // the failure counter is reset and the schedule is running again.
+                    Assert.DoesNotThrow(() => replicator.StartIndexReplicationOnSchedule(60000));
+                    Assert.IsTrue((bool)startedField.GetValue(replicator)!);
+                    Assert.AreEqual(0, replicator.ConsecutiveReplicationFailures);
+                    Assert.IsTrue(replicator.IsReplicationHealthy);
+                }
+            }
+        }
+
+        [Test]
         public void GivenASyncedLocalIndex_WhenTriggered_ThenSyncedBackToMainIndex()
         {
             var tempStorage = new System.IO.DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
