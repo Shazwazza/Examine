@@ -1,7 +1,23 @@
-﻿namespace Examine.Search
+namespace Examine.Search
 {
+    /// <summary>
+    /// Represents types of boolean operations
+    /// </summary>
     public enum BooleanOperation
     {
-        And, Or, Not
+        /// <summary>
+        /// And modifier
+        /// </summary>
+        And,
+
+        /// <summary>
+        /// Or modifier
+        /// </summary>
+        Or,
+
+        /// <summary>
+        /// Not modifier
+        /// </summary>
+        Not
     }
 }

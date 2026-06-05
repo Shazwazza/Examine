@@ -1,7 +1,11 @@
+using System;
 using System.Collections.Generic;
 
 namespace Examine.Search
 {
+    /// <summary>
+    /// Represents a ordering operation
+    /// </summary>
     public interface IOrdering : IQueryExecutor
     {
         /// <summary>
@@ -28,7 +32,7 @@ namespace Examine.Search
         /// <summary>
         /// Return only the specified field. Use <see cref="SelectFields(ISet{string})"/> when possible as internally a new HashSet is created on each call
         /// </summary>
-        /// <param name="fieldNames">The field name of the field to load</param>
+        /// <param name="fieldName">The field name of the field to load</param>
         /// <returns></returns>
         IOrdering SelectField(string fieldName);
 
@@ -36,6 +40,6 @@ namespace Examine.Search
         /// Return all fields in the index
         /// </summary>
         /// <returns></returns>
-        IOrdering SelectAllFields();
+        IOrdering SelectAllFields();        
     }
 }

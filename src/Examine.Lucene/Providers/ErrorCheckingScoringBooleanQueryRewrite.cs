@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -24,7 +24,7 @@ namespace Examine.Lucene.Providers
     [Serializable]
     public class ErrorCheckingScoringBooleanQueryRewrite : MultiTermQuery.RewriteMethod
     {
-        
+        /// <inheritdoc/>
         public override Query Rewrite(IndexReader reader, MultiTermQuery query)
         {
             //we'll try to use the SCORING_BOOLEAN_QUERY_REWRITE but this can result in TooManyClauses

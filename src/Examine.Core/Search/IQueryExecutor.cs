@@ -9,6 +9,6 @@ namespace Examine.Search
         /// <summary>
         /// Executes the query
         /// </summary>
-        ISearchResults Execute(QueryOptions options = null);
+        ISearchResults Execute(QueryOptions? options = null);
     }
 }

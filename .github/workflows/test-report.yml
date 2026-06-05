@@ -4,13 +4,17 @@ on:
     workflows: ['Examine Build']                     # runs after CI workflow
     types:
       - completed
+permissions:
+  contents: read
+  actions: read
+  checks: write
 jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-    - uses: dorny/test-reporter@v1
+    - uses: dorny/test-reporter@v3
       with:
-        artifact: examine-test-results    # artifact name
-        name: Publish Tests               # Name of the check run which will be created
+        artifact: /test-results-(.*)/     # matches per-TFM artifacts; $1 captures the TFM (e.g. net8.0)
+        name: 'Publish Tests ($1)'        # Name of the check run which will be created (unique per TFM)
         path: '*.trx'                     # Path to test results (inside artifact .zip)
         reporter: dotnet-trx              # Format of test results

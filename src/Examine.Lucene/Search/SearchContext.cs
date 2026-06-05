@@ -7,20 +7,20 @@ using Lucene.Net.Search;
 namespace Examine.Lucene.Search
 {
 
+    /// <inheritdoc/>
     public sealed class SearchContext : ISearchContext
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private readonly bool _isNrt;
-        private string[] _searchableFields;
-
-        [Obsolete("Use ctor with all dependencies")]
-        public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
-        {
-            _searcherManager = searcherManager;
-            _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
-        }
-
+        private string[]? _searchableFields;
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchContext"/> class.
+        /// </summary>
+        /// <param name="searcherManager">The manager responsible for managing the searcher instances.</param>
+        /// <param name="fieldValueTypeCollection">The collection of field value types used for indexing and searching.</param>
+        /// <param name="isNrt">Indicates whether the search context is using near real-time indexing.</param>
         public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, bool isNrt)
         {
             _searcherManager = searcherManager;
@@ -28,9 +28,10 @@ namespace Examine.Lucene.Search
             _isNrt = isNrt;
         }
 
-        // TODO: Do we want to create a new searcher every time? I think so, but we shouldn't allocate so much
+        /// <inheritdoc/>
         public ISearcherReference GetSearcher()
         {
+            // TODO: Do we want to create a new searcher every time? I think so, but we shouldn't allocate so much
             if (!_isNrt)
             {
                 _searcherManager.MaybeRefresh();
@@ -39,6 +40,7 @@ namespace Examine.Lucene.Search
             return new SearcherReference(_searcherManager);
         }
 
+        /// <inheritdoc/>
         public string[] SearchableFields
         {
             get
@@ -58,7 +60,7 @@ namespace Examine.Lucene.Search
 
                         //exclude the special index fields
                         var filtered = fields
-                            .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
+                            .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix) && !x.Equals(ExamineFieldNames.DefaultFacetsName))
                             .ToArray();
 
                         // Only cache non-empty results so that an initially empty index
@@ -80,6 +82,7 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <inheritdoc/>
         public IIndexFieldValueType GetFieldValueType(string fieldName)
         {
             //Get the value type for the field, or use the default if not defined

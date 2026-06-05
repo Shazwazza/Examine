@@ -22,7 +22,8 @@ namespace Examine.Benchmarks
         public virtual void TearDown() => LoggerFactory!.Dispose();
 
         public TestIndex GetTestIndex(
-            Directory d,
+            Directory luceneDir,
+            Directory luceneTaxonomyDir,
             Analyzer analyzer,
             FieldDefinitionCollection? fieldDefinitions = null,
             IndexDeletionPolicy? indexDeletionPolicy = null,
@@ -31,11 +32,11 @@ namespace Examine.Benchmarks
             double nrtTargetMinStaleSec = 1,
             bool nrtEnabled = true)
             => new TestIndex(
-            LoggerFactory!,
+                LoggerFactory!,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
-                    FieldDefinitions = fieldDefinitions,
-                    DirectoryFactory = new GenericDirectoryFactory(_ => d, true),
+                    FieldDefinitions = fieldDefinitions ?? new FieldDefinitionCollection(),
+                    DirectoryFactory = GenericDirectoryFactory.FromExternallyManaged(_ => luceneDir, _ => luceneTaxonomyDir),
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
@@ -60,6 +61,14 @@ namespace Examine.Benchmarks
         //        writer);
 
         protected virtual ILoggerFactory CreateLoggerFactory()
-            => Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            => Microsoft.Extensions.Logging.LoggerFactory.Create(
+                builder => builder.AddConsole()
+                    .SetMinimumLevel(
+#if DEBUG
+                        LogLevel.Debug
+#else
+                        LogLevel.Information
+#endif
+                    ));
     }
 }

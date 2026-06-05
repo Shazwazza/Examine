@@ -1,17 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bogus" Version="35.5.1" />
+    <PackageReference Include="Bogus" />
+    <Compile Remove="Data\IndexService.Facets.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Data\IndexService.Facets.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Examine.Host\Examine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Examine\" />
   </ItemGroup>
 
 </Project>

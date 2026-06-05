@@ -72,7 +72,7 @@ namespace Examine.Test.Examine.Lucene
             var lazy = new ResettableLazy<object>(() =>
             {
                 calls++;
-                return null;
+                return null!;
             });
 
             Assert.IsFalse(lazy.IsValueCreated);

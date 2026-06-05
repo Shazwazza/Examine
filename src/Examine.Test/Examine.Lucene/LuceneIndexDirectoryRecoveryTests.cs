@@ -57,7 +57,7 @@ namespace Examine.Test.Examine.Lucene
             }
         }
 
-        private class TransientFailingDirectoryFactory : DirectoryFactoryBase
+        private class TransientFailingDirectoryFactory : IDirectoryFactory
         {
             private readonly string _path;
             private int _createCount;
@@ -66,7 +66,7 @@ namespace Examine.Test.Examine.Lucene
 
             public int CreateCount => Volatile.Read(ref _createCount);
 
-            protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+            public Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
             {
                 var count = Interlocked.Increment(ref _createCount);
                 if (count == 1)

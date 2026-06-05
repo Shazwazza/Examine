@@ -5,30 +5,77 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
-    public class GenericDirectoryFactory : DirectoryFactoryBase
+    /// <summary>
+    /// Represents a generic directory factory
+    /// </summary>
+    public class GenericDirectoryFactory : IDirectoryFactory, ITaxonomyDirectoryFactory
     {
         private readonly Func<string, Directory> _factory;
+        private readonly Func<string, Directory?>? _taxonomyDirectoryFactory;
 
-        public GenericDirectoryFactory(Func<string, Directory> factory)
+        /// <summary>
+        /// Creates an instance of <see cref="GenericDirectoryFactory"/>
+        /// </summary>
+        public GenericDirectoryFactory(
+            Func<string, Directory> factory)
+            : this(false, factory, null)
         {
-            _factory = factory;
         }
 
-        internal GenericDirectoryFactory(Func<string, Directory> factory, bool externallyManaged)
+        /// <summary>
+        /// Creates an instance of <see cref="GenericDirectoryFactory"/>
+        /// </summary>
+        public GenericDirectoryFactory(
+            Func<string, Directory> factory,
+            Func<string, Directory?>? taxonomyDirectoryFactory)
+            : this(false, factory, taxonomyDirectoryFactory)
         {
-            _factory = factory;
+        }
+
+        private GenericDirectoryFactory(
+            bool externallyManaged,
+            Func<string, Directory> factory,
+            Func<string, Directory?>? taxonomyDirectoryFactory)
+        {
             ExternallyManaged = externallyManaged;
+            _factory = factory;
+            _taxonomyDirectoryFactory = taxonomyDirectoryFactory;
         }
+
+        /// <summary>
+        /// Creates a <see cref="GenericDirectoryFactory"/> instance with externally managed directories.
+        /// </summary>
+        internal static GenericDirectoryFactory FromExternallyManaged(
+            Func<string, Directory> factory,
+            Func<string, Directory?>? taxonomyDirectoryFactory) =>
+            new(true, factory, taxonomyDirectoryFactory);
 
         /// <summary>
         /// When set to true, indicates that the directory is managed externally and will be disposed of by the caller, not the index.
         /// </summary>
         internal bool ExternallyManaged { get; }
 
-        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        /// <inheritdoc/>
+        public Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var dir = _factory(luceneIndex.Name);
             if (forceUnlock)
+            {
+                IndexWriter.Unlock(dir);
+            }
+            return dir;
+        }
+
+        /// <inheritdoc/>
+        public Directory? CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        {
+            if (_taxonomyDirectoryFactory == null)
+            {
+                return null;
+            }
+            
+            var dir = _taxonomyDirectoryFactory(luceneIndex.Name + "taxonomy");
+            if (dir != null && forceUnlock)
             {
                 IndexWriter.Unlock(dir);
             }

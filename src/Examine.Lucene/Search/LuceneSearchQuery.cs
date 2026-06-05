@@ -5,6 +5,7 @@ using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Facet;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -16,17 +17,31 @@ namespace Examine.Lucene.Search
     public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor
     {
         private readonly ISearchContext _searchContext;
-        private ISet<string> _fieldsToLoad = null;
+        private readonly FacetsConfig? _facetsConfig;
+        private ISet<string>? _fieldsToLoad = null;
+        private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
 
+        /// <inheritdoc/>
+        [Obsolete("To be removed in Examine V5")]
         public LuceneSearchQuery(
             ISearchContext searchContext,
             string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance)
             : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
-        {   
+        {
             _searchContext = searchContext;
         }
 
-        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer, LuceneSearchOptions searchOptions)
+        /// <inheritdoc/>
+        public LuceneSearchQuery(
+            ISearchContext searchContext,
+            string? category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance, FacetsConfig facetsConfig)
+            : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
+        {   
+            _searchContext = searchContext;
+            _facetsConfig = facetsConfig;
+        }
+
+        private static ExamineMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer, LuceneSearchOptions searchOptions)
         {
             var parser = new ExamineMultiFieldQueryParser(searchContext, LuceneInfo.CurrentVersion, analyzer);
 
@@ -77,36 +92,52 @@ namespace Examine.Lucene.Search
             return parser;
         }
 
+        /// <summary>
+        /// Sets the order by of the query
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
         public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
+        /// <summary>
+        /// Sets the order by of the query in a descending manner
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
         public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
+        /// <inheritdoc/>
         public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
 
-        public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
+        /// <inheritdoc/>
+        public override IBooleanOperation ManagedQuery(string query, string[]? fields = null)
             => ManagedQueryInternal(query, fields, Occurrence);
 
+        /// <inheritdoc/>
         public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
+        /// <inheritdoc/>
         protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
 
-        protected override INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null)
+        /// <inheritdoc/>
+        protected override INestedBooleanOperation ManagedQueryNested(string query, string[]? fields = null)
             => ManagedQueryInternal(query, fields, Occurrence);
 
+        /// <inheritdoc/>
         protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
-        internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[] fields, Occur occurance)
+        internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[]? fields, Occur occurance)
         {
             Query.Add(new LateBoundQuery(() =>
             {
                 //if no fields are specified then use all fields
-                fields = fields ?? AllFields;
+                fields ??= AllFields;
 
-                var types = fields.Select(f => _searchContext.GetFieldValueType(f)).Where(t => t != null);
+                var types = fields.Select(f => _searchContext.GetFieldValueType(f)).OfType<IIndexFieldValueType>();
 
                 //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
                 //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
@@ -160,13 +191,12 @@ namespace Examine.Lucene.Search
                             inner.Add(q, Occur.SHOULD);
                         }
                     }
-#if !NETSTANDARD2_0 && !NETSTANDARD2_1
                     else if(typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
                     {
-                        TimeOnly minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
+                        var minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
                         var minValue = min.HasValue ? (min.Value as DateOnly?)?.ToDateTime(minValueTime) : null;
 
-                        TimeOnly maxValueTime = maxInclusive ? TimeOnly.MaxValue : TimeOnly.MinValue;
+                        var maxValueTime = maxInclusive ? TimeOnly.MaxValue : TimeOnly.MinValue;
                         var maxValue = max.HasValue ? (max.Value as DateOnly?)?.ToDateTime(maxValueTime) : null;
 
                         var q = dateOnlyType.GetQuery(minValue, maxValue, minInclusive, maxInclusive);
@@ -176,7 +206,6 @@ namespace Examine.Lucene.Search
                             inner.Add(q, Occur.SHOULD);
                         }
                     }
-#endif
                     else
                     {
                         throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
@@ -192,12 +221,12 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc />
-        public ISearchResults Execute(QueryOptions options = null) => Search(options);
+        public ISearchResults Execute(QueryOptions? options = null) => Search(options);
 
         /// <summary>
         /// Performs a search with a maximum number of results
         /// </summary>
-        private ISearchResults Search(QueryOptions options)
+        private ISearchResults Search(QueryOptions? options)
         {
             // capture local
             var query = Query;
@@ -205,7 +234,7 @@ namespace Examine.Lucene.Search
             if (!string.IsNullOrEmpty(Category))
             {
                 // rebuild the query
-                IList<BooleanClause> existingClauses = query.Clauses;
+                var existingClauses = query.Clauses;
 
                 if (existingClauses.Count == 0)
                 {
@@ -219,7 +248,7 @@ namespace Examine.Lucene.Search
                 query = new BooleanQuery
                 {
                     // prefix the category field query as a must
-                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), true), Occur.MUST }
+                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, ExamineValue.Create(Examineness.Default, Category)), Occur.MUST }
                 };
 
                 // add the ones that were already existing
@@ -229,7 +258,7 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields, _facetsConfig);
 
             var pagesResults = executor.Execute();
 
@@ -244,7 +273,10 @@ namespace Examine.Lucene.Search
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         private LuceneBooleanOperationBase OrderByInternal(bool descending, params SortableField[] fields)
         {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (fields == null)
+            {
+                throw new ArgumentNullException(nameof(fields));
+            }
 
             foreach (var f in fields)
             {
@@ -283,7 +315,9 @@ namespace Examine.Lucene.Search
                 var valType = _searchContext.GetFieldValueType(fieldName);
 
                 if (valType?.SortableFieldName != null)
+                {
                     fieldName = valType.SortableFieldName;
+                }
 
                 SortFields.Add(new SortField(fieldName, defaultSort, descending));
             }
@@ -303,13 +337,86 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        /// <summary>
+        /// Selects all fields
+        /// </summary>
+        /// <returns></returns>
         public IBooleanOperation SelectAllFieldsInternal()
         {
             _fieldsToLoad = null;
             return CreateOp();
         }
 
+        /// <summary>
+        /// Creates a new <see cref="LuceneBooleanOperation"/>
+        /// </summary>
+        /// <returns></returns>
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
+
+        internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField>? facetConfiguration, params string[] values)
+        {
+            values ??= Array.Empty<string>();
+
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+
+            var facet = new FacetFullTextField(field, values, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
+
+            facetConfiguration?.Invoke(new FacetQueryField(facet));
+
+            _facetFields.Add(facet);
+
+            return new LuceneFacetOperation(this);
+        }
+
+        internal IFacetOperations FacetInternal(string field, params DoubleRange[] doubleRanges)
+        {
+            doubleRanges ??= Array.Empty<DoubleRange>();
+
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
+
+            _facetFields.Add(facet);
+
+            return new LuceneFacetOperation(this);
+        }
+
+        internal IFacetOperations FacetInternal(string field, params FloatRange[] floatRanges)
+        {
+            floatRanges ??= Array.Empty<FloatRange>();
+
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var facet = new FacetFloatField(field, floatRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
+
+            _facetFields.Add(facet);
+
+            return new LuceneFacetOperation(this);
+        }
+
+        internal IFacetOperations FacetInternal(string field, params Int64Range[] longRanges)
+        {
+            longRanges ??= Array.Empty<Int64Range>();
+
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var facet = new FacetLongField(field, longRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
+
+            _facetFields.Add(facet);
+
+            return new LuceneFacetOperation(this);
+        }
+
+        private string GetFacetField(string field)
+        {
+            if(_facetsConfig is null)
+            {
+                throw new InvalidOperationException("FacetsConfig not set. User a LuceneSearchQuery constructor with all parameters");
+            }
+
+            if (_facetsConfig.DimConfigs.ContainsKey(field))
+            {
+                return _facetsConfig.DimConfigs[field].IndexFieldName;
+            }
+            return ExamineFieldNames.DefaultFacetsName;
+        }
 
     }
 }

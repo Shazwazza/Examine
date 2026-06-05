@@ -27,7 +27,7 @@ namespace Examine.Lucene
     {
         private readonly Func<T> _valueFactory;
         private readonly object _locker = new object();
-        private T _value;
+        private T? _value;
 
         // A dedicated flag (rather than a null check on _value) is used to track creation so that a
         // factory which legitimately returns null is treated as "created" instead of being re-invoked
@@ -55,14 +55,14 @@ namespace Examine.Lucene
             {
                 if (_isValueCreated)
                 {
-                    return _value;
+                    return _value!;
                 }
 
                 lock (_locker)
                 {
                     if (_isValueCreated)
                     {
-                        return _value;
+                        return _value!;
                     }
 
                     // If this throws, the exception is not cached - a later access will retry.

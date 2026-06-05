@@ -6,53 +6,31 @@ using Examine.Lucene;
 using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
 using Lucene.Net.Analysis;
+using Lucene.Net.Facet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Examine
 {
+    /// <summary>
+    /// Extensions for <see cref="IServiceCollection"/>
+    /// </summary>
     public static class ServicesCollectionExtensions
     {
-        /// <summary>
-        /// Registers a file system based Lucene Examine index
-        /// </summary>
-        public static IServiceCollection AddExamineLuceneIndex(
-            this IServiceCollection serviceCollection,
-            string name,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
-
-        /// <summary>
-        /// Registers a file system based Lucene Examine index
-        /// </summary>
-        public static IServiceCollection AddExamineLuceneIndex<TIndex>(
-            this IServiceCollection serviceCollection,
-            string name,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            where TIndex : LuceneIndex
-            => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
-
         /// <summary>
         /// Registers an Examine index
         /// </summary>
         public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
-            this IServiceCollection serviceCollection,
-            string name,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            where TIndex : LuceneIndex
-            where TDirectoryFactory : class, IDirectoryFactory
+           this IServiceCollection serviceCollection,
+           string name,
+           Action<LuceneDirectoryIndexOptions>? configuration = null)
+           where TIndex : LuceneIndex
+           where TDirectoryFactory : class, IDirectoryFactory
         {
+            var config = new LuceneDirectoryIndexOptions();
+            configuration?.Invoke(config);
+
             // This is the long way to add IOptions but gives us access to the
             // services collection which we need to get the dir factory
             serviceCollection.AddSingleton<IConfigureOptions<LuceneDirectoryIndexOptions>>(
@@ -60,17 +38,17 @@ namespace Examine
                     name,
                     (options) =>
                     {
-                        options.Analyzer = analyzer ?? options.Analyzer;
-                        options.Validator = validator ?? options.Validator;
-                        options.IndexValueTypesFactory = indexValueTypesFactory ?? options.IndexValueTypesFactory;
-                        options.FieldDefinitions = fieldDefinitions ?? options.FieldDefinitions;
-                        options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
+                        options.Analyzer = options.Analyzer ?? config.Analyzer;
+                        options.Validator = options.Validator ?? config.Validator;
+                        options.IndexValueTypesFactory = options.IndexValueTypesFactory ?? config.IndexValueTypesFactory;
+                        options.FieldDefinitions = options.FieldDefinitions ?? config.FieldDefinitions;
+                        options.DirectoryFactory = options.DirectoryFactory ?? services.GetRequiredService<TDirectoryFactory>();
+                        options.FacetsConfig = options.FacetsConfig ?? config.FacetsConfig ?? new FacetsConfig();
                     }));
 
             return serviceCollection.AddSingleton<IIndex>(services =>
             {
-                var options
-                        = services.GetRequiredService<IOptionsMonitor<LuceneDirectoryIndexOptions>>();
+                var options = services.GetRequiredService<IOptionsMonitor<LuceneDirectoryIndexOptions>>();
 
                 var index = ActivatorUtilities.CreateInstance<TIndex>(
                     services,
@@ -81,64 +59,158 @@ namespace Examine
         }
 
         /// <summary>
+        /// Registers a file system based Lucene Examine index
+        /// </summary>
+        public static IServiceCollection AddExamineLuceneIndex(
+            this IServiceCollection serviceCollection,
+            string name,
+            Action<LuceneDirectoryIndexOptions>? configuration = null) => serviceCollection.AddExamineLuceneIndex<LuceneIndex, FileSystemDirectoryFactory>(name, configuration);
+
+        /// <summary>
+        /// Registers a file system based Lucene Examine index
+        /// </summary>
+        public static IServiceCollection AddExamineLuceneIndex<TIndex>(
+            this IServiceCollection serviceCollection,
+            string name,
+            Action<LuceneDirectoryIndexOptions>? configuration = null)
+            where TIndex : LuceneIndex => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, configuration);
+
+        #region Binary compatibility shims for v3 callers
+
+        /// <inheritdoc cref="AddExamineLuceneIndex(IServiceCollection, string, Action{LuceneDirectoryIndexOptions}?)"/>
+        [Obsolete("Use the overload accepting Action<LuceneDirectoryIndexOptions> instead.")]
+        public static IServiceCollection AddExamineLuceneIndex(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection? fieldDefinitions,
+            Analyzer? analyzer,
+            IValueSetValidator? validator,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory)
+            => serviceCollection.AddExamineLuceneIndex(name, options =>
+            {
+                if (fieldDefinitions != null)
+                    options.FieldDefinitions = fieldDefinitions;
+                options.Analyzer = analyzer;
+                options.Validator = validator;
+                options.IndexValueTypesFactory = indexValueTypesFactory;
+            });
+
+        /// <inheritdoc cref="AddExamineLuceneIndex{TIndex}(IServiceCollection, string, Action{LuceneDirectoryIndexOptions}?)"/>
+        [Obsolete("Use the overload accepting Action<LuceneDirectoryIndexOptions> instead.")]
+        public static IServiceCollection AddExamineLuceneIndex<TIndex>(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection? fieldDefinitions,
+            Analyzer? analyzer,
+            IValueSetValidator? validator,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory)
+            where TIndex : LuceneIndex
+            => serviceCollection.AddExamineLuceneIndex<TIndex>(name, options =>
+            {
+                if (fieldDefinitions != null)
+                    options.FieldDefinitions = fieldDefinitions;
+                options.Analyzer = analyzer;
+                options.Validator = validator;
+                options.IndexValueTypesFactory = indexValueTypesFactory;
+            });
+
+        /// <inheritdoc cref="AddExamineLuceneIndex{TIndex, TDirectoryFactory}(IServiceCollection, string, Action{LuceneDirectoryIndexOptions}?)"/>
+        [Obsolete("Use the overload accepting Action<LuceneDirectoryIndexOptions> instead.")]
+        public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection? fieldDefinitions,
+            Analyzer? analyzer,
+            IValueSetValidator? validator,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory)
+            where TIndex : LuceneIndex
+            where TDirectoryFactory : class, IDirectoryFactory
+            => serviceCollection.AddExamineLuceneIndex<TIndex, TDirectoryFactory>(name, options =>
+            {
+                if (fieldDefinitions != null)
+                    options.FieldDefinitions = fieldDefinitions;
+                options.Analyzer = analyzer;
+                options.Validator = validator;
+                options.IndexValueTypesFactory = indexValueTypesFactory;
+            });
+
+        /// <summary>
         /// Registers a standalone Examine searcher
         /// </summary>
-        /// <typeparam name="TSearcher"></typeparam>
-        /// <param name="serviceCollection"></param>
-        /// <param name="name"></param>
-        /// <param name="parameterFactory">
-        /// A factory to fullfill the custom searcher construction parameters excluding the name that are not already registerd in DI.
-        /// </param>
-        /// <returns></returns>
+        [Obsolete("Use AddExamineLuceneMultiSearcher or register ISearcher directly.")]
         public static IServiceCollection AddExamineSearcher<TSearcher>(
             this IServiceCollection serviceCollection,
             string name,
             Func<IServiceProvider, IList<object>> parameterFactory)
             where TSearcher : ISearcher
-           => serviceCollection.AddTransient<ISearcher>(services =>
-           {
-               var parameters = parameterFactory(services);
-               parameters.Insert(0, name);
+            => serviceCollection.AddTransient<ISearcher>(services =>
+            {
+                var parameters = new List<object>(parameterFactory(services));
+                parameters.Insert(0, name);
+                return ActivatorUtilities.CreateInstance<TSearcher>(services, parameters.ToArray());
+            });
 
-               var searcher = ActivatorUtilities.CreateInstance<TSearcher>(
-                   services,
-                   parameters.ToArray());
+        /// <inheritdoc cref="AddExamineLuceneMultiSearcher(IServiceCollection, string, string[], Action{LuceneMultiSearcherOptions}?)"/>
+        [Obsolete("Use the overload accepting Action<LuceneMultiSearcherOptions> instead.")]
+        public static IServiceCollection AddExamineLuceneMultiSearcher(
+            this IServiceCollection serviceCollection,
+            string name,
+            string[] indexNames,
+            Analyzer? analyzer)
+            => serviceCollection.AddExamineLuceneMultiSearcher(name, indexNames, options =>
+            {
+                options.Analyzer = analyzer;
+            });
 
-               return searcher;
-           });
+        #endregion
 
         /// <summary>
-        /// Registers a lucene multi index searcher
+        /// Registers a Lucene multi index searcher
         /// </summary>
         public static IServiceCollection AddExamineLuceneMultiSearcher(
             this IServiceCollection serviceCollection,
             string name,
             string[] indexNames,
-            Analyzer analyzer = null)
-            => serviceCollection.AddExamineSearcher<MultiIndexSearcher>(name, s =>
+            Action<LuceneMultiSearcherOptions>? configuration = null)
+        {
+            var config = new LuceneMultiSearcherOptions
             {
-                IEnumerable<IIndex> matchedIndexes = s.GetServices<IIndex>()
-                     .Where(x => indexNames.Contains(x.Name));
+                IndexNames = indexNames
+            };
 
-                var parameters = new List<object>
-                {
-                    matchedIndexes
-                };
+            configuration?.Invoke(config);
 
-                if (analyzer != null)
-                {
-                    parameters.Add(analyzer);
-                }
+            // This is the long way to add IOptions but gives us access to the
+            // services collection which we need to get the dir factory
+            serviceCollection.AddSingleton<IConfigureOptions<LuceneMultiSearcherOptions>>(
+                services => new ConfigureNamedOptions<LuceneMultiSearcherOptions>(
+                    name,
+                    (options) =>
+                    {
+                        options.Analyzer = options.Analyzer ?? config.Analyzer;
+                        options.FacetConfiguration = options.FacetConfiguration ?? config.FacetConfiguration;
+                    }));
 
-                return parameters;
+            // Transient I think because of how the search context is created, it can't hang on to it.
+            return serviceCollection.AddTransient<ISearcher>(s =>
+            {
+                var namedOptions = s.GetRequiredService<IOptionsMonitor<LuceneMultiSearcherOptions>>().Get(name);
+                var matchedIndexes = s.GetServices<IIndex>().Where(x => namedOptions.IndexNames.Contains(x.Name));
+                var searcher = ActivatorUtilities.CreateInstance<MultiIndexSearcher>(
+                    s,
+                    matchedIndexes);
+
+                return searcher;
             });
+        }
 
         /// <summary>
         /// Adds the Examine core services
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="appRootDirectory"></param>
         /// <returns></returns>
-        public static IServiceCollection AddExamine(this IServiceCollection services, DirectoryInfo appRootDirectory = null)
+        public static IServiceCollection AddExamine(this IServiceCollection services, DirectoryInfo? appRootDirectory = null)
         {
             services.TryAddSingleton<IApplicationRoot, CurrentEnvironmentApplicationRoot>();
             services.TryAddSingleton<IExamineManager, ExamineManager>();
