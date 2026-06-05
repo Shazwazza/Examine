@@ -305,6 +305,14 @@ namespace Examine.Lucene
                         // not retried indefinitely and surface the condition via IsReplicationHealthy so operators
                         // can detect that replication has stopped working.
                         _sourceIndex.IndexCommitted -= SourceIndex_IndexCommitted;
+
+                        // Reset _started under the lock so a future call to StartIndexReplicationOnSchedule can
+                        // re-enter the startup path and restart replication once the underlying issue is resolved.
+                        lock (_locker)
+                        {
+                            _started = false;
+                        }
+
                         _logger.LogCritical(
                             ex,
                             "Replication for {IndexName} has failed {FailureCount} consecutive times and has been stopped. The destination index will no longer be updated until replication is restarted",
