@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using Examine.Lucene;
 using Lucene.Net.Analysis.Standard;
@@ -111,19 +112,30 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var localTaxonomyDir = new RandomIdRAMDirectory())
             using (var mainIndex = GetTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
             using (var replicator = new ExamineReplicator(_replicatorLogger, _clientLogger, mainIndex, mainDir, localDir, null, tempStorage))
-            using (var localIndex = GetTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 mainIndex.CreateIndex();
 
-                // Open and keep destination writer active so the replicator cannot start.
-                localIndex.IndexItem(new ValueSet(9999.ToString(), "content",
-                    new Dictionary<string, IEnumerable<object>>
-                    {
-                        {"item1", new List<object>(new[] {"value1"})},
-                        {"item2", new List<object>(new[] {"value2"})}
-                    }));
+                using (var localIndex = GetTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                {
+                    // Open and keep destination writer active so the replicator cannot start.
+                    localIndex.IndexItem(new ValueSet(9999.ToString(), "content",
+                        new Dictionary<string, IEnumerable<object>>
+                        {
+                            {"item1", new List<object>(new[] {"value1"})},
+                            {"item2", new List<object>(new[] {"value2"})}
+                        }));
 
+                    Assert.IsTrue(IndexWriter.IsLocked(localDir));
+                    Assert.DoesNotThrow(() => replicator.StartIndexReplicationOnSchedule(1000));
+                }
+
+                var startedField = typeof(ExamineReplicator).GetField("_started", BindingFlags.NonPublic | BindingFlags.Instance);
+                Assert.That(startedField, Is.Not.Null);
+                Assert.IsFalse((bool?)startedField!.GetValue(replicator) ?? true);
+
+                // Lock has been released, so retrying should now start replication.
                 Assert.DoesNotThrow(() => replicator.StartIndexReplicationOnSchedule(1000));
+                Assert.IsTrue((bool?)startedField!.GetValue(replicator) ?? false);
             }
         }
 
