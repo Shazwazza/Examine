@@ -11,7 +11,6 @@ Examine.Lucene.ExamineReplicator.ConsecutiveReplicationFailures.get -> int
 Examine.Lucene.ExamineReplicator.ExamineReplicator(Microsoft.Extensions.Logging.ILogger<Examine.Lucene.ExamineReplicator!>! replicatorLogger, Microsoft.Extensions.Logging.ILogger<Examine.Lucene.LoggingReplicationClient!>! clientLogger, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! sourceDirectory, Lucene.Net.Store.Directory! destinationDirectory, Lucene.Net.Store.Directory? destinationTaxonomyDirectory, System.IO.DirectoryInfo! tempStorage) -> void
 Examine.Lucene.ExamineReplicator.IsReplicationHealthy.get -> bool
 Examine.Lucene.ExamineReplicator.MaxConsecutiveReplicationFailures.get -> int
-Examine.Lucene.ExamineReplicator.MaxConsecutiveReplicationFailures.set -> void
 Examine.Lucene.FacetExtensions
 Examine.Lucene.Indexing.DateTimeType.DateTimeType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, Lucene.Net.Documents.DateResolution resolution, bool store) -> void
 Examine.Lucene.Indexing.DateTimeType.IsTaxonomyFaceted.get -> bool

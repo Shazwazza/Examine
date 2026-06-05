@@ -128,7 +128,7 @@ namespace Examine.Lucene
         /// <remarks>
         /// Defaults to <c>5</c>. Set to a value of <c>0</c> or less to never stop replication automatically.
         /// </remarks>
-        public int MaxConsecutiveReplicationFailures { get; set; } = DefaultMaxConsecutiveReplicationFailures;
+        public int MaxConsecutiveReplicationFailures { get; internal set; } = DefaultMaxConsecutiveReplicationFailures;
 
         /// <summary>
         /// The number of consecutive times scheduled replication has failed to publish a revision.
