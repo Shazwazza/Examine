@@ -115,6 +115,26 @@ namespace Examine.Lucene.Directories
                 var mainTaxonomyIndexExists = taxonomyEnabled && mainTaxonomyDir != null && DirectoryReader.IndexExists(mainTaxonomyDir);
                 var localTaxonomyIndexExists = localLuceneTaxonomyDir != null && DirectoryReader.IndexExists(localLuceneTaxonomyDir);
 
+                // Reconcile a main index/taxonomy existence mismatch before any replication is configured.
+                // If the main search index exists but the main taxonomy index does not (e.g. an index built by
+                // an older version, or where the taxonomy folder was lost) and taxonomy is now enabled, initialize
+                // an empty main taxonomy index so both exist. Otherwise IndexAndTaxonomyReplicationHandler throws
+                // "search and taxonomy indexes must either both exist or not" when scheduled replication starts;
+                // that exception is swallowed and replication back to main is silently disabled (issue #452).
+                if (taxonomyEnabled && mainTaxonomyDir != null && mainIndexExists && !mainTaxonomyIndexExists)
+                {
+                    _logger.LogWarning(
+                        "{IndexName} main search index exists but its taxonomy index is missing; initializing an empty main taxonomy index so replication can proceed.",
+                        luceneIndex.Name);
+
+                    using (var taxonomyWriter = GetTaxonomyWriter(mainTaxonomyDir, OpenMode.CREATE, out _))
+                    {
+                        taxonomyWriter.Commit();
+                    }
+
+                    mainTaxonomyIndexExists = DirectoryReader.IndexExists(mainTaxonomyDir);
+                }
+
                 // For main indexes to be healthy: main index must exist, and if taxonomy is enabled, taxonomy index must also exist
                 var hasMainIndexes = mainIndexExists && (!taxonomyEnabled || mainTaxonomyIndexExists);
                 var hasLocalIndexes = localIndexExists && (!taxonomyEnabled || localTaxonomyIndexExists);

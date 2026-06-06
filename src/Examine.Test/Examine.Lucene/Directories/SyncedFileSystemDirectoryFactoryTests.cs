@@ -364,21 +364,18 @@ namespace Examine.Test.Examine.Lucene.Directories
         }
 
         /// <summary>
-        /// Reproduces the unresolved scenario reported in https://github.com/Shazwazza/Examine/issues/452.
+        /// Regression coverage for https://github.com/Shazwazza/Examine/issues/452.
         /// When the main storage already contains a search index but NO taxonomy index (e.g. an index built
         /// by an older version, or where the taxonomy folder was lost) and taxonomy is then enabled, the
-        /// scheduled replicator's <c>IndexAndTaxonomyReplicationHandler</c> throws
-        /// "search and taxonomy indexes must either both exist or not: index=True taxo=False" when it starts.
-        /// The exception is swallowed in <c>ExamineReplicator.StartIndexReplicationOnSchedule</c>, so the local
-        /// index keeps working but newly indexed items are never replicated back to main storage.
+        /// factory must reconcile the mismatch by initializing an empty main taxonomy index. Previously the
+        /// scheduled replicator's <c>IndexAndTaxonomyReplicationHandler</c> threw
+        /// "search and taxonomy indexes must either both exist or not: index=True taxo=False" when it started,
+        /// the exception was swallowed in <c>ExamineReplicator.StartIndexReplicationOnSchedule</c>, and the
+        /// local index kept working but newly indexed items were never replicated back to main storage.
         ///
-        /// The assertions below describe the CORRECT expected behaviour (newly indexed items must reach the
-        /// main index). This test currently fails against that expectation, so it is marked [Ignore] to keep
-        /// CI green while documenting the bug and providing a ready reproduction harness. Remove [Ignore] once
-        /// the factory reconciles a main index/taxonomy existence mismatch before replication starts.
+        /// The assertions below verify the correct behaviour: newly indexed items reach the main index.
         /// </summary>
         [Test]
-        [Ignore("Reproduces unresolved bug https://github.com/Shazwazza/Examine/issues/452: a main index/taxonomy existence mismatch silently disables scheduled replication. Remove once the root cause is fixed.")]
         public void Given_MainIndexExists_ButNoMainTaxonomy_When_TaxonomyEnabled_Then_ScheduledReplicationStillSyncsToMain()
         {
             WithTempPaths((mainPath, tempPath) =>
