@@ -287,6 +287,51 @@ namespace Examine.Test.Examine.Lucene.Directories
         }
 
         /// <summary>
+        /// The taxonomy index must be written to LOCAL (temp) storage and replicated to main storage,
+        /// exactly like the main search index. If it were written directly to main storage it would defeat
+        /// the purpose of the synced directory. This asserts the taxonomy index is created in the local temp
+        /// folder while indexing.
+        /// Regression coverage for https://github.com/Shazwazza/Examine/issues/452.
+        /// </summary>
+        [Test]
+        public void Given_LiveIndexing_WithTaxonomy_When_Indexing_Then_TaxonomyWrittenToLocalStorage()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                var syncedFactory = CreateSyncedFactory(tempPath, mainPath, useTaxonomy: true);
+                using (var index = CreateLuceneIndex(syncedFactory, useTaxonomy: true))
+                {
+                    using (index.WithThreadingMode(IndexThreadingMode.Synchronous))
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            index.IndexItem(CreateValueSet(i.ToString(), "value" + i));
+                        }
+                    }
+
+                    // The taxonomy index must be written to the LOCAL temp folder (not directly to main).
+                    var localTaxonomyPath = Path.Combine(tempPath, TestIndex.TestIndexName, "taxonomy");
+                    Assert.IsTrue(System.IO.Directory.Exists(localTaxonomyPath), "Local taxonomy directory should exist when taxonomy is enabled.");
+                    using var localTaxonomyDir = FSDirectory.Open(localTaxonomyPath);
+                    Assert.IsTrue(DirectoryReader.IndexExists(localTaxonomyDir), "Local taxonomy index should be written to local/temp storage, not directly to main.");
+
+                    // It must then also be replicated to main storage on the scheduled interval.
+                    var mainTaxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
+                    var replicated = WaitForCondition(() =>
+                    {
+                        if (!System.IO.Directory.Exists(mainTaxonomyPath))
+                        {
+                            return false;
+                        }
+                        using var dir = FSDirectory.Open(mainTaxonomyPath);
+                        return DirectoryReader.IndexExists(dir);
+                    });
+                    Assert.IsTrue(replicated, "The taxonomy index was not replicated to main storage within the timeout.");
+                }
+            });
+        }
+
+        /// <summary>
         /// Exercises the live scheduled replication operation (local -> main) of the factory with the
         /// taxonomy index disabled. Indexing through the synced directory must replicate the main search
         /// index and must not create a taxonomy index.

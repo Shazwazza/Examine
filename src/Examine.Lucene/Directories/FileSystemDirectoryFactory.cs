@@ -62,7 +62,7 @@ namespace Examine.Lucene.Directories
         }
 
         /// <inheritdoc/>
-        public Directory? CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        public virtual Directory? CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
             
