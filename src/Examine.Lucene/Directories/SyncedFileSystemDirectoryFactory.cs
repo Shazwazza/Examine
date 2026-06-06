@@ -236,8 +236,10 @@ namespace Examine.Lucene.Directories
                 // The local taxonomy directory opened above is only used here to bootstrap/health-check and
                 // sync the local taxonomy folder. The directory instance actually used by the index (and the
                 // replication source) is created separately via CreateTaxonomyDirectory, so dispose this one
-                // to avoid leaking a handle. The main taxonomy directory is owned by SyncedFileSystemDirectory.
+                // to avoid leaking a handle. The main taxonomy directory's ownership is transferred to
+                // SyncedFileSystemDirectory, which disposes it.
                 localLuceneTaxonomyDir?.Dispose();
+                localLuceneTaxonomyDir = null;
 
                 return mainResult;
             }

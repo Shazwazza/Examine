@@ -31,11 +31,14 @@ namespace Examine.Lucene.Directories
                 tempDir);
             LocalLuceneDirectory = localLuceneDirectory;
             MainLuceneDirectory = mainLuceneDirectory;
+            MainTaxonomyLuceneDirectory = mainTaxonomyLuceneDirectory;
         }
 
         internal Directory LocalLuceneDirectory { get; }
 
         internal Directory MainLuceneDirectory { get; }
+
+        internal Directory? MainTaxonomyLuceneDirectory { get; }
 
         public override Lock MakeLock(string name)
         {
@@ -49,6 +52,7 @@ namespace Examine.Lucene.Directories
         {
             _replicator.Dispose();
             MainLuceneDirectory.Dispose();
+            MainTaxonomyLuceneDirectory?.Dispose();
             base.Dispose(disposing);
         }
     }
