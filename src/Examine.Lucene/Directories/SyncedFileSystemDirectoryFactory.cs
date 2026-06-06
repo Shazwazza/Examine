@@ -115,6 +115,26 @@ namespace Examine.Lucene.Directories
                 var mainTaxonomyIndexExists = taxonomyEnabled && mainTaxonomyDir != null && DirectoryReader.IndexExists(mainTaxonomyDir);
                 var localTaxonomyIndexExists = localLuceneTaxonomyDir != null && DirectoryReader.IndexExists(localLuceneTaxonomyDir);
 
+                // Reconcile a main index/taxonomy existence mismatch before any replication is configured.
+                // If the main search index exists but the main taxonomy index does not (e.g. an index built by
+                // an older version, or where the taxonomy folder was lost) and taxonomy is now enabled, initialize
+                // an empty main taxonomy index so both exist. Otherwise IndexAndTaxonomyReplicationHandler throws
+                // "search and taxonomy indexes must either both exist or not" when scheduled replication starts;
+                // that exception is swallowed and replication back to main is silently disabled (issue #452).
+                if (taxonomyEnabled && mainTaxonomyDir != null && mainIndexExists && !mainTaxonomyIndexExists)
+                {
+                    _logger.LogWarning(
+                        "{IndexName} main search index exists but its taxonomy index is missing; initializing an empty main taxonomy index so replication can proceed.",
+                        luceneIndex.Name);
+
+                    using (var taxonomyWriter = GetTaxonomyWriter(mainTaxonomyDir, OpenMode.CREATE, out _))
+                    {
+                        taxonomyWriter.Commit();
+                    }
+
+                    mainTaxonomyIndexExists = DirectoryReader.IndexExists(mainTaxonomyDir);
+                }
+
                 // For main indexes to be healthy: main index must exist, and if taxonomy is enabled, taxonomy index must also exist
                 var hasMainIndexes = mainIndexExists && (!taxonomyEnabled || mainTaxonomyIndexExists);
                 var hasLocalIndexes = localIndexExists && (!taxonomyEnabled || localTaxonomyIndexExists);
@@ -233,6 +253,14 @@ namespace Examine.Lucene.Directories
 
                 directory = new SyncedFileSystemDirectory(_replicatorLogger, _clientLogger, activeLocalLuceneDir, mainLuceneDir, mainTaxonomyDir, luceneIndex, tempDir);
 
+                // The local taxonomy directory opened above is only used here to bootstrap/health-check and
+                // sync the local taxonomy folder. The directory instance actually used by the index (and the
+                // replication source) is created separately via CreateTaxonomyDirectory, so dispose this one
+                // to avoid leaking a handle. The main taxonomy directory's ownership is transferred to
+                // SyncedFileSystemDirectory, which disposes it.
+                localLuceneTaxonomyDir?.Dispose();
+                localLuceneTaxonomyDir = null;
+
                 return mainResult;
             }
             catch
@@ -269,6 +297,44 @@ namespace Examine.Lucene.Directories
         {
             _ = TryCreateDirectory(luceneIndex, forceUnlock, out var directory);
             return directory;
+        }
+
+        /// <summary>
+        /// Creates the taxonomy directory for the index.
+        /// </summary>
+        /// <remarks>
+        /// Unlike the base <see cref="FileSystemDirectoryFactory"/> (which writes directly to the configured
+        /// base/main storage), the synced factory returns a directory backed by the <b>local</b> storage so the
+        /// taxonomy index is written locally and then replicated to main storage on schedule, just like the main
+        /// search index. Writing the taxonomy directly to main storage would defeat the purpose of the synced
+        /// directory. The main taxonomy directory (the replication destination) is created separately via
+        /// <c>base.CreateTaxonomyDirectory</c> inside <see cref="TryCreateDirectory"/>.
+        /// </remarks>
+        public override Directory? CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        {
+            var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
+
+            // If taxonomy is not enabled, return null
+            if (!options.UseTaxonomyIndex)
+            {
+                return null;
+            }
+
+            var localTaxonomyPath = Path.Combine(_localDir.FullName, luceneIndex.Name, "taxonomy");
+            var localLuceneTaxonomyIndexFolder = new DirectoryInfo(localTaxonomyPath);
+
+            var dir = FSDirectory.Open(localLuceneTaxonomyIndexFolder, LockFactory.GetLockFactory(localLuceneTaxonomyIndexFolder));
+            if (forceUnlock)
+            {
+                IndexWriter.Unlock(dir);
+            }
+
+            if (options.NrtEnabled)
+            {
+                return new NRTCachingDirectory(dir, options.NrtCacheMaxMergeSizeMB, options.NrtCacheMaxCachedMB);
+            }
+
+            return dir;
         }
 
         private CreateResult TryGetIndexWriters(

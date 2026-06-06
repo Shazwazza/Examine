@@ -250,9 +250,214 @@ namespace Examine.Test.Examine.Lucene.Directories
             });
         }
 
+        /// <summary>
+        /// Exercises the live scheduled replication operation (local -> main) of the factory with the
+        /// taxonomy index enabled. Indexing through the synced directory must start the background
+        /// replicator (via <see cref="SyncedFileSystemDirectory.MakeLock"/>) and replicate both the
+        /// main search index and the main taxonomy index without error.
+        /// Regression coverage for https://github.com/Shazwazza/Examine/issues/452.
+        /// </summary>
+        [Test]
+        public void Given_LiveIndexing_WithTaxonomy_When_ScheduledReplication_Then_IndexAndTaxonomyReplicatedToMain()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                var syncedFactory = CreateSyncedFactory(tempPath, mainPath, useTaxonomy: true);
+                using (var index = CreateLuceneIndex(syncedFactory, useTaxonomy: true))
+                {
+                    using (index.WithThreadingMode(IndexThreadingMode.Synchronous))
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            index.IndexItem(CreateValueSet(i.ToString(), "value" + i));
+                        }
+                    }
+
+                    // The scheduled replicator runs on a 1s interval, poll until the main index is populated.
+                    var mainIndexPath = Path.Combine(mainPath, TestIndex.TestIndexName);
+                    var replicated = WaitForCondition(() => MainIndexDocCount(mainIndexPath) == 10);
+                    Assert.IsTrue(replicated, "The main search index was not replicated within the timeout.");
+                }
+
+                var mainTaxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
+                Assert.IsTrue(System.IO.Directory.Exists(mainTaxonomyPath), "Main taxonomy directory should exist when taxonomy is enabled.");
+                using var mainTaxonomyDir = FSDirectory.Open(mainTaxonomyPath);
+                Assert.IsTrue(DirectoryReader.IndexExists(mainTaxonomyDir), "Main taxonomy index should exist when taxonomy is enabled.");
+            });
+        }
+
+        /// <summary>
+        /// The taxonomy index must be written to LOCAL (temp) storage and replicated to main storage,
+        /// exactly like the main search index. If it were written directly to main storage it would defeat
+        /// the purpose of the synced directory. This asserts the taxonomy index is created in the local temp
+        /// folder while indexing.
+        /// Regression coverage for https://github.com/Shazwazza/Examine/issues/452.
+        /// </summary>
+        [Test]
+        public void Given_LiveIndexing_WithTaxonomy_When_Indexing_Then_TaxonomyWrittenToLocalStorage()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                var syncedFactory = CreateSyncedFactory(tempPath, mainPath, useTaxonomy: true);
+                using (var index = CreateLuceneIndex(syncedFactory, useTaxonomy: true))
+                {
+                    using (index.WithThreadingMode(IndexThreadingMode.Synchronous))
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            index.IndexItem(CreateValueSet(i.ToString(), "value" + i));
+                        }
+                    }
+
+                    // The taxonomy index must be written to the LOCAL temp folder (not directly to main).
+                    var localTaxonomyPath = Path.Combine(tempPath, TestIndex.TestIndexName, "taxonomy");
+                    Assert.IsTrue(System.IO.Directory.Exists(localTaxonomyPath), "Local taxonomy directory should exist when taxonomy is enabled.");
+                    using var localTaxonomyDir = FSDirectory.Open(localTaxonomyPath);
+                    Assert.IsTrue(DirectoryReader.IndexExists(localTaxonomyDir), "Local taxonomy index should be written to local/temp storage, not directly to main.");
+
+                    // It must then also be replicated to main storage on the scheduled interval.
+                    var mainTaxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
+                    var replicated = WaitForCondition(() =>
+                    {
+                        if (!System.IO.Directory.Exists(mainTaxonomyPath))
+                        {
+                            return false;
+                        }
+                        using var dir = FSDirectory.Open(mainTaxonomyPath);
+                        return DirectoryReader.IndexExists(dir);
+                    });
+                    Assert.IsTrue(replicated, "The taxonomy index was not replicated to main storage within the timeout.");
+                }
+            });
+        }
+
+        /// <summary>
+        /// Exercises the live scheduled replication operation (local -> main) of the factory with the
+        /// taxonomy index disabled. Indexing through the synced directory must replicate the main search
+        /// index and must not create a taxonomy index.
+        /// Regression coverage for https://github.com/Shazwazza/Examine/issues/452.
+        /// </summary>
+        [Test]
+        public void Given_LiveIndexing_WithoutTaxonomy_When_ScheduledReplication_Then_IndexReplicatedToMainAndNoTaxonomy()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                var syncedFactory = CreateSyncedFactory(tempPath, mainPath, useTaxonomy: false);
+                using (var index = CreateLuceneIndex(syncedFactory, useTaxonomy: false))
+                {
+                    using (index.WithThreadingMode(IndexThreadingMode.Synchronous))
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            index.IndexItem(CreateValueSet(i.ToString(), "value" + i));
+                        }
+                    }
+
+                    var mainIndexPath = Path.Combine(mainPath, TestIndex.TestIndexName);
+                    var replicated = WaitForCondition(() => MainIndexDocCount(mainIndexPath) == 10);
+                    Assert.IsTrue(replicated, "The main search index was not replicated within the timeout.");
+                }
+
+                var mainTaxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
+                Assert.IsFalse(System.IO.Directory.Exists(mainTaxonomyPath), "Taxonomy directory should not exist when UseTaxonomyIndex is false.");
+            });
+        }
+
+        /// <summary>
+        /// Regression coverage for https://github.com/Shazwazza/Examine/issues/452.
+        /// When the main storage already contains a search index but NO taxonomy index (e.g. an index built
+        /// by an older version, or where the taxonomy folder was lost) and taxonomy is then enabled, the
+        /// factory must reconcile the mismatch by initializing an empty main taxonomy index. Previously the
+        /// scheduled replicator's <c>IndexAndTaxonomyReplicationHandler</c> threw
+        /// "search and taxonomy indexes must either both exist or not: index=True taxo=False" when it started,
+        /// the exception was swallowed in <c>ExamineReplicator.StartIndexReplicationOnSchedule</c>, and the
+        /// local index kept working but newly indexed items were never replicated back to main storage.
+        ///
+        /// The assertions below verify the correct behaviour: newly indexed items reach the main index.
+        /// </summary>
+        [Test]
+        public void Given_MainIndexExists_ButNoMainTaxonomy_When_TaxonomyEnabled_Then_ScheduledReplicationStillSyncsToMain()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                // Main storage has a search index but no taxonomy index.
+                CreateIndexWithoutTaxonomy(mainPath, corruptIndex: false, removeSegments: false);
+                var preExistingCount = ItemCount - 2; // PopulateIndex deletes ids "1" and "2"
+
+                // Boot the synced factory with taxonomy enabled (the upgraded configuration).
+                var syncedFactory = CreateSyncedFactory(tempPath, mainPath, useTaxonomy: true);
+                using var index = CreateLuceneIndex(syncedFactory, useTaxonomy: true);
+
+                const int newItems = 10;
+                using (index.WithThreadingMode(IndexThreadingMode.Synchronous))
+                {
+                    for (var i = 0; i < newItems; i++)
+                    {
+                        index.IndexItem(CreateValueSet("new" + i, "value" + i));
+                    }
+                }
+
+                // The local index must be searchable (the index keeps working, as the customer observed).
+                var localResults = index.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(preExistingCount + newItems, localResults.TotalItemCount, "Local index should contain all items.");
+
+                // The newly indexed items must be replicated back to the main index.
+                var mainIndexPath = Path.Combine(mainPath, TestIndex.TestIndexName);
+                var replicated = WaitForCondition(() => MainIndexDocCount(mainIndexPath) == preExistingCount + newItems);
+                Assert.IsTrue(replicated, "Newly indexed items were not replicated to the main index (scheduled replication is broken by the index/taxonomy mismatch).");
+            });
+        }
+
         #endregion
 
         #region Private Helper Methods
+
+        /// <summary>
+        /// Polls <paramref name="condition"/> until it returns true or the timeout elapses. Exceptions thrown
+        /// by the condition (for example while the index is mid-write) are treated as "not yet satisfied".
+        /// </summary>
+        private static bool WaitForCondition(Func<bool> condition, int timeoutMs = 20000, int pollMs = 250)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            while (stopwatch.ElapsedMilliseconds < timeoutMs)
+            {
+                try
+                {
+                    if (condition())
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                    // The index may be transiently locked/mid-write, retry until the timeout.
+                }
+
+                Thread.Sleep(pollMs);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Opens the main index directory read-only and returns the number of documents, or -1 if no index exists yet.
+        /// </summary>
+        private static int MainIndexDocCount(string mainIndexPath)
+        {
+            if (!System.IO.Directory.Exists(mainIndexPath))
+            {
+                return -1;
+            }
+
+            using var dir = FSDirectory.Open(mainIndexPath);
+            if (!DirectoryReader.IndexExists(dir))
+            {
+                return -1;
+            }
+
+            using var reader = DirectoryReader.Open(dir);
+            return reader.NumDocs;
+        }
 
         /// <summary>
         /// Creates a temporary test paths structure and executes the test action with automatic cleanup.
