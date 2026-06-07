@@ -1012,22 +1012,8 @@ namespace Examine.Lucene.Providers
 
             // Unfortunately if the appdomain is taken down this will remain locked, so we can 
             // ensure that it's unlocked here in that case.
-            try
+            if (!TryEnsureDirectoryUnlocked(dir))
             {
-                if (IsLocked(dir))
-                {
-                    if (_logger.IsEnabled(LogLevel.Information))
-                    {
-                        _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
-                    }
-
-                    //unlock it!
-                    Unlock(dir);
-                }
-            }
-            catch (Exception ex)
-            {
-                OnIndexingError(new IndexingErrorEventArgs(this, "The index was locked and could not be unlocked", null, ex));
                 return null;
             }
 
@@ -1036,6 +1022,60 @@ namespace Examine.Lucene.Providers
             var trackingIndexWriter = new TrackingIndexWriter(writer);
 
             return trackingIndexWriter;
+        }
+
+        /// <summary>
+        /// Ensures a directory is not left in a locked state before a writer is opened on it, retrying a
+        /// number of times if the lock check or unlock transiently fails.
+        /// </summary>
+        /// <remarks>
+        /// If the AppDomain was previously taken down (or, on Windows/Azure, during the brief hand-off when a
+        /// previous writer on the same local folder is being released) the write lock can momentarily linger.
+        /// Previously a single transient <see cref="IsLocked"/>/<see cref="Unlock"/> failure caused the writer
+        /// creation to give up and return <c>null</c>, which for the taxonomy writer permanently failed the very
+        /// first scheduled replication (the revision was never published, so changes were never synced to main -
+        /// see issue #452). Retrying with a short backoff lets the transient lock clear instead, mirroring the
+        /// resilience already used elsewhere for transiently locked index files.
+        /// </remarks>
+        /// <param name="dir">The directory to ensure is unlocked.</param>
+        /// <returns><c>true</c> if the directory is known to be unlocked; otherwise <c>false</c>.</returns>
+        private bool TryEnsureDirectoryUnlocked(Directory dir)
+        {
+            const int maxAttempts = 5;
+
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    if (IsLocked(dir))
+                    {
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                        {
+                            _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
+                        }
+
+                        //unlock it!
+                        Unlock(dir);
+                    }
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    if (attempt >= maxAttempts)
+                    {
+                        OnIndexingError(new IndexingErrorEventArgs(this, "The index was locked and could not be unlocked", null, ex));
+                        return false;
+                    }
+
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug(ex, "Could not unlock index {IndexName} (attempt {Attempt} of {MaxAttempts}), retrying...", Name, attempt, maxAttempts);
+                    }
+
+                    Thread.Sleep(TimeSpan.FromMilliseconds(100 * attempt));
+                }
+            }
         }
 
         /// <summary>
@@ -1096,22 +1136,8 @@ namespace Examine.Lucene.Providers
 
             // Unfortunately if the AppDomain is taken down this will remain locked, so we can
             // ensure that it's unlocked here in that case.
-            try
+            if (!TryEnsureDirectoryUnlocked(dir))
             {
-                if (IsLocked(dir))
-                {
-                    if (_logger.IsEnabled(LogLevel.Debug))
-                    {
-                        _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
-                    }
-
-                    //unlock it!
-                    Unlock(dir);
-                }
-            }
-            catch (Exception ex)
-            {
-                OnIndexingError(new IndexingErrorEventArgs(this, "The index was locked and could not be unlocked", null, ex));
                 return null;
             }
 
