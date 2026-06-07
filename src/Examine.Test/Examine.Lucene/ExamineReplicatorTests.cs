@@ -6,6 +6,8 @@ using Examine.Lucene;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
 using Lucene.Net.Replicator;
+using Lucene.Net.Store;
+using StoreLock = Lucene.Net.Store.Lock;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
@@ -340,6 +342,109 @@ namespace Examine.Test.Examine.Lucene.Sync
             {
                 mainIndex.CreateIndex();
                 Assert.DoesNotThrow(() => replicator.ReplicateIndex());
+            }
+        }
+
+        /// <summary>
+        /// Regression test for https://github.com/Shazwazza/Examine/issues/452.
+        /// When the taxonomy directory's write lock is transiently unavailable while the taxonomy writer
+        /// is first initialized (e.g. during the brief lock hand-off after the index is synced from main
+        /// storage, which is observed on Windows/Azure), the taxonomy writer creation must recover by
+        /// retrying instead of permanently returning <c>null</c>. Previously a single transient failure
+        /// nulled the taxonomy writer, which made <see cref="ExamineReplicator.CreateRevision"/> throw
+        /// "Taxonomy replication is enabled but the taxonomy writer could not be initialized." and the
+        /// revision was never published, so changes were never replicated to main storage.
+        /// </summary>
+        [Test]
+        public void GivenTransientTaxonomyLock_WhenInitializingTaxonomyWriter_ThenItRecoversInsteadOfReturningNull()
+        {
+            using var mainDir = new RandomIdRAMDirectory();
+            // Not wrapped in its own `using`: ownership is passed to transientTaxonomyDir below, whose
+            // FilterDirectory.Dispose disposes this inner directory. A second `using` here would double-dispose it.
+            var innerTaxonomyDir = new RandomIdRAMDirectory();
+
+            // First, create a healthy, committed search + taxonomy index in the directories so that the
+            // second index opens an existing index (and therefore goes straight to lazily creating the
+            // taxonomy writer, which is the path that previously failed on a transient lock).
+            using (var seedIndex = GetTestIndex(mainDir, innerTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            {
+                seedIndex.CreateIndex();
+            }
+
+            // Wrap the taxonomy directory so the first write-lock check fails transiently.
+            using var transientTaxonomyDir = new TransientWriteLockDirectory(innerTaxonomyDir, failTimes: 1);
+
+            using var index = GetTestIndex(mainDir, transientTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion));
+
+            // Accessing the taxonomy writer triggers CreateTaxonomyWriterWithLockCheck, which hits the
+            // transient lock failure. With the fix this retries and succeeds; previously it returned null.
+            var taxonomyWriter = index.TaxonomyWriter;
+
+            Assert.IsNotNull(taxonomyWriter, "The taxonomy writer should recover from a transient lock instead of returning null.");
+            Assert.IsNotNull(
+                index.SnapshotDirectoryTaxonomyIndexWriterFactory?.IndexWriter,
+                "The snapshot taxonomy factory's IndexWriter must be initialized so a taxonomy revision can be created.");
+            Assert.GreaterOrEqual(
+                transientTaxonomyDir.IsLockedCallCount,
+                2,
+                "The lock check should have been retried after the first transient failure.");
+        }
+
+        /// <summary>
+        /// A <see cref="FilterDirectory"/> that simulates a transient failure when the index write lock is
+        /// checked. The first <paramref name="failTimes"/> calls to check the write lock throw an
+        /// <see cref="System.IO.IOException"/>; subsequent calls delegate to the wrapped directory. This
+        /// mimics the momentary lock contention observed on Windows/Azure during the local index hand-off.
+        /// </summary>
+        private sealed class TransientWriteLockDirectory : FilterDirectory
+        {
+            private readonly int _failTimes;
+            private int _isLockedCallCount;
+
+            public TransientWriteLockDirectory(global::Lucene.Net.Store.Directory directory, int failTimes)
+                : base(directory)
+                => _failTimes = failTimes;
+
+            public int IsLockedCallCount => Volatile.Read(ref _isLockedCallCount);
+
+            public override StoreLock MakeLock(string name) => new TransientLock(base.MakeLock(name), this, name);
+
+            private bool ShouldFailLockCheck(string name)
+                => string.Equals(name, IndexWriter.WRITE_LOCK_NAME, StringComparison.Ordinal)
+                   && Interlocked.Increment(ref _isLockedCallCount) <= _failTimes;
+
+            private sealed class TransientLock : StoreLock
+            {
+                private readonly StoreLock _inner;
+                private readonly TransientWriteLockDirectory _owner;
+                private readonly string _name;
+
+                public TransientLock(StoreLock inner, TransientWriteLockDirectory owner, string name)
+                {
+                    _inner = inner;
+                    _owner = owner;
+                    _name = name;
+                }
+
+                public override bool Obtain() => _inner.Obtain();
+
+                public override bool IsLocked()
+                {
+                    if (_owner.ShouldFailLockCheck(_name))
+                    {
+                        throw new System.IO.IOException("Simulated transient write lock check failure");
+                    }
+
+                    return _inner.IsLocked();
+                }
+
+                protected override void Dispose(bool disposing)
+                {
+                    if (disposing)
+                    {
+                        _inner.Dispose();
+                    }
+                }
             }
         }
     }
