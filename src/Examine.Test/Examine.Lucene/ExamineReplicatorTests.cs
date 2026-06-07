@@ -359,7 +359,9 @@ namespace Examine.Test.Examine.Lucene.Sync
         public void GivenTransientTaxonomyLock_WhenInitializingTaxonomyWriter_ThenItRecoversInsteadOfReturningNull()
         {
             using var mainDir = new RandomIdRAMDirectory();
-            using var innerTaxonomyDir = new RandomIdRAMDirectory();
+            // Not wrapped in its own `using`: ownership is passed to transientTaxonomyDir below, whose
+            // FilterDirectory.Dispose disposes this inner directory. A second `using` here would double-dispose it.
+            var innerTaxonomyDir = new RandomIdRAMDirectory();
 
             // First, create a healthy, committed search + taxonomy index in the directories so that the
             // second index opens an existing index (and therefore goes straight to lazily creating the
