@@ -67,7 +67,10 @@ namespace Examine
         /// <param name="itemType"></param>
         /// <param name="values"></param>
         public ValueSet(string id, string category, string itemType, IDictionary<string, object> values)
-            : this(id, category, itemType, values.ToDictionary(x => x.Key, x => Yield(x.Value)))
+            : this(id, category, itemType,
+                (IReadOnlyDictionary<string, IReadOnlyList<object>>)values.ToDictionary(
+                    x => x.Key,
+                    x => (IReadOnlyList<object>)new[] { x.Value }))
         {
         }
 
@@ -127,16 +130,6 @@ namespace Examine
         public object GetValue(string key)
         {
             return !Values.TryGetValue(key, out var values) ? null : values.Count > 0 ? values[0] : null;
-        }
-
-        /// <summary>
-        /// Helper method to return IEnumerable from a single
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
-        private static IEnumerable<object> Yield(object i)
-        {
-            yield return i;
         }
 
         public ValueSet Clone() => new ValueSet(Id, Category, ItemType, Values);
