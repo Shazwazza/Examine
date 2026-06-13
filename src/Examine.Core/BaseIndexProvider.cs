@@ -81,11 +81,23 @@ namespace Examine
         /// </summary>
         /// <param name="values"></param>
         public void IndexItems(IEnumerable<ValueSet> values)
-            => PerformIndexItems(
+        {
+            // Fast-path: when no validator is configured (the common case), every item is
+            // unconditionally valid. Skip the Select/Where/Select LINQ chain entirely to
+            // avoid 3 iterator-state-machine allocations and one ValidateItem struct
+            // creation per document on the indexing hot path.
+            if (ValueSetValidator == null)
+            {
+                PerformIndexItems(values, OnIndexOperationComplete);
+                return;
+            }
+
+            PerformIndexItems(
                 values
                     .Select(ValidateItem)
                     .Where(x => x.Status != ValueSetValidationStatus.Failed)
                     .Select(x => x.ValueSet), OnIndexOperationComplete);
+        }
 
         /// <inheritdoc />
         public void DeleteFromIndex(IEnumerable<string> itemIds)
