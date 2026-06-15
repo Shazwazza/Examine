@@ -91,6 +91,22 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
+        public void Field_With_Empty_Value_Throws_For_FieldValue()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                var searcher = indexer.Searcher;
+
+                var ex = Assert.Throws<ArgumentException>(() =>
+                    searcher.CreateQuery("content").Field("nodeName", string.Empty));
+
+                Assert.AreEqual("fieldValue", ex.ParamName);
+            }
+        }
+
+        [Test]
         public void NativeQuery_Single_Word()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);

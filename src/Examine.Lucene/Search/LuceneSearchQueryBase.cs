@@ -297,7 +297,7 @@ namespace Examine.Lucene.Search
 
             if (string.IsNullOrEmpty(fieldValue.Value))
             {
-                throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
+                throw new ArgumentException($"'{nameof(fieldValue)}' cannot be null or empty", nameof(fieldValue));
             }
 
             Query queryToAdd;
