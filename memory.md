@@ -12,9 +12,8 @@ dotnet test src/Examine.Test/Examine.Test.csproj --configuration Release --filte
 dotnet run --project src/Examine.Benchmarks --configuration Release
 ```
 
-## Last Run Tasks (2026-06-14)
-- Task 4: Verified open PRs #462, #469, #479 — no CI failures, no merge conflicts
-- Task 2: Quick opportunity scan — backlog updated
+## Last Run Tasks (2026-06-16)
+- Task 4: Verified PRs #462, #469, #479 — all clean; commit #484 (Fix fieldValue) touched same file as #462 but different lines, no conflict
 - Task 7: Updated monthly activity issue #458
 
 ## Optimization Backlog
@@ -46,3 +45,5 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 - Tests: ~147 tests (net8.0 filter), takes ~2.5 min
 - Default branch: support/3.x
 - 3 open PRs pending review — avoid creating more until some are merged
+- Benchmark suite covers: concurrent search (1/25/100 threads), bulk indexing, concurrent searcher acquire
+- Benchmark gaps: query construction (GroupedAnd/Or/Not), ValueSet ctor, single-threaded search, field access
