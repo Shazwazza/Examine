@@ -105,7 +105,7 @@ namespace Examine.Lucene.Search
             if (fieldVals == null)
                 throw new ArgumentNullException(nameof(fieldVals));
 
-            return GroupedAndInternal(fields.ToArray(), fieldVals, Occurrence);
+            return GroupedAndInternal(fields as string[] ?? fields.ToArray(), fieldVals, Occurrence);
         }
 
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
@@ -118,7 +118,7 @@ namespace Examine.Lucene.Search
             if (query == null)
                 throw new ArgumentNullException(nameof(query));
 
-            return GroupedOrInternal(fields.ToArray(), query, Occurrence);
+            return GroupedOrInternal(fields as string[] ?? fields.ToArray(), query, Occurrence);
         }
 
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
@@ -131,7 +131,7 @@ namespace Examine.Lucene.Search
             if (query == null)
                 throw new ArgumentNullException(nameof(query));
 
-            return GroupedNotInternal(fields.ToArray(), query);
+            return GroupedNotInternal(fields as string[] ?? fields.ToArray(), query);
         }
 
         #region INested
@@ -149,22 +149,22 @@ namespace Examine.Lucene.Search
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => GroupedAndInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query?.Select(f => (IExamineValue)new ExamineValue(Examineness.Explicit, f)).ToArray(), Occurrence);
+            => GroupedAndInternal(fields == null ? s_emptyStringArray : fields as string[] ?? fields.ToArray(), query?.Select(f => (IExamineValue)new ExamineValue(Examineness.Explicit, f)).ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
-            => GroupedAndInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query, Occurrence);
+            => GroupedAndInternal(fields == null ? s_emptyStringArray : fields as string[] ?? fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params string[] query)
-            => GroupedOrInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query?.Select(f => (IExamineValue)new ExamineValue(Examineness.Explicit, f)).ToArray(), Occurrence);
+            => GroupedOrInternal(fields == null ? s_emptyStringArray : fields as string[] ?? fields.ToArray(), query?.Select(f => (IExamineValue)new ExamineValue(Examineness.Explicit, f)).ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
-            => GroupedOrInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query, Occurrence);
+            => GroupedOrInternal(fields == null ? s_emptyStringArray : fields as string[] ?? fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params string[] query)
-            => GroupedNotInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query.Select(f => (IExamineValue)new ExamineValue(Examineness.Explicit, f)).ToArray());
+            => GroupedNotInternal(fields == null ? s_emptyStringArray : fields as string[] ?? fields.ToArray(), query.Select(f => (IExamineValue)new ExamineValue(Examineness.Explicit, f)).ToArray());
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
-            => GroupedNotInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query);
+            => GroupedNotInternal(fields == null ? s_emptyStringArray : fields as string[] ?? fields.ToArray(), query);
 
         INestedBooleanOperation INestedQuery.ManagedQuery(string query, string[] fields) => ManagedQueryNested(query, fields);
 
