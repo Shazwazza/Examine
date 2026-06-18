@@ -63,7 +63,7 @@ safe-outputs:
 tools:
   web-fetch:
   github:
-    toolsets: [all]
+    toolsets: [issues, pull_requests, repos, actions]
   bash: true
   repo-memory: true
 
