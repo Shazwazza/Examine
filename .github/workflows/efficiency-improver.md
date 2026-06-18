@@ -20,7 +20,7 @@ on:
       run: |
         MAX_OPEN_PRS=8
         if [[ "$GITHUB_EVENT_NAME" != "schedule" ]]; then exit 0; fi
-        COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "[efficiency-improver]"' --json number --jq 'length')
+        COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "[efficiency-improver]"' --json number --jq 'length' 2>/dev/null || echo 0)
         [[ "$COUNT" -lt "$MAX_OPEN_PRS" ]]
       # exits 0 if not scheduled or <MAX_OPEN_PRS open PRs, 1 if ≥MAX_OPEN_PRS
 
@@ -50,8 +50,7 @@ safe-outputs:
     title-prefix: "[efficiency-improver] "
     labels: [automation, efficiency, green-software]
   push-to-pull-request-branch:
-    target: "*"
-    title-prefix: "[efficiency-improver] "
+    required-title-prefix: "[efficiency-improver] "
   create-issue:
     title-prefix: "[efficiency-improver] "
     labels: [automation, efficiency, green-software]
@@ -67,7 +66,7 @@ tools:
   bash: true
   repo-memory: true
 
-source: githubnext/agentics/workflows/efficiency-improver.md@dcdf09723d42ef9b6c75335e4612fd145d4ccdaa
+source: githubnext/agentics/workflows/efficiency-improver.md@e15e57b40918dbca11b350c55d02ab61934afa75
 ---
 
 # Efficiency Improver

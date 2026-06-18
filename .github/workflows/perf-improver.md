@@ -25,7 +25,7 @@ on:
       run: |
         MAX_OPEN_PRS=8
         if [[ "$GITHUB_EVENT_NAME" != "schedule" ]]; then exit 0; fi
-        COUNT=$(gh pr list --repo ${{ github.repository }} --state open --search 'in:title "[perf-improver]"' --json number --jq 'length')
+        COUNT=$(gh pr list --repo ${{ github.repository }} --state open --search 'in:title "[perf-improver]"' --json number --jq 'length' 2>/dev/null || echo 0)
         [[ "$COUNT" -lt "$MAX_OPEN_PRS" ]]
       # exits 0 if not scheduled or <MAX_OPEN_PRS open PRs, 1 if ≥MAX_OPEN_PRS
 
@@ -57,7 +57,7 @@ safe-outputs:
     protected-files: fallback-to-issue
   push-to-pull-request-branch:
     target: "*"
-    title-prefix: "[perf-improver] "
+    required-title-prefix: "[perf-improver] "
     max: 4
   create-issue:
     title-prefix: "[perf-improver] "
@@ -65,7 +65,7 @@ safe-outputs:
     max: 4
   update-issue:
     target: "*"
-    title-prefix: "[perf-improver] "
+    required-title-prefix: "[perf-improver] "
     max: 1
 
 tools:
@@ -75,7 +75,7 @@ tools:
   bash: true
   repo-memory: true
 
-source: githubnext/agentics/workflows/perf-improver.md@dcdf09723d42ef9b6c75335e4612fd145d4ccdaa
+source: githubnext/agentics/workflows/perf-improver.md@e15e57b40918dbca11b350c55d02ab61934afa75
 ---
 
 # Perf Improver
