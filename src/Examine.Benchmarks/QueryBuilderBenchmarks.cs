@@ -46,12 +46,20 @@ namespace Examine.Benchmarks
         public override void TearDown()
         {
             _indexer?.Dispose();
+            _analyzer.Dispose();
             base.TearDown();
             if (_tempBasePath != null)
             {
                 System.IO.Directory.Delete(_tempBasePath, true);
             }
         }
+
+        /// <summary>
+        /// Baseline cost for query creation without any grouped clause operations.
+        /// </summary>
+        [Benchmark(Baseline = true)]
+        public IQuery CreateQueryOnly()
+            => _searcher!.CreateQuery();
 
         /// <summary>
         /// GroupedAnd with a pre-existing string[] for fields — the optimized path
