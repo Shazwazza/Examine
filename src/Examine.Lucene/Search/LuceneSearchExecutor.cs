@@ -15,6 +15,13 @@ namespace Examine.Lucene.Search
     /// </summary>
     public class LuceneSearchExecutor
     {
+        // Reused per-thread scratch set for ExtractTerms validation. The contents are never
+        // inspected — we only call ExtractTerms to check that the query is valid (it throws
+        // on unsupported query types). Reusing the set eliminates one HashSet<Term> allocation
+        // per search execution without any synchronisation cost.
+        [ThreadStatic]
+        private static HashSet<Term> s_extractTermsSet;
+
         private readonly QueryOptions _options;
         private readonly LuceneQueryOptions _luceneQueryOptions;
         private readonly IEnumerable<SortField> _sortField;
@@ -47,7 +54,12 @@ namespace Examine.Lucene.Search
                 //before throwing exceptions.
                 try
                 {
-                    var set = new HashSet<Term>();
+                    // Reuse a per-thread HashSet to avoid allocating a new one on every
+                    // search. We only need the set as a sink for ExtractTerms; contents
+                    // are discarded. Clear() is O(n) on the number of extracted terms but
+                    // is far cheaper than a GC-managed allocation.
+                    var set = s_extractTermsSet ??= new HashSet<Term>();
+                    set.Clear();
                     _luceneQuery.ExtractTerms(set);
                 }
                 catch (NullReferenceException)
