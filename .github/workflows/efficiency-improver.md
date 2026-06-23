@@ -66,7 +66,7 @@ tools:
   bash: true
   repo-memory: true
 
-source: githubnext/agentics/workflows/efficiency-improver.md@e15e57b40918dbca11b350c55d02ab61934afa75
+source: githubnext/agentics/workflows/efficiency-improver.md@d63b34de41bc0dc052096e094c732cf28eafc659
 ---
 
 # Efficiency Improver
