@@ -47,7 +47,7 @@ namespace Examine.Lucene.Providers
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
 
-            // Note: ResettableLazy is used instead of Lazy<T> because Lazy<T> (in its default
+            // Note (#434): ResettableLazy is used instead of Lazy<T> because Lazy<T> (in its default
             // ExecutionAndPublication mode) caches the first exception thrown by the factory and
             // re-throws it on every subsequent access. Creating the searcher acquires the index
             // writer, which in turn creates the Lucene directory, so a transient directory creation
