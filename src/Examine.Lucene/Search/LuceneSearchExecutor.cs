@@ -261,18 +261,25 @@ namespace Examine.Lucene.Search
                 //we can use Lucene to find out the fields which have been stored for this particular document
                 var fields = doc.Fields;
 
-                // Pre-size to fields.Count — may over-estimate when field names repeat, but avoids
-                // resizes. doc.Fields may list the same field name multiple times (once per stored
-                // value); use ContainsKey to skip duplicates instead of a separate HashSet.
+                // Single-pass collection: read the string value from each field directly instead of
+                // calling doc.GetValues(fieldName) per unique field name. GetValues re-scans all
+                // fields for every unique name, making the original loop O(unique_fields ×
+                // total_fields). By collecting values in one forward pass we reduce this to
+                // O(total_fields) — a significant saving for documents with many stored fields.
                 var resultVals = new Dictionary<string, List<string>>(fields.Count);
 
                 foreach (var field in fields)
                 {
+                    var strVal = field.GetStringValue();
+                    if (strVal == null) continue; // binary/numeric stored fields have no string value
+
                     var fieldName = field.Name;
-                    if (!resultVals.ContainsKey(fieldName))
+                    if (!resultVals.TryGetValue(fieldName, out var list))
                     {
-                        resultVals[fieldName] = doc.GetValues(fieldName).ToList();
+                        list = new List<string>(1);
+                        resultVals[fieldName] = list;
                     }
+                    list.Add(strVal);
                 }
 
                 return resultVals;
