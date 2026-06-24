@@ -47,7 +47,15 @@ namespace Examine.Lucene.Providers
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
 
-            _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
+            // Note: ResettableLazy is used instead of Lazy<T> because Lazy<T> (in its default
+            // ExecutionAndPublication mode) caches the first exception thrown by the factory and
+            // re-throws it on every subsequent access. Creating the searcher acquires the index
+            // writer, which in turn creates the Lucene directory, so a transient directory creation
+            // failure (e.g. a momentarily locked index file during a host overlap/recycle) would be
+            // cached here and turn into a permanent outage until the process restarts - even after
+            // the underlying lock clears. ResettableLazy does not cache exceptions so a later access
+            // can retry and recover once the transient condition clears.
+            _searcher = new ResettableLazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
@@ -125,7 +133,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         private readonly object _writerLocker = new object();
 
-        private readonly Lazy<LuceneSearcher> _searcher;
+        private readonly ResettableLazy<LuceneSearcher> _searcher;
 
         private bool? _exists;
 
