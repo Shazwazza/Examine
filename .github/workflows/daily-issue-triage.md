@@ -37,7 +37,7 @@ tools:
     min-integrity: none
 
 timeout-minutes: 60
-source: githubnext/agentics/workflows/daily-issue-triage.md@c02eadfca420f2b351f9fcaee883c507a63ca316
+source: githubnext/agentics/workflows/daily-issue-triage.md@d63b34de41bc0dc052096e094c732cf28eafc659
 ---
 
 # Daily Issue Triage

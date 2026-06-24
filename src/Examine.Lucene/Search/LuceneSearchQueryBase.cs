@@ -155,7 +155,7 @@ namespace Examine.Lucene.Search
                 throw new ArgumentNullException(nameof(fieldVals));
             }
 
-            return GroupedAndInternal(fields.ToArray(), fieldVals, Occurrence);
+            return GroupedAndInternal(fields as string[] ?? fields.ToArray(), fieldVals, Occurrence);
         }
 
         /// <inheritdoc/>
@@ -175,7 +175,7 @@ namespace Examine.Lucene.Search
                 throw new ArgumentNullException(nameof(query));
             }
 
-            return GroupedOrInternal(fields.ToArray(), query, Occurrence);
+            return GroupedOrInternal(fields as string[] ?? fields.ToArray(), query, Occurrence);
         }
 
         /// <inheritdoc/>
@@ -195,7 +195,7 @@ namespace Examine.Lucene.Search
                 throw new ArgumentNullException(nameof(query));
             }
 
-            return GroupedNotInternal(fields.ToArray(), query);
+            return GroupedNotInternal(fields as string[] ?? fields.ToArray(), query);
         }
 
         #region INested
@@ -239,22 +239,22 @@ namespace Examine.Lucene.Search
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), Occurrence);
+            => GroupedAndInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
-            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
+            => GroupedAndInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params string[] query)
-            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), Occurrence);
+            => GroupedOrInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
-            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
+            => GroupedOrInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params string[] query)
-            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray());
+            => GroupedNotInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray());
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
-            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query);
+            => GroupedNotInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query);
 
         INestedBooleanOperation INestedQuery.ManagedQuery(string query, string[]? fields) => ManagedQueryNested(query, fields);
 
@@ -422,7 +422,7 @@ namespace Examine.Lucene.Search
 
             if (string.IsNullOrEmpty(fieldValue.Value))
             {
-                throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
+                throw new ArgumentException($"'{nameof(fieldValue)}' cannot be null or empty", nameof(fieldValue));
             }
 
             Query? queryToAdd;

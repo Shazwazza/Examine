@@ -20,6 +20,13 @@ namespace Examine.Lucene.Search
     /// </summary>
     public class LuceneSearchExecutor
     {
+        // Reused per-thread scratch set for ExtractTerms validation. The contents are never
+        // inspected — we only call ExtractTerms to check that the query is valid (it throws
+        // on unsupported query types). Reusing the set eliminates one HashSet<Term> allocation
+        // per search execution without any synchronisation cost.
+        [ThreadStatic]
+        private static HashSet<Term>? s_extractTermsSet;
+
         private readonly QueryOptions _options;
         private readonly LuceneQueryOptions? _luceneQueryOptions;
         private readonly IEnumerable<SortField> _sortField;
@@ -61,7 +68,12 @@ namespace Examine.Lucene.Search
                 //before throwing exceptions.
                 try
                 {
-                    var set = new HashSet<Term>();
+                    // Reuse a per-thread HashSet to avoid allocating a new one on every
+                    // search. We only need the set as a sink for ExtractTerms; contents
+                    // are discarded. Clear() is O(n) on the number of extracted terms but
+                    // is far cheaper than a GC-managed allocation.
+                    var set = s_extractTermsSet ??= new HashSet<Term>();
+                    set.Clear();
                     _luceneQuery.ExtractTerms(set);
                 }
                 catch (NullReferenceException)
@@ -322,22 +334,18 @@ namespace Examine.Lucene.Search
                 //we can use Lucene to find out the fields which have been stored for this particular document
                 var fields = doc.Fields;
 
-                var resultVals = new Dictionary<string, List<string>>();
-
-                // doc.Fields may list the same field name multiple times (once per stored value).
-                // doc.GetValues already returns all values for a field, so we only need to call it
-                // once per unique field name. Track processed names to skip redundant iterations.
-                var processedFields = new HashSet<string>();
+                // Pre-size to fields.Count — may over-estimate when field names repeat, but avoids
+                // resizes. doc.Fields may list the same field name multiple times (once per stored
+                // value); use ContainsKey to skip duplicates instead of a separate HashSet.
+                var resultVals = new Dictionary<string, List<string>>(fields.Count);
 
                 foreach (var field in fields)
                 {
                     var fieldName = field.Name;
-                    if (!processedFields.Add(fieldName))
+                    if (!resultVals.ContainsKey(fieldName))
                     {
-                        continue;
+                        resultVals[fieldName] = doc.GetValues(fieldName).ToList();
                     }
-
-                    resultVals[fieldName] = doc.GetValues(fieldName).ToList();
                 }
 
                 return resultVals;

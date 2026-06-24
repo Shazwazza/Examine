@@ -395,6 +395,23 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
+        [Test]
+        public void Field_With_Empty_Value_Throws_For_FieldValue()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer))
+            {
+                var searcher = indexer.Searcher;
+
+                var ex = Assert.Throws<ArgumentException>(() =>
+                    searcher.CreateQuery("content").Field("nodeName", string.Empty));
+
+                Assert.AreEqual("fieldValue", ex!.ParamName);
+            }
+        }
+
         [TestCase(FacetTestType.TaxonomyFacets)]
         [TestCase(FacetTestType.SortedSetFacets)]
         [TestCase(FacetTestType.NoFacets)]

@@ -54,14 +54,12 @@ namespace Examine.Lucene.Search
 
                     try
                     {
-                        var fields = MultiFields.GetMergedFieldInfos(searcher.IndexReader)
+                        // Single-pass: select + filter in one LINQ chain to avoid
+                        // materialising an intermediate List<string>.
+                        var filtered = MultiFields.GetMergedFieldInfos(searcher.IndexReader)
                                     .Select(x => x.Name)
-                                    .ToList();
-
-                        //exclude the special index fields
-                        var filtered = fields
-                            .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix) && !x.Equals(ExamineFieldNames.DefaultFacetsName))
-                            .ToArray();
+                                    .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix) && !x.Equals(ExamineFieldNames.DefaultFacetsName))
+                                    .ToArray();
 
                         // Only cache non-empty results so that an initially empty index
                         // will re-read fields once documents have been indexed.
