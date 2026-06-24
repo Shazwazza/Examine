@@ -270,16 +270,18 @@ namespace Examine.Lucene.Search
 
                 foreach (var field in fields)
                 {
-                    var strVal = field.GetStringValue();
-                    if (strVal == null) continue; // binary/numeric stored fields have no string value
-
                     var fieldName = field.Name;
                     if (!resultVals.TryGetValue(fieldName, out var list))
                     {
                         list = new List<string>(1);
                         resultVals[fieldName] = list;
                     }
-                    list.Add(strVal);
+
+                    var strVal = field.GetStringValue();
+                    if (strVal != null)
+                    {
+                        list.Add(strVal);
+                    }
                 }
 
                 return resultVals;
