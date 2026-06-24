@@ -28,8 +28,6 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
-        private int? _maxDoc;
-
         internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad)
         {
             _options = options ?? QueryOptions.Default;
@@ -84,7 +82,7 @@ namespace Examine.Lucene.Search
             using (var searcher = _searchContext.GetSearcher())
             {
                 var maxSkipTakeDataSetSize = _luceneQueryOptions?.AutoCalculateSkipTakeMaxResults ?? false
-                    ? GetMaxDoc()
+                    ? searcher.IndexSearcher.IndexReader.MaxDoc
                     : _luceneQueryOptions?.SkipTakeMaxResults ?? QueryOptions.AbsoluteMaxResults;
 
                 var maxResults = Math.Min((_options.Skip + 1) * _options.Take, maxSkipTakeDataSetSize);
@@ -161,20 +159,6 @@ namespace Examine.Lucene.Search
 
                 return new LuceneSearchResults(results, totalItemCount, maxScore, searchAfterOptions);
             }
-        }
-
-        /// <summary>
-        /// Used to calculate the total number of documents in the index.
-        /// </summary>
-        private int GetMaxDoc()
-        {
-            if (_maxDoc == null)
-            {
-                using var searcher = _searchContext.GetSearcher();
-                _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
-            }
-
-            return _maxDoc.Value;
         }
 
         private static FieldDoc GetScoreDocAfter(LuceneQueryOptions luceneQueryOptions)
@@ -263,7 +247,7 @@ namespace Examine.Lucene.Search
 
                 // Pre-size to fields.Count — may over-estimate when field names repeat, but avoids
                 // resizes. doc.Fields may list the same field name multiple times (once per stored
-                // value); use ContainsKey to skip duplicates instead of a separate HashSet.
+                // value).
                 var resultVals = new Dictionary<string, List<string>>(fields.Count);
 
                 foreach (var field in fields)
