@@ -247,13 +247,16 @@ namespace Examine.Lucene.Search
 
                 // Pre-size to fields.Count — may over-estimate when field names repeat, but avoids
                 // resizes. doc.Fields may list the same field name multiple times (once per stored
-                // value); TryAdd skips duplicates without a separate lookup.
+                // value).
                 var resultVals = new Dictionary<string, List<string>>(fields.Count);
 
                 foreach (var field in fields)
                 {
                     var fieldName = field.Name;
-                    resultVals.TryAdd(fieldName, doc.GetValues(fieldName).ToList());
+                    if (!resultVals.ContainsKey(fieldName))
+                    {
+                        resultVals[fieldName] = doc.GetValues(fieldName).ToList();
+                    }
                 }
 
                 return resultVals;
