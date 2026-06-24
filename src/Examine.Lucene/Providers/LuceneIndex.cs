@@ -1073,6 +1073,13 @@ namespace Examine.Lucene.Providers
 
             if (_options.NrtEnabled)
             {
+                // TODO: NRT thread leak on factory retry. Since _searcher is now a ResettableLazy, CreateSearcher
+                // can be invoked more than once if an earlier attempt throws. If an exception is thrown after
+                // _nrtReopenThread has been started below (e.g. in WaitForChanges()), a subsequent retry overwrites
+                // _nrtReopenThread without interrupting/disposing the previously started thread, orphaning it
+                // (Dispose() would then only clean up the last instance). This window is not hit by the #434 failure
+                // path (which fails earlier in GetLuceneDirectory(), before NRT init), but should be closed by
+                // wrapping the NRT block in a try/catch that stops and nulls _nrtReopenThread before re-throwing.
                 // Create the ControlledRealTimeReopenThread that reopens the index periodically having into 
                 // account the changes made to the index and tracked by the TrackingIndexWriter instance
                 // The index is refreshed every XX sec when nobody is waiting 
