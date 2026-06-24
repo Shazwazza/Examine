@@ -1073,7 +1073,7 @@ namespace Examine.Lucene.Providers
 
             if (_options.NrtEnabled)
             {
-                // TODO: NRT thread leak on factory retry. Since _searcher is now a ResettableLazy, CreateSearcher
+                // TODO (#434 review follow-up): NRT thread leak on factory retry. Since _searcher is now a ResettableLazy, CreateSearcher
                 // can be invoked more than once if an earlier attempt throws. If an exception is thrown after
                 // _nrtReopenThread has been started below (e.g. in WaitForChanges()), a subsequent retry overwrites
                 // _nrtReopenThread without interrupting/disposing the previously started thread, orphaning it
