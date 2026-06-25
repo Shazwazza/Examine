@@ -455,6 +455,13 @@ namespace Examine.Lucene.Search
                     break;
             }
 
+            // Lucene.Net does not have Nullable enabled, but the MultiFieldQueryParser can actually return a
+            // null query. Let's make sure it's handled, before we continue to work with the query.
+            if (queryToAdd is null)
+            {
+                return null;
+            }
+
             if (fieldValue is IExamineValueBoosted boostedValue)
             {
                 queryToAdd.Boost = boostedValue.Boost;
