@@ -855,7 +855,7 @@ namespace Examine.Lucene.Providers
                         }
                         else if (
                             // capture once to get a consistent elapsed value
-                            DateTime.Now - _timestamp is TimeSpan elapsed &&
+                            DateTime.Now - _timestamp is var elapsed &&
                             // must be less than the max
                             elapsed < s_maxWait &&
                             // and less than the delay
@@ -1417,4 +1417,3 @@ namespace Examine.Lucene.Providers
 
 
 }
-
