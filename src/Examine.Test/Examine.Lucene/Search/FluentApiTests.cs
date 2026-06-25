@@ -5361,5 +5361,26 @@ namespace Examine.Test.Examine.Lucene.Search
             var secondResults = results2.ToArray();
             Assert.IsFalse(firstResults.Any(x => secondResults.Any(y => y.Id == x.Id)), "The second set of results should not contain the first set of results");
         }
+
+        [Test]
+        public void Boosted_Field_Query_Stop_Words_Only()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using var luceneDir = new RandomIdRAMDirectory();
+            using var luceneTaxonomyDir = new RandomIdRAMDirectory();
+            using var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer);
+            indexer.IndexItems([ValueSet.FromObject(1.ToString(), "content", new { bodyText = "Something to index" })]);
+
+            var searcher = indexer.Searcher;
+            IBooleanOperation? query = null;
+
+            // create a boosted field query that contains only stop words
+            Assert.DoesNotThrow(() => query = searcher
+                .CreateQuery(category: "content")
+                .Field("bodyText", "this".Boost(10)));
+
+            var results = query!.Execute();
+            Assert.AreEqual(0, results!.TotalItemCount);
+        }
     }
 }
