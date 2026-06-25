@@ -164,9 +164,9 @@ namespace Examine.Lucene.Providers
 
         // Cached system field value types — resolved once on first AddDocument call and reused for every subsequent
         // document. Avoids 6 ConcurrentDictionary lookups (3x GetRequiredFactory + 3x GetOrAdd) per indexed document.
-        private IIndexFieldValueType _nodeIdValueType;
-        private IIndexFieldValueType _categoryValueType;
-        private IIndexFieldValueType _indexTypeValueType;
+        private volatile IIndexFieldValueType _nodeIdValueType;
+        private volatile IIndexFieldValueType _categoryValueType;
+        private volatile IIndexFieldValueType _indexTypeValueType;
 
         #region Properties
 
