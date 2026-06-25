@@ -162,6 +162,12 @@ namespace Examine.Lucene.Providers
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
 
+        // Cached system field value types — resolved once on first AddDocument call and reused for every subsequent
+        // document. Avoids 6 ConcurrentDictionary lookups (3x GetRequiredFactory + 3x GetOrAdd) per indexed document.
+        private IIndexFieldValueType _nodeIdValueType;
+        private IIndexFieldValueType _categoryValueType;
+        private IIndexFieldValueType _indexTypeValueType;
+
         #region Properties
 
         /// <summary>
@@ -713,16 +719,16 @@ namespace Examine.Lucene.Providers
             }
 
             //add node id
-            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
-            nodeIdValueType.AddValue(doc, valueSet.Id);
+            (_nodeIdValueType ??= FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw)))
+                .AddValue(doc, valueSet.Id);
 
             //add the category
-            var categoryValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
-            categoryValueType.AddValue(doc, valueSet.Category);
+            (_categoryValueType ??= FieldValueTypeCollection.GetValueType(ExamineFieldNames.CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase)))
+                .AddValue(doc, valueSet.Category);
 
             //add the item type
-            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
-            indexTypeValueType.AddValue(doc, valueSet.ItemType);
+            (_indexTypeValueType ??= FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase)))
+                .AddValue(doc, valueSet.ItemType);
 
             foreach (var field in valueSet.Values)
             {
@@ -794,6 +800,9 @@ namespace Examine.Lucene.Providers
             /// </summary>
             private const int MaxWaitMilliseconds = 300000;
 
+            private static readonly TimeSpan s_maxWait = TimeSpan.FromMilliseconds(MaxWaitMilliseconds);
+            private static readonly TimeSpan s_waitDelay = TimeSpan.FromMilliseconds(WaitMilliseconds);
+
             public IndexCommiter(LuceneIndex index)
             {
                 _index = index;
@@ -845,10 +854,12 @@ namespace Examine.Lucene.Providers
                             CommitNow();
                         }
                         else if (
+                            // capture once to get a consistent elapsed value
+                            DateTime.Now - _timestamp is TimeSpan elapsed &&
                             // must be less than the max
-                            DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(MaxWaitMilliseconds) &&
+                            elapsed < s_maxWait &&
                             // and less than the delay
-                            DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(WaitMilliseconds))
+                            elapsed < s_waitDelay)
                         {
                             //Delay  
                             _timer.Change(WaitMilliseconds, 0);
