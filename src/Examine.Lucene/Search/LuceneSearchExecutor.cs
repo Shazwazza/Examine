@@ -253,9 +253,16 @@ namespace Examine.Lucene.Search
                 foreach (var field in fields)
                 {
                     var fieldName = field.Name;
-                    if (!resultVals.ContainsKey(fieldName))
+                    if (!resultVals.TryGetValue(fieldName, out var list))
                     {
-                        resultVals[fieldName] = doc.GetValues(fieldName).ToList();
+                        list = new List<string>(1);
+                        resultVals[fieldName] = list;
+                    }
+
+                    var strVal = field.GetStringValue();
+                    if (strVal != null)
+                    {
+                        list.Add(strVal);
                     }
                 }
 
