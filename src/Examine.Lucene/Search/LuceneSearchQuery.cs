@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
@@ -106,17 +105,17 @@ namespace Examine.Lucene.Search
                 //if no fields are specified then use all fields
                 fields = fields ?? AllFields;
 
-                var types = fields.Select(f => _searchContext.GetFieldValueType(f)).Where(t => t != null);
-
-                //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
-                //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
-                //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
-                //so it might be the ToString() that is the issue.
+                // Inline loop replaces Select+Where LINQ chain to eliminate two state-machine
+                // allocations (SelectIterator + WhereIterator) per ManagedQuery call.
                 var outer = new BooleanQuery();
                 var inner = new BooleanQuery();
 
-                foreach (var type in types)
+                foreach (var f in fields)
                 {
+                    var type = _searchContext.GetFieldValueType(f);
+                    if (type == null)
+                        continue;
+
                     var q = type.GetQuery(query);
 
                     if (q != null)
