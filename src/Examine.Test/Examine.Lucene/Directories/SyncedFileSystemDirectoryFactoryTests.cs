@@ -408,6 +408,78 @@ namespace Examine.Test.Examine.Lucene.Directories
             });
         }
 
+        /// <summary>
+        /// Regression coverage for https://github.com/Shazwazza/Examine/issues/452.
+        /// Reproduces the Umbraco drop-in scenario: the index is registered with a delegating
+        /// <see cref="IDirectoryFactory"/> (here <see cref="NonTaxonomyDelegatingDirectoryFactory"/>) that
+        /// does NOT implement <see cref="ITaxonomyDirectoryFactory"/> — exactly like a factory compiled
+        /// against an Examine version that predates taxonomy support — wrapping a
+        /// <see cref="SyncedFileSystemDirectoryFactory"/>, while <c>UseTaxonomyIndex</c> is left enabled
+        /// (the default).
+        ///
+        /// Previously this caused a split-brain: <see cref="LuceneIndex"/> saw the (non-taxonomy) wrapper
+        /// and never created a taxonomy writer, while the synced factory keyed only off
+        /// <c>UseTaxonomyIndex</c> and set up taxonomy replication, so the first commit threw
+        /// "Taxonomy replication is enabled but the taxonomy writer could not be initialized."
+        ///
+        /// Now both derive taxonomy support from the same rule (UseTaxonomyIndex AND the configured factory
+        /// implements ITaxonomyDirectoryFactory), so taxonomy is consistently disabled: indexing/replication
+        /// keep working, no exception is thrown, and no taxonomy index is created.
+        /// </summary>
+        [Test]
+        public void Given_NonTaxonomyWrappingFactory_WithTaxonomyEnabled_When_Indexing_Then_NoCrash_And_TaxonomyDisabled()
+        {
+            WithTempPaths((mainPath, tempPath) =>
+            {
+                // Shared options/monitor mirror real DI: the index and the synced factory observe the same
+                // registered (outer) directory factory.
+                var options = new LuceneDirectoryIndexOptions { UseTaxonomyIndex = true };
+                var optionsMonitor = CreateDirectoryOptionsMonitor(options);
+
+                var syncedFactory = new SyncedFileSystemDirectoryFactory(
+                    new DirectoryInfo(tempPath),
+                    new DirectoryInfo(mainPath),
+                    new DefaultLockFactory(),
+                    LoggerFactory,
+                    optionsMonitor);
+
+                // The registered factory is a delegating factory that is NOT taxonomy-capable.
+                var wrappingFactory = new NonTaxonomyDelegatingDirectoryFactory(syncedFactory);
+                options.DirectoryFactory = wrappingFactory;
+
+                using var index = new LuceneIndex(LoggerFactory, TestIndex.TestIndexName, optionsMonitor);
+
+                // Taxonomy must be consistently disabled because the configured factory cannot provide it.
+                Assert.IsFalse(index.IsTaxonomyEnabled, "Taxonomy should be disabled when the configured factory is not taxonomy-capable.");
+
+                // Indexing must not throw the "taxonomy writer could not be initialized" exception.
+                Assert.DoesNotThrow(() =>
+                {
+                    using (index.WithThreadingMode(IndexThreadingMode.Synchronous))
+                    {
+                        for (var i = 0; i < 10; i++)
+                        {
+                            index.IndexItem(CreateValueSet(i.ToString(), "value" + i));
+                        }
+                    }
+                });
+
+                // The index keeps working.
+                var searchResults = index.Searcher.CreateQuery().All().Execute();
+                Assert.AreEqual(10, searchResults.TotalItemCount, "The index should remain fully functional.");
+
+                // The main search index is still replicated to main storage.
+                var mainIndexPath = Path.Combine(mainPath, TestIndex.TestIndexName);
+                Assert.IsTrue(
+                    WaitForCondition(() => MainIndexDocCount(mainIndexPath) == 10),
+                    "The main search index was not replicated within the timeout.");
+
+                // No taxonomy index is created when taxonomy is unsupported.
+                var mainTaxonomyPath = Path.Combine(mainPath, TestIndex.TestIndexName, "taxonomy");
+                Assert.IsFalse(System.IO.Directory.Exists(mainTaxonomyPath), "No taxonomy directory should be created when the factory is not taxonomy-capable.");
+            });
+        }
+
         #endregion
 
         #region Private Helper Methods
@@ -507,13 +579,18 @@ namespace Examine.Test.Examine.Lucene.Directories
             bool fixIndex = false)
         {
             var options = new LuceneDirectoryIndexOptions { UseTaxonomyIndex = useTaxonomy };
-            return new SyncedFileSystemDirectoryFactory(
+            var factory = new SyncedFileSystemDirectoryFactory(
                 new DirectoryInfo(tempPath),
                 new DirectoryInfo(mainPath),
                 new DefaultLockFactory(),
                 LoggerFactory,
                 CreateDirectoryOptionsMonitor(options),
                 fixIndex);
+
+            // Mirror real DI wiring: the shared options expose the registered directory factory. Taxonomy
+            // support is derived from DirectoryFactory implementing ITaxonomyDirectoryFactory (issue #452).
+            options.DirectoryFactory = factory;
+            return factory;
         }
 
         /// <summary>
@@ -742,6 +819,22 @@ namespace Examine.Test.Examine.Lucene.Directories
         private class MyAppDiscriminator : IApplicationDiscriminator
         {
             public string Discriminator { get; } = Guid.NewGuid().ToString();
+        }
+
+        /// <summary>
+        /// A delegating <see cref="IDirectoryFactory"/> that forwards directory creation to an inner factory
+        /// but intentionally does NOT implement <see cref="ITaxonomyDirectoryFactory"/>. This reproduces a
+        /// factory compiled against an Examine version that predates taxonomy support (e.g. Umbraco core's
+        /// wrapping factory), used by the issue #452 regression test.
+        /// </summary>
+        private sealed class NonTaxonomyDelegatingDirectoryFactory : IDirectoryFactory
+        {
+            private readonly IDirectoryFactory _inner;
+
+            public NonTaxonomyDelegatingDirectoryFactory(IDirectoryFactory inner) => _inner = inner;
+
+            public Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+                => _inner.CreateDirectory(luceneIndex, forceUnlock);
         }
     }
 }

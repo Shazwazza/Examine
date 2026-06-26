@@ -58,6 +58,18 @@ namespace Examine.Lucene.Providers
                 {
                     return taxonomyFactory.CreateTaxonomyDirectory(this, directoryOptions.UnlockIndex);
                 }
+
+                // Taxonomy/faceting was requested (UseTaxonomyIndex == true) but the configured directory
+                // factory does not implement ITaxonomyDirectoryFactory, so a taxonomy directory cannot be
+                // created. This happens with delegating/wrapping factories or factories compiled against an
+                // Examine version that predates taxonomy support. Log one clear, actionable warning and
+                // disable taxonomy consistently rather than failing later during replication (issue #452).
+                // The lazy evaluates once, so this warning is emitted at most once per index.
+                _logger.LogWarning(
+                    "UseTaxonomyIndex is enabled for index \"{IndexName}\" but the directory factory \"{DirectoryFactoryType}\" does not implement {TaxonomyFactoryInterface}; faceting/taxonomy will be disabled. Use a taxonomy-capable directory factory or set UseTaxonomyIndex to false.",
+                    name,
+                    directoryOptions.DirectoryFactory?.GetType().FullName ?? "(null)",
+                    nameof(ITaxonomyDirectoryFactory));
                 return null;
             });
 

@@ -93,7 +93,18 @@ namespace Examine.Lucene.Directories
             var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
 
             var mainLuceneDir = base.CreateDirectory(luceneIndex, forceUnlock);
-            var mainTaxonomyDir = base.CreateTaxonomyDirectory(luceneIndex, forceUnlock);
+
+            // Taxonomy replication must only be set up when the index will actually have a taxonomy
+            // writer. The index derives that from the configured directory factory implementing
+            // ITaxonomyDirectoryFactory (see LuceneIndex), so the synced factory uses the exact same
+            // rule here. Keying solely off UseTaxonomyIndex (as before) caused a split-brain where the
+            // replicator expected taxonomy but the index never created a taxonomy writer, throwing on
+            // every commit (issue #452). When taxonomy is requested but unsupported, LuceneIndex logs a
+            // single actionable warning.
+            var indexOptions = IndexOptions.GetNamedOptions(luceneIndex.Name);
+            var mainTaxonomyDir = indexOptions.IsTaxonomySupported()
+                ? base.CreateTaxonomyDirectory(luceneIndex, forceUnlock)
+                : null;
 
             // Check if taxonomy is enabled
             var taxonomyEnabled = mainTaxonomyDir != null;
