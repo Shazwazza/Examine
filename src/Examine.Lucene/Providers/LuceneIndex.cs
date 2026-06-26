@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Examine.Lucene.Directories;
+using Examine.Lucene.Indexing;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.Standard;
@@ -114,7 +115,16 @@ namespace Examine.Lucene.Providers
 
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
-            _searcher = new Lazy<BaseLuceneSearcher>(CreateSearcher);
+
+            // Note (#434): ResettableLazy is used instead of Lazy<T> because Lazy<T> (in its default
+            // ExecutionAndPublication mode) caches the first exception thrown by the factory and
+            // re-throws it on every subsequent access. Creating the searcher acquires the index
+            // writer, which in turn creates the Lucene directory, so a transient directory creation
+            // failure (e.g. a momentarily locked index file during a host overlap/recycle) would be
+            // cached here and turn into a permanent outage until the process restarts - even after
+            // the underlying lock clears. ResettableLazy does not cache exceptions so a later access
+            // can retry and recover once the transient condition clears.
+            _searcher = new ResettableLazy<BaseLuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
@@ -147,7 +157,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         private readonly object _writerLocker = new object();
 
-        private readonly Lazy<BaseLuceneSearcher> _searcher;
+        private readonly ResettableLazy<BaseLuceneSearcher> _searcher;
 
         private bool? _exists;
 
@@ -185,6 +195,12 @@ namespace Examine.Lucene.Providers
 
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
+
+        // Cached system field value types — resolved once on first AddDocument call and reused for every subsequent
+        // document. Avoids 6 ConcurrentDictionary lookups (3x GetRequiredFactory + 3x GetOrAdd) per indexed document.
+        private volatile IIndexFieldValueType? _nodeIdValueType;
+        private volatile IIndexFieldValueType? _categoryValueType;
+        private volatile IIndexFieldValueType? _indexTypeValueType;
 
         private readonly Lazy<Directory?>? _lazyTaxonomyDirectory;
 
@@ -884,16 +900,16 @@ namespace Examine.Lucene.Providers
             }
 
             //add node id
-            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
-            nodeIdValueType.AddValue(doc, valueSet.Id);
+            (_nodeIdValueType ??= FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw)))
+                .AddValue(doc, valueSet.Id);
 
             //add the category
-            var categoryValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
-            categoryValueType.AddValue(doc, valueSet.Category);
+            (_categoryValueType ??= FieldValueTypeCollection.GetValueType(ExamineFieldNames.CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase)))
+                .AddValue(doc, valueSet.Category);
 
             //add the item type
-            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
-            indexTypeValueType.AddValue(doc, valueSet.ItemType);
+            (_indexTypeValueType ??= FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase)))
+                .AddValue(doc, valueSet.ItemType);
 
             if (valueSet.Values != null)
             {
@@ -1265,9 +1281,15 @@ namespace Examine.Lucene.Providers
 
                 if (_options.NrtEnabled)
                 {
+                    // TODO (#434 review follow-up): NRT thread leak on factory retry. Since _searcher is now a ResettableLazy, CreateSearcher
+                    // can be invoked more than once if an earlier attempt throws. If an exception is thrown after
+                    // _nrtReopenThread (or _nrtReopenThreadNoTaxonomy below) has been started (e.g. in WaitForChanges()), a subsequent retry overwrites
+                    // the field without interrupting/disposing the previously started thread, orphaning it
+                    // (Dispose() would then only clean up the last instance). This window is not hit by the #434 failure
+                    // path (which fails earlier in GetLuceneDirectory(), before NRT init), but should be closed by
+                    // wrapping the NRT block in a try/catch that stops and nulls the thread before re-throwing.
                     // Create the ControlledRealTimeReopenThread that reopens the index periodically having into
                     // account the changes made to the index and tracked by the TrackingIndexWriter instance
-                    // The index is refreshed every XX sec when nobody is waiting
                     // and every XX sec whenever is someone waiting (see search method)
                     // (see http://lucene.apache.org/core/4_3_0/core/org/apache/lucene/search/NRTManagerReopenThread.html)
                     _nrtReopenThread = new ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>(

@@ -57,6 +57,47 @@ namespace Examine.Test.Examine.Lucene
             }
         }
 
+        /// <summary>
+        /// Regression test for https://github.com/Shazwazza/Examine/issues/434.
+        /// The reported failures occur on the search path: <see cref="LuceneIndex.Searcher"/> ->
+        /// <c>CreateSearcher</c> -> <c>IndexWriter</c> -> directory creation. The searcher was created
+        /// via a <see cref="Lazy{T}"/> which cached the transient directory creation exception and
+        /// re-threw it (with the same locked file name) on every subsequent request, even after the
+        /// underlying lock had cleared. Accessing the searcher again must recover.
+        /// </summary>
+        [Test]
+        public void Given_TransientDirectoryCreationFailure_When_SearcherAccessedAgain_Then_Recovers()
+        {
+            var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            try
+            {
+                var failingFactory = new TransientFailingDirectoryFactory(path);
+
+                using var index = new LuceneIndex(
+                    LoggerFactory,
+                    TestIndex.TestIndexName,
+                    Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                    {
+                        DirectoryFactory = failingFactory
+                    }));
+
+                // First access should surface the transient failure.
+                Assert.Throws<InvalidOperationException>(() => _ = index.Searcher);
+
+                // The failure must not have been cached on the searcher - a subsequent access recovers.
+                Assert.DoesNotThrow(() => _ = index.Searcher);
+                Assert.AreEqual(2, failingFactory.CreateCount);
+            }
+            finally
+            {
+                if (System.IO.Directory.Exists(path))
+                {
+                    System.IO.Directory.Delete(path, true);
+                }
+            }
+        }
+
         private class TransientFailingDirectoryFactory : IDirectoryFactory
         {
             private readonly string _path;

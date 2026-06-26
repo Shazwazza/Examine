@@ -36,6 +36,9 @@ namespace Examine.Lucene.Providers
         /// </summary>
         private const int MaxWaitMilliseconds = 300000;
 
+        private static readonly TimeSpan s_maxWait = TimeSpan.FromMilliseconds(MaxWaitMilliseconds);
+        private static readonly TimeSpan s_waitDelay = TimeSpan.FromMilliseconds(WaitMilliseconds);
+
         public event EventHandler<IndexingErrorEventArgs>? CommitError;
         public event EventHandler? Committed;
 
@@ -88,10 +91,12 @@ namespace Examine.Lucene.Providers
                         CommitNow();
                     }
                     else if (
+                        // capture the elapsed time once
+                        DateTime.Now - _timestamp is var elapsed &&
                         // must be less than the max
-                        DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(MaxWaitMilliseconds) &&
+                        elapsed < s_maxWait &&
                         // and less than the delay
-                        DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(WaitMilliseconds))
+                        elapsed < s_waitDelay)
                     {
                         //Delay  
                         _timer.Change(WaitMilliseconds, 0);
