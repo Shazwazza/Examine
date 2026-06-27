@@ -12,8 +12,8 @@ dotnet test src/Examine.Test/Examine.Test.csproj --configuration Release --filte
 dotnet run --project src/Examine.Benchmarks --configuration Release
 ```
 
-## Last Run Tasks (2026-06-26)
-- Task 3: Created PR #aw_pr_factories (cache FullText + InvariantCultureIgnoreCase factories in AddDocument loop + early-return BooleanQuery in CheckQueryForExtractTerms + Array.Empty for no-sort case)
+## Last Run Tasks (2026-06-27)
+- Task 2: Scanned codebase for new opportunities; backlog near-depleted, noted remaining items
 - Task 7: Updated June 2026 monthly activity issue #513
 
 ## Optimization Backlog
@@ -27,10 +27,13 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 | DONE | BaseIndexProvider.IndexItems | PR #479 — fast-path when no validator (merged 2026-06-17) |
 | DONE | LuceneSearchExecutor | PR #506 — inline GetMaxDoc() + TryAdd in CreateSearchResult (merged 2026-06-24) |
 | DONE | LuceneIndex.AddDocument | PR #512 — cache 3 system field value types (merged 2026-06-25) |
-| OPEN PR | LuceneIndex.AddDocument + LuceneSearchExecutor | PR #aw_pr_factories — cache 2 loop factories + early BooleanQuery return + Array.Empty |
-| LOW | CheckQueryForExtractTerms | Early-out for BooleanQuery with empty clauses — INCLUDED IN OPEN PR |
-| LOW | GetFieldInternalQuery | Convert.ToInt32(float) → (int)float cast (semantics change — avoid) |
-| LOW | OrderedDictionary.Values | Allocates TVal[] on every access — check if hot path |
+| OPEN PR | LuceneIndex.AddDocument + LuceneSearchExecutor | PR #516 — cache 2 loop factories + early BooleanQuery return + Array.Empty |
+| LOW | SearchContext.GetFieldValueType | GetRequiredFactory(FullText) called on every GetFieldValueType call — cache as field |
+| LOW | AddDocument | field.Key.StartsWith(SpecialFieldPrefix) uses CurrentCulture; add StringComparison.Ordinal |
+| LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not clearly on hot path |
+| SKIP | GetFieldInternalQuery | Convert.ToInt32(float) → (int)float cast (semantics change — avoid) |
+| NOTE | MultiSearchContext | LINQ allocs — efficiency-improver PR #515 already covers this |
+| NOTE | ManagedQueryInternal LINQ | efficiency-improver PR #517 covers reflection + LINQ here |
 
 ## Completed Work
 - 2026-05-25: PR #441 merged
@@ -43,7 +46,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 - 2026-06-25: PR #512 merged
 
 ## Open PRs (awaiting maintainer review)
-- #aw_pr_factories: cache factory lookups in AddDocument + early-return BooleanQuery + Array.Empty<SortField>()
+- #516: cache factory lookups in AddDocument + early-return BooleanQuery + Array.Empty<SortField>()
 
 ## Notes
 - No AGENTS.md in this repo
@@ -56,6 +59,9 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 - Benchmark gaps: query construction (GroupedAnd/Or/Not), single-threaded search, field access
 - Monthly issue #458 closed by @Shazwazza on 2026-06-18 (not_planned)
 - Monthly issue #507 closed by @Shazwazza on 2026-06-24 (not_planned)
-- Monthly issue #513 open (June 2026) — last updated 2026-06-26
+- Monthly issue #513 open (June 2026) — last updated 2026-06-27
 - Maintainer keeps closing monthly activity issues as "not_planned" — note this pattern
 - efficiency-improver bot also working in parallel on similar areas (LINQ allocs, etc.)
+- ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
+- LuceneSearchQuery creates new instance per search — no caching of category query possible
+- IndexingItemEventArgs + DocumentWritingEventArgs are virtual methods — can't skip allocation based on null event
