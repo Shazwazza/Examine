@@ -746,7 +746,7 @@ namespace Examine.Lucene.Providers
                         valueType.AddValue(doc, o);
                     }
                 }
-                else if (field.Key.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
+                else if (field.Key.StartsWith(ExamineFieldNames.SpecialFieldPrefix, StringComparison.Ordinal))
                 {
                     //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
 
@@ -1056,7 +1056,7 @@ namespace Examine.Lucene.Providers
             foreach (var suffix in s_possibleSuffixes)
             {
                 //trim the "Indexer" / "Index" suffix if it exists
-                if (!name.EndsWith(suffix))
+                if (!name.EndsWith(suffix, StringComparison.Ordinal))
                 {
                     continue;
                 }

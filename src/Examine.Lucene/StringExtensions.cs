@@ -86,13 +86,7 @@ namespace Examine
         // when it is inline in the RemoveStopWords method like it used to be.
 
         private static bool IsStandardAnalyzerStopWord(string stringToCheck)
-        {
-            if (StandardAnalyzer.STOP_WORDS_SET.Contains(stringToCheck.ToLower()))
-            {
-                return true;
-            }
-            return false;
-        }
+            => StandardAnalyzer.STOP_WORDS_SET.Contains(stringToCheck.ToLowerInvariant());
 
         ///<summary>
         /// Removes stop words from the text if not contained within a phrase
