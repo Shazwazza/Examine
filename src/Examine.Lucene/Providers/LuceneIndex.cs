@@ -746,7 +746,7 @@ namespace Examine.Lucene.Providers
                         valueType.AddValue(doc, o);
                     }
                 }
-                else if (field.Key.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
+                else if (field.Key.StartsWith(ExamineFieldNames.SpecialFieldPrefix, StringComparison.Ordinal))
                 {
                     //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
 
