@@ -61,7 +61,7 @@ namespace Examine
                 foreach (var b in hashedByteArray)
                 {
                     //append it to our StringBuilder
-                    stringBuilder.Append(b.ToString("x2").ToLower());
+                    stringBuilder.Append(b.ToString("x2"));
                 }
 
                 //return the hashed value
@@ -102,22 +102,12 @@ namespace Examine
 
         public static string RemoveStopWords(this string searchText)
         {
-            Action<string, StringBuilder> removeWords = (str, b) =>
-                    {
-                        //remove stop words prior to search
-                        var innerBuilder = new StringBuilder();
-                        var searchParts = str.Split(' ');
-
-                        foreach (var t in searchParts)
-                        {
-                            if (!IsStandardAnalyzerStopWord(t))
-                            {
-                                innerBuilder.Append(t);
-                                innerBuilder.Append(" ");
-                            }
-                        }
-                        b.Append(innerBuilder.ToString());
-                    };
+            static void RemoveWords(string str, StringBuilder b)
+            {
+                foreach (var word in str.Split(' '))
+                    if (!IsStandardAnalyzerStopWord(word))
+                        b.Append(word).Append(' ');
+            }
 
             var builder = new StringBuilder();
             var carrat = 0;
@@ -133,7 +123,7 @@ namespace Examine
                     {
                         //add phrase to builder
                         var phraseWithoutQuotes = searchText.Substring(quoteIndex + 1, carrat - quoteIndex - 2);
-                        builder.Append("\"" + phraseWithoutQuotes.Trim() + "\" ");
+                        builder.Append('"').Append(phraseWithoutQuotes.Trim()).Append("\" ");
                     }
                     else
                     {
@@ -152,7 +142,7 @@ namespace Examine
                     var terms = searchText[carrat..nextCarrat].Trim();
                     if (!string.IsNullOrWhiteSpace(terms))
                     {
-                        removeWords(terms, builder);
+                        RemoveWords(terms, builder);
                     }
                     carrat = nextCarrat;
                 }
