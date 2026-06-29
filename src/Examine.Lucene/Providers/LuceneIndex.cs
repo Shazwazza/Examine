@@ -168,11 +168,10 @@ namespace Examine.Lucene.Providers
         private volatile IIndexFieldValueType _categoryValueType;
         private volatile IIndexFieldValueType _indexTypeValueType;
 
-        // Cached field-value-type factories used inside the per-field AddDocument loop.
-        // Without caching these, every field in every document triggers a ConcurrentDictionary
-        // lookup into ValueTypeFactories for the same two factory keys.
+        // Cached default field-type factories — resolved once on first use and reused for every field of every
+        // indexed document, eliminating repeated ConcurrentDictionary lookups on the per-field hot path.
         private volatile IFieldValueTypeFactory _fullTextFactory;
-        private volatile IFieldValueTypeFactory _invariantCaseFactory;
+        private volatile IFieldValueTypeFactory _invariantCultureFactory;
 
         #region Properties
 
@@ -739,7 +738,7 @@ namespace Examine.Lucene.Providers
             // Resolve factory references once — these two lookups are otherwise repeated for
             // every field in every document, even though the factory collection never changes.
             var fullTextFac = _fullTextFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText);
-            var invariantFac = _invariantCaseFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase);
+            var invariantFac = _invariantCultureFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase);
 
             foreach (var field in valueSet.Values)
             {

@@ -14,6 +14,11 @@ namespace Examine.Lucene.Search
         private readonly bool _isNrt;
         private string[] _searchableFields;
 
+        // Cached factory for the default FullText value type — avoids a ConcurrentDictionary lookup
+        // on every GetFieldValueType call. Written at most once (same value); volatile ensures
+        // visibility across threads without a lock, matching the pattern used in LuceneIndex.
+        private volatile IFieldValueTypeFactory _defaultFactory;
+
         [Obsolete("Use ctor with all dependencies")]
         public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
         {
@@ -56,7 +61,7 @@ namespace Examine.Lucene.Search
                         // materialising an intermediate List<string>.
                         var filtered = MultiFields.GetMergedFieldInfos(searcher.IndexReader)
                                     .Select(x => x.Name)
-                                    .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
+                                    .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix, StringComparison.Ordinal))
                                     .ToArray();
 
                         // Only cache non-empty results so that an initially empty index
@@ -83,7 +88,7 @@ namespace Examine.Lucene.Search
             //Get the value type for the field, or use the default if not defined
             return _fieldValueTypeCollection.GetValueType(
                 fieldName,
-                _fieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+                _defaultFactory ??= _fieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
         }
     }
 }
