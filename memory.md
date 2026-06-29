@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-06-28
+2026-06-29
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -19,13 +19,13 @@
 - `LuceneQuery.GroupedAnd/Or/Not`: LINQ state machine allocs eliminated (PR #518 open)
 - `GenerateHash`: removed redundant .ToLower() after "x2" format (PR #519 open)
 - `RemoveStopWords`: Action delegate/innerBuilder/string-concat allocs eliminated (PR #519 open)
-- `AddDocument`: field.Key.StartsWith uses StringComparison.Ordinal (PR #aw_pr_ord open)
-- `IsStandardAnalyzerStopWord`: ToLowerInvariant() replaces ToLower() (PR #aw_pr_ord open)
+- `AddDocument`: field.Key.StartsWith uses StringComparison.Ordinal (PR #521 open)
+- `IsStandardAnalyzerStopWord`: ToLowerInvariant() replaces ToLower() (PR #521 open)
+- `AddDocument`: _fullTextFactory + _invariantCultureFactory cached with ??= pattern (PR open, branch efficiency/cache-field-type-factories)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
 - `StringExtensions.ReplaceNonAlphanumericChars` is dead code (no callers found) with O(N²) pattern
 - `StringExtensions.EnsureEndsWith` is dead code (no callers found)
-- PR #520 by perf-improver: caches FullText factory in SearchContext + StringComparison.Ordinal for StartsWith in SearchContext
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
@@ -34,7 +34,8 @@
 | OPEN | Code-Level | Reflection in CheckQueryForExtractTerms + LINQ in ManagedQueryInternal | 3 reflection calls + 2 LINQ allocs eliminated | PR #517 open |
 | OPEN | Code-Level | LuceneQuery GroupedAnd/Or/Not LINQ allocs | 6 SelectIterator allocs eliminated | PR #518 open |
 | OPEN | Code-Level | GenerateHash redundant .ToLower() + RemoveStopWords lambda/StringBuilder allocs | 16-20 string allocs saved per hash; delegate+StringBuilder per stop-word call | PR #519 open |
-| OPEN | Code-Level | AddDocument StartsWith StringComparison.Ordinal + IsStandardAnalyzerStopWord ToLowerInvariant | Ordinal byte-compare replaces culture-aware compare in indexing hot path | PR #aw_pr_ord open |
+| OPEN | Code-Level | AddDocument StartsWith StringComparison.Ordinal + IsStandardAnalyzerStopWord ToLowerInvariant | Ordinal byte-compare replaces culture-aware compare in indexing hot path | PR #521 open |
+| OPEN | Code-Level | Default field-type factory lookups in AddDocument loop | Eliminates N×F ConcurrentDictionary lookups during bulk indexing | PR open (branch: efficiency/cache-field-type-factories) |
 | LOW | Code-Level | `StringExtensions.ReplaceNonAlphanumericChars` dead code with inefficient pattern | Cleanup if dead; or optimize if used | identified |
 | LOW | Code-Level | `StringExtensions.EnsureEndsWith` dead code with alloc-heavy EndsWith | Cleanup if dead | identified |
 
@@ -51,10 +52,11 @@
 - 2026-06-26: PR #517 created — reflection→pattern matching in CheckQueryForExtractTerms + LINQ inline loop in ManagedQueryInternal
 - 2026-06-27: PR #518 created — LINQ state-machine elimination in LuceneQuery (6 sites)
 - 2026-06-27: PR #519 created — redundant .ToLower() in GenerateHash + lambda/StringBuilder allocs in RemoveStopWords
-- 2026-06-28: PR #aw_pr_ord created — StringComparison.Ordinal in AddDocument StartsWith + ToLowerInvariant in IsStandardAnalyzerStopWord
+- 2026-06-28: PR #521 created — StringComparison.Ordinal in AddDocument StartsWith + ToLowerInvariant in IsStandardAnalyzerStopWord
+- 2026-06-29: PR created (branch: efficiency/cache-field-type-factories) — cache default field-type factories in AddDocument loop
 
 ## Backlog Cursor
-- Next scan: explore dead code removal (EnsureEndsWith, ReplaceNonAlphanumericChars); investigate caching GetRequiredFactory(FullText) and GetRequiredFactory(InvariantCultureIgnoreCase) in AddDocument loop; check SearchResult.GetValues simplification
+- Next scan: dead code removal (EnsureEndsWith, ReplaceNonAlphanumericChars); explore SearchResult.GetValues simplification; investigate further SearchContext hot paths
 
 ## Last Run Tasks
-- 2026-06-28: Task 3 (StringComparison.Ordinal in AddDocument + ToLowerInvariant in stop-word check), Task 7 (update June 2026 issue #510)
+- 2026-06-29: Task 3 (cache _fullTextFactory + _invariantCultureFactory in AddDocument loop), Task 7 (update June 2026 issue #510)
