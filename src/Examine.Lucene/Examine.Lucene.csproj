@@ -20,9 +20,7 @@
     <Content Include="..\..\assets\logo-round-small.png" Link="logo-round-small.png" Pack="true" PackagePath="" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lucene.Net.QueryParser">
-      <Version>4.8.0-beta00018</Version>
-    </PackageReference>
+    <PackageReference Include="Lucene.Net.QueryParser" Version="4.8.0-beta00018" />
     <PackageReference Include="Lucene.Net.Replicator" Version="4.8.0-beta00018" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
       <PrivateAssets>all</PrivateAssets>
