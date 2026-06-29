@@ -108,7 +108,7 @@ namespace Examine.Lucene.Search
 
         private static IExamineValue[] ToExamineValues(string[] query)
         {
-            if (query == null) return null;
+            ArgumentNullException.ThrowIfNull(query);
             var result = new IExamineValue[query.Length];
             for (var i = 0; i < query.Length; i++)
                 result[i] = new ExamineValue(Examineness.Explicit, query[i]);
