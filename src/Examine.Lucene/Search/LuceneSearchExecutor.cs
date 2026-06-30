@@ -74,7 +74,12 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var sortFields = _sortField as SortField[] ?? _sortField.ToArray();
+            // Avoid allocating a new array for the common no-sort case.
+            var sortFields = _sortField is SortField[] arr
+                ? arr
+                : (_sortField is ICollection<SortField> { Count: 0 }
+                    ? Array.Empty<SortField>()
+                    : _sortField.ToArray());
             Sort sort = null;
             FieldDoc scoreDocAfter = null;
             Filter filter = null;
@@ -285,6 +290,8 @@ namespace Examine.Lucene.Search
                         return false;
                     }
                 }
+                // All clauses (or empty) are safe — no need to fall through to the other checks.
+                return true;
             }
 
             if (query is LateBoundQuery lbq)

@@ -735,6 +735,11 @@ namespace Examine.Lucene.Providers
             (_indexTypeValueType ??= FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase)))
                 .AddValue(doc, valueSet.ItemType);
 
+            // Resolve factory references once — these two lookups are otherwise repeated for
+            // every field in every document, even though the factory collection never changes.
+            var fullTextFac = _fullTextFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText);
+            var invariantFac = _invariantCultureFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase);
+
             foreach (var field in valueSet.Values)
             {
                 //check if we have a defined one
@@ -744,7 +749,7 @@ namespace Examine.Lucene.Providers
                         definedFieldDefinition.Name,
                         FieldValueTypeCollection.ValueTypeFactories.TryGetFactory(definedFieldDefinition.Type, out var valTypeFactory)
                             ? valTypeFactory
-                            : (_fullTextFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText)));
+                            : fullTextFac);
 
                     foreach (var o in field.Value)
                     {
@@ -755,7 +760,7 @@ namespace Examine.Lucene.Providers
                 {
                     //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
 
-                    var valueType = FieldValueTypeCollection.GetValueType(field.Key, (_invariantCultureFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase)));
+                    var valueType = FieldValueTypeCollection.GetValueType(field.Key, invariantFac);
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(doc, o);
@@ -767,7 +772,7 @@ namespace Examine.Lucene.Providers
 
                     var valueType = FieldValueTypeCollection.GetValueType(
                         field.Key,
-                        (_fullTextFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText)));
+                        fullTextFac);
 
                     foreach (var o in field.Value)
                     {
