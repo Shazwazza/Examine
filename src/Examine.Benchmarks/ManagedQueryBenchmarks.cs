@@ -20,6 +20,45 @@ namespace Examine.Benchmarks
     ///
     /// Varying the field count shows per-field savings from the factory cache.
     /// </summary>
+    /// <remarks>
+    /// Results (AMD EPYC 7763, .NET 8.0.28, ShortRun — 3 warmup + 3 iterations, 1000-document index):
+    ///
+    /// | Method                  | Job    | Mean      | Ratio | Allocated  | Alloc Ratio |
+    /// |------------------------ |------- |----------:|------:|-----------:|------------:|
+    /// | ManagedQueryAllFields   | 3.0.1  | 11.612 ms |  1.00 | 1327.37 KB |        1.00 |
+    /// | ManagedQuerySingleField | 3.0.1  | 12.082 ms |  1.04 | 1261.15 KB |        0.95 |
+    /// | ManagedQueryTwoFields   | 3.0.1  | 11.658 ms |  1.00 |  1283.4 KB |        0.97 |
+    /// | ManagedQueryThreeFields | 3.0.1  | 11.695 ms |  1.01 | 1306.22 KB |        0.98 |
+    /// |                         |        |           |       |            |             |
+    /// | ManagedQueryAllFields   | 3.1.0  | 11.730 ms |  1.00 | 1326.76 KB |        1.00 |
+    /// | ManagedQuerySingleField | 3.1.0  | 11.885 ms |  1.01 | 1261.15 KB |        0.95 |
+    /// | ManagedQueryTwoFields   | 3.1.0  | 11.776 ms |  1.00 | 1283.45 KB |        0.97 |
+    /// | ManagedQueryThreeFields | 3.1.0  | 11.793 ms |  1.01 | 1306.24 KB |        0.98 |
+    /// |                         |        |           |       |            |             |
+    /// | ManagedQueryAllFields   | 3.2.1  | 11.527 ms |  1.00 | 1323.17 KB |        1.00 |
+    /// | ManagedQuerySingleField | 3.2.1  | 12.769 ms |  1.11 | 1257.01 KB |        0.95 |
+    /// | ManagedQueryTwoFields   | 3.2.1  | 11.359 ms |  0.99 | 1279.31 KB |        0.97 |
+    /// | ManagedQueryThreeFields | 3.2.1  | 11.779 ms |  1.02 | 1302.16 KB |        0.98 |
+    /// |                         |        |           |       |            |             |
+    /// | ManagedQueryAllFields   | 3.3.0  | 11.421 ms |  1.00 |  1323.2 KB |        1.00 |
+    /// | ManagedQuerySingleField | 3.3.0  | 12.165 ms |  1.07 | 1257.01 KB |        0.95 |
+    /// | ManagedQueryTwoFields   | 3.3.0  | 11.604 ms |  1.02 | 1279.27 KB |        0.97 |
+    /// | ManagedQueryThreeFields | 3.3.0  | 13.193 ms |  1.16 | 1302.13 KB |        0.98 |
+    /// |                         |        |           |       |            |             |
+    /// | ManagedQueryAllFields   | Source |  2.171 ms |  1.00 |  371.29 KB |        1.00 |
+    /// | ManagedQuerySingleField | Source |  2.181 ms |  1.00 |  306.49 KB |        0.83 |
+    /// | ManagedQueryTwoFields   | Source |  2.286 ms |  1.05 |  328.38 KB |        0.88 |
+    /// | ManagedQueryThreeFields | Source |  2.210 ms |  1.02 |  351.01 KB |        0.95 |
+    ///
+    /// Source vs 3.3.0 (most recent NuGet release):
+    /// - Speed: ~5.3x faster (2.2 ms vs 11.4–13.2 ms)
+    /// - Allocations: ~3.6x less (351–371 KB vs 1,279–1,327 KB)
+    ///
+    /// The gains reflect the cumulative effect of:
+    /// - PR #512: eliminated redundant ConcurrentDictionary lookups in AddDocument (warms the _resolvedValueTypes cache)
+    /// - PR #516: early return in CheckQueryForExtractTerms after BooleanQuery (saves type-checks + reflection per search)
+    /// - PR #520: _defaultFactory volatile cache in SearchContext.GetFieldValueType (eliminates 1 ConcurrentDictionary.TryGetValue per field per query after warm-up)
+    /// </remarks>
     [Config(typeof(NugetConfig))]
     [HideColumns("Arguments", "StdDev", "Error", "NuGetReferences")]
     [MemoryDiagnoser]
