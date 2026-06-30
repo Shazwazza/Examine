@@ -1,0 +1,1630 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 20 benchmark(s) in total *****
+// ***** Building 5 exe(s) in Parallel: Start   *****
+// ***** Done, took 00:00:32 (32.79 sec)   *****
+// Found 20 benchmarks:
+//   ManagedQueryBenchmarks.ManagedQueryAllFields: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQuerySingleField: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryAllFields: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQuerySingleField: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryAllFields: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQuerySingleField: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryAllFields: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQuerySingleField: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryAllFields: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQuerySingleField: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryTwoFields: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+//   ManagedQueryBenchmarks.ManagedQueryThreeFields: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryAllFields: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 0d2e00de-797e-4f6f-b7cf-0391bb08f743.dll --anonymousPipes 151 152 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryAllFields --job 3.0.1 --benchmarkId 0 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/0d2e00de-797e-4f6f-b7cf-0391bb08f743/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.0.1(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 298091.00 ns, 298.0910 us/op
+WorkloadJitting  1: 1 op, 104531961.00 ns, 104.5320 ms/op
+
+WorkloadPilot    1: 2 op, 127663194.00 ns, 63.8316 ms/op
+WorkloadPilot    2: 3 op, 208054121.00 ns, 69.3514 ms/op
+WorkloadPilot    3: 4 op, 254153317.00 ns, 63.5383 ms/op
+WorkloadPilot    4: 5 op, 175253377.00 ns, 35.0507 ms/op
+WorkloadPilot    5: 6 op, 95122092.00 ns, 15.8537 ms/op
+WorkloadPilot    6: 7 op, 94067187.00 ns, 13.4382 ms/op
+WorkloadPilot    7: 8 op, 95242297.00 ns, 11.9053 ms/op
+WorkloadPilot    8: 9 op, 103274374.00 ns, 11.4749 ms/op
+WorkloadPilot    9: 10 op, 114839947.00 ns, 11.4840 ms/op
+WorkloadPilot   10: 11 op, 129818791.00 ns, 11.8017 ms/op
+WorkloadPilot   11: 12 op, 139521303.00 ns, 11.6268 ms/op
+WorkloadPilot   12: 13 op, 160482167.00 ns, 12.3448 ms/op
+WorkloadPilot   13: 14 op, 160647316.00 ns, 11.4748 ms/op
+WorkloadPilot   14: 15 op, 170828091.00 ns, 11.3885 ms/op
+WorkloadPilot   15: 16 op, 181629044.00 ns, 11.3518 ms/op
+WorkloadPilot   16: 32 op, 368158926.00 ns, 11.5050 ms/op
+WorkloadPilot   17: 64 op, 743562015.00 ns, 11.6182 ms/op
+
+WorkloadWarmup   1: 64 op, 730888777.00 ns, 11.4201 ms/op
+WorkloadWarmup   2: 64 op, 741682501.00 ns, 11.5888 ms/op
+WorkloadWarmup   3: 64 op, 728410170.00 ns, 11.3814 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 755323991.00 ns, 11.8019 ms/op
+WorkloadActual   2: 64 op, 734766249.00 ns, 11.4807 ms/op
+WorkloadActual   3: 64 op, 739337686.00 ns, 11.5522 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 755323991.00 ns, 11.8019 ms/op
+WorkloadResult   2: 64 op, 734766249.00 ns, 11.4807 ms/op
+WorkloadResult   3: 64 op, 739337686.00 ns, 11.5522 ms/op
+// GC:  5 2 0 86990328 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9592 has exited with code 0.
+
+Mean = 11.612 ms, StdErr = 0.097 ms (0.84%), N = 3, StdDev = 0.169 ms
+Min = 11.481 ms, Q1 = 11.516 ms, Median = 11.552 ms, Q3 = 11.677 ms, Max = 11.802 ms
+IQR = 0.161 ms, LowerFence = 11.276 ms, UpperFence = 11.918 ms
+ConfidenceInterval = [8.535 ms; 14.689 ms] (CI 99.9%), Margin = 3.077 ms (26.50% of Mean)
+Skewness = 0.31, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 19 (95.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 3m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQuerySingleField: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 0d2e00de-797e-4f6f-b7cf-0391bb08f743.dll --anonymousPipes 153 158 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQuerySingleField --job 3.0.1 --benchmarkId 1 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/0d2e00de-797e-4f6f-b7cf-0391bb08f743/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.0.1(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 325628.00 ns, 325.6280 us/op
+WorkloadJitting  1: 1 op, 104387573.00 ns, 104.3876 ms/op
+
+WorkloadPilot    1: 2 op, 125991980.00 ns, 62.9960 ms/op
+WorkloadPilot    2: 3 op, 204203873.00 ns, 68.0680 ms/op
+WorkloadPilot    3: 4 op, 252000681.00 ns, 63.0002 ms/op
+WorkloadPilot    4: 5 op, 173214956.00 ns, 34.6430 ms/op
+WorkloadPilot    5: 6 op, 85031125.00 ns, 14.1719 ms/op
+WorkloadPilot    6: 7 op, 85055020.00 ns, 12.1507 ms/op
+WorkloadPilot    7: 8 op, 96118956.00 ns, 12.0149 ms/op
+WorkloadPilot    8: 9 op, 108622230.00 ns, 12.0691 ms/op
+WorkloadPilot    9: 10 op, 119579117.00 ns, 11.9579 ms/op
+WorkloadPilot   10: 11 op, 132344460.00 ns, 12.0313 ms/op
+WorkloadPilot   11: 12 op, 142688663.00 ns, 11.8907 ms/op
+WorkloadPilot   12: 13 op, 159467249.00 ns, 12.2667 ms/op
+WorkloadPilot   13: 14 op, 167463979.00 ns, 11.9617 ms/op
+WorkloadPilot   14: 15 op, 180562423.00 ns, 12.0375 ms/op
+WorkloadPilot   15: 16 op, 189416104.00 ns, 11.8385 ms/op
+WorkloadPilot   16: 32 op, 378446767.00 ns, 11.8265 ms/op
+WorkloadPilot   17: 64 op, 771561824.00 ns, 12.0557 ms/op
+
+WorkloadWarmup   1: 64 op, 771770108.00 ns, 12.0589 ms/op
+WorkloadWarmup   2: 64 op, 763450051.00 ns, 11.9289 ms/op
+WorkloadWarmup   3: 64 op, 764714045.00 ns, 11.9487 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 799924319.00 ns, 12.4988 ms/op
+WorkloadActual   2: 64 op, 760193274.00 ns, 11.8780 ms/op
+WorkloadActual   3: 64 op, 759717304.00 ns, 11.8706 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 799924319.00 ns, 12.4988 ms/op
+WorkloadResult   2: 64 op, 760193274.00 ns, 11.8780 ms/op
+WorkloadResult   3: 64 op, 759717304.00 ns, 11.8706 ms/op
+// GC:  4 3 0 82650712 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9606 has exited with code 0.
+
+Mean = 12.082 ms, StdErr = 0.208 ms (1.72%), N = 3, StdDev = 0.361 ms
+Min = 11.871 ms, Q1 = 11.874 ms, Median = 11.878 ms, Q3 = 12.188 ms, Max = 12.499 ms
+IQR = 0.314 ms, LowerFence = 11.403 ms, UpperFence = 12.660 ms
+ConfidenceInterval = [5.504 ms; 18.661 ms] (CI 99.9%), Margin = 6.578 ms (54.45% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 18 (90.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 3m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 0d2e00de-797e-4f6f-b7cf-0391bb08f743.dll --anonymousPipes 153 158 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryTwoFields --job 3.0.1 --benchmarkId 2 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/0d2e00de-797e-4f6f-b7cf-0391bb08f743/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.0.1(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 305281.00 ns, 305.2810 us/op
+WorkloadJitting  1: 1 op, 104734540.00 ns, 104.7345 ms/op
+
+WorkloadPilot    1: 2 op, 126915568.00 ns, 63.4578 ms/op
+WorkloadPilot    2: 3 op, 208116903.00 ns, 69.3723 ms/op
+WorkloadPilot    3: 4 op, 255831477.00 ns, 63.9579 ms/op
+WorkloadPilot    4: 5 op, 179957190.00 ns, 35.9914 ms/op
+WorkloadPilot    5: 6 op, 78005891.00 ns, 13.0010 ms/op
+WorkloadPilot    6: 7 op, 87632174.00 ns, 12.5189 ms/op
+WorkloadPilot    7: 8 op, 96749074.00 ns, 12.0936 ms/op
+WorkloadPilot    8: 9 op, 107188918.00 ns, 11.9099 ms/op
+WorkloadPilot    9: 10 op, 118491754.00 ns, 11.8492 ms/op
+WorkloadPilot   10: 11 op, 130625313.00 ns, 11.8750 ms/op
+WorkloadPilot   11: 12 op, 142540784.00 ns, 11.8784 ms/op
+WorkloadPilot   12: 13 op, 157583565.00 ns, 12.1218 ms/op
+WorkloadPilot   13: 14 op, 170661794.00 ns, 12.1901 ms/op
+WorkloadPilot   14: 15 op, 180880244.00 ns, 12.0587 ms/op
+WorkloadPilot   15: 16 op, 187601188.00 ns, 11.7251 ms/op
+WorkloadPilot   16: 32 op, 370838735.00 ns, 11.5887 ms/op
+WorkloadPilot   17: 64 op, 752215341.00 ns, 11.7534 ms/op
+
+WorkloadWarmup   1: 64 op, 752700440.00 ns, 11.7609 ms/op
+WorkloadWarmup   2: 64 op, 746233749.00 ns, 11.6599 ms/op
+WorkloadWarmup   3: 64 op, 745219378.00 ns, 11.6441 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 744977014.00 ns, 11.6403 ms/op
+WorkloadActual   2: 64 op, 747776110.00 ns, 11.6840 ms/op
+WorkloadActual   3: 64 op, 745531611.00 ns, 11.6489 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 744977014.00 ns, 11.6403 ms/op
+WorkloadResult   2: 64 op, 747776110.00 ns, 11.6840 ms/op
+WorkloadResult   3: 64 op, 745531611.00 ns, 11.6489 ms/op
+// GC:  5 3 0 84108784 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9622 has exited with code 0.
+
+Mean = 11.658 ms, StdErr = 0.013 ms (0.11%), N = 3, StdDev = 0.023 ms
+Min = 11.640 ms, Q1 = 11.645 ms, Median = 11.649 ms, Q3 = 11.666 ms, Max = 11.684 ms
+IQR = 0.022 ms, LowerFence = 11.612 ms, UpperFence = 11.699 ms
+ConfidenceInterval = [11.235 ms; 12.080 ms] (CI 99.9%), Margin = 0.422 ms (3.62% of Mean)
+Skewness = 0.33, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 17 (85.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 3m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 0d2e00de-797e-4f6f-b7cf-0391bb08f743.dll --anonymousPipes 153 158 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryThreeFields --job 3.0.1 --benchmarkId 3 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/0d2e00de-797e-4f6f-b7cf-0391bb08f743/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.0.1(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 306684.00 ns, 306.6840 us/op
+WorkloadJitting  1: 1 op, 105066433.00 ns, 105.0664 ms/op
+
+WorkloadPilot    1: 2 op, 127033979.00 ns, 63.5170 ms/op
+WorkloadPilot    2: 3 op, 210668760.00 ns, 70.2229 ms/op
+WorkloadPilot    3: 4 op, 255223554.00 ns, 63.8059 ms/op
+WorkloadPilot    4: 5 op, 176731862.00 ns, 35.3464 ms/op
+WorkloadPilot    5: 6 op, 92303604.00 ns, 15.3839 ms/op
+WorkloadPilot    6: 7 op, 89175300.00 ns, 12.7393 ms/op
+WorkloadPilot    7: 8 op, 97373169.00 ns, 12.1716 ms/op
+WorkloadPilot    8: 9 op, 106060434.00 ns, 11.7845 ms/op
+WorkloadPilot    9: 10 op, 117916718.00 ns, 11.7917 ms/op
+WorkloadPilot   10: 11 op, 131739400.00 ns, 11.9763 ms/op
+WorkloadPilot   11: 12 op, 143537856.00 ns, 11.9615 ms/op
+WorkloadPilot   12: 13 op, 154296085.00 ns, 11.8689 ms/op
+WorkloadPilot   13: 14 op, 168311678.00 ns, 12.0223 ms/op
+WorkloadPilot   14: 15 op, 179544195.00 ns, 11.9696 ms/op
+WorkloadPilot   15: 16 op, 188215279.00 ns, 11.7635 ms/op
+WorkloadPilot   16: 32 op, 374444151.00 ns, 11.7014 ms/op
+WorkloadPilot   17: 64 op, 754044229.00 ns, 11.7819 ms/op
+
+WorkloadWarmup   1: 64 op, 750346660.00 ns, 11.7242 ms/op
+WorkloadWarmup   2: 64 op, 748726038.00 ns, 11.6988 ms/op
+WorkloadWarmup   3: 64 op, 750385714.00 ns, 11.7248 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 755386199.00 ns, 11.8029 ms/op
+WorkloadActual   2: 64 op, 746357957.00 ns, 11.6618 ms/op
+WorkloadActual   3: 64 op, 743691613.00 ns, 11.6202 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 755386199.00 ns, 11.8029 ms/op
+WorkloadResult   2: 64 op, 746357957.00 ns, 11.6618 ms/op
+WorkloadResult   3: 64 op, 743691613.00 ns, 11.6202 ms/op
+// GC:  5 2 0 85604344 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9635 has exited with code 0.
+
+Mean = 11.695 ms, StdErr = 0.055 ms (0.47%), N = 3, StdDev = 0.096 ms
+Min = 11.620 ms, Q1 = 11.641 ms, Median = 11.662 ms, Q3 = 11.732 ms, Max = 11.803 ms
+IQR = 0.091 ms, LowerFence = 11.504 ms, UpperFence = 11.869 ms
+ConfidenceInterval = [9.948 ms; 13.442 ms] (CI 99.9%), Margin = 1.747 ms (14.94% of Mean)
+Skewness = 0.3, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 16 (80.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 2m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryAllFields: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f6477781-14b7-4abc-a991-74eaf18c36b4.dll --anonymousPipes 153 158 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryAllFields --job 3.1.0 --benchmarkId 0 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/f6477781-14b7-4abc-a991-74eaf18c36b4/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.1.0(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 325559.00 ns, 325.5590 us/op
+WorkloadJitting  1: 1 op, 107017304.00 ns, 107.0173 ms/op
+
+WorkloadPilot    1: 2 op, 127832447.00 ns, 63.9162 ms/op
+WorkloadPilot    2: 3 op, 212784089.00 ns, 70.9280 ms/op
+WorkloadPilot    3: 4 op, 253999414.00 ns, 63.4999 ms/op
+WorkloadPilot    4: 5 op, 172939690.00 ns, 34.5879 ms/op
+WorkloadPilot    5: 6 op, 93945219.00 ns, 15.6575 ms/op
+WorkloadPilot    6: 7 op, 87482307.00 ns, 12.4975 ms/op
+WorkloadPilot    7: 8 op, 96196330.00 ns, 12.0245 ms/op
+WorkloadPilot    8: 9 op, 106105930.00 ns, 11.7895 ms/op
+WorkloadPilot    9: 10 op, 117995744.00 ns, 11.7996 ms/op
+WorkloadPilot   10: 11 op, 132951374.00 ns, 12.0865 ms/op
+WorkloadPilot   11: 12 op, 142948656.00 ns, 11.9124 ms/op
+WorkloadPilot   12: 13 op, 153586850.00 ns, 11.8144 ms/op
+WorkloadPilot   13: 14 op, 164827799.00 ns, 11.7734 ms/op
+WorkloadPilot   14: 15 op, 176939089.00 ns, 11.7959 ms/op
+WorkloadPilot   15: 16 op, 195243733.00 ns, 12.2027 ms/op
+WorkloadPilot   16: 32 op, 373201668.00 ns, 11.6626 ms/op
+WorkloadPilot   17: 64 op, 768025533.00 ns, 12.0004 ms/op
+
+WorkloadWarmup   1: 64 op, 753827265.00 ns, 11.7786 ms/op
+WorkloadWarmup   2: 64 op, 754038174.00 ns, 11.7818 ms/op
+WorkloadWarmup   3: 64 op, 749148955.00 ns, 11.7055 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 751721297.00 ns, 11.7456 ms/op
+WorkloadActual   2: 64 op, 750717770.00 ns, 11.7300 ms/op
+WorkloadActual   3: 64 op, 749724351.00 ns, 11.7144 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 751721297.00 ns, 11.7456 ms/op
+WorkloadResult   2: 64 op, 750717770.00 ns, 11.7300 ms/op
+WorkloadResult   3: 64 op, 749724351.00 ns, 11.7144 ms/op
+// GC:  5 2 0 86950392 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9654 has exited with code 0.
+
+Mean = 11.730 ms, StdErr = 0.009 ms (0.08%), N = 3, StdDev = 0.016 ms
+Min = 11.714 ms, Q1 = 11.722 ms, Median = 11.730 ms, Q3 = 11.738 ms, Max = 11.746 ms
+IQR = 0.016 ms, LowerFence = 11.699 ms, UpperFence = 11.761 ms
+ConfidenceInterval = [11.445 ms; 12.015 ms] (CI 99.9%), Margin = 0.285 ms (2.43% of Mean)
+Skewness = 0, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 15 (75.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 2m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQuerySingleField: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f6477781-14b7-4abc-a991-74eaf18c36b4.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQuerySingleField --job 3.1.0 --benchmarkId 1 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/f6477781-14b7-4abc-a991-74eaf18c36b4/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.1.0(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 329727.00 ns, 329.7270 us/op
+WorkloadJitting  1: 1 op, 105928598.00 ns, 105.9286 ms/op
+
+WorkloadPilot    1: 2 op, 128726859.00 ns, 64.3634 ms/op
+WorkloadPilot    2: 3 op, 222900916.00 ns, 74.3003 ms/op
+WorkloadPilot    3: 4 op, 329546613.00 ns, 82.3867 ms/op
+WorkloadPilot    4: 5 op, 202797046.00 ns, 40.5594 ms/op
+WorkloadPilot    5: 6 op, 131074991.00 ns, 21.8458 ms/op
+WorkloadPilot    6: 7 op, 87225899.00 ns, 12.4608 ms/op
+WorkloadPilot    7: 8 op, 95612539.00 ns, 11.9516 ms/op
+WorkloadPilot    8: 9 op, 107579686.00 ns, 11.9533 ms/op
+WorkloadPilot    9: 10 op, 123947577.00 ns, 12.3948 ms/op
+WorkloadPilot   10: 11 op, 151689006.00 ns, 13.7899 ms/op
+WorkloadPilot   11: 12 op, 142527115.00 ns, 11.8773 ms/op
+WorkloadPilot   12: 13 op, 161976801.00 ns, 12.4598 ms/op
+WorkloadPilot   13: 14 op, 167100632.00 ns, 11.9358 ms/op
+WorkloadPilot   14: 15 op, 178419818.00 ns, 11.8947 ms/op
+WorkloadPilot   15: 16 op, 192494890.00 ns, 12.0309 ms/op
+WorkloadPilot   16: 32 op, 381063755.00 ns, 11.9082 ms/op
+WorkloadPilot   17: 64 op, 761082487.00 ns, 11.8919 ms/op
+
+WorkloadWarmup   1: 64 op, 760391375.00 ns, 11.8811 ms/op
+WorkloadWarmup   2: 64 op, 758303784.00 ns, 11.8485 ms/op
+WorkloadWarmup   3: 64 op, 764101047.00 ns, 11.9391 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 761482163.00 ns, 11.8982 ms/op
+WorkloadActual   2: 64 op, 760055839.00 ns, 11.8759 ms/op
+WorkloadActual   3: 64 op, 760341659.00 ns, 11.8803 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 761482163.00 ns, 11.8982 ms/op
+WorkloadResult   2: 64 op, 760055839.00 ns, 11.8759 ms/op
+WorkloadResult   3: 64 op, 760341659.00 ns, 11.8803 ms/op
+// GC:  4 3 0 82650712 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9675 has exited with code 0.
+
+Mean = 11.885 ms, StdErr = 0.007 ms (0.06%), N = 3, StdDev = 0.012 ms
+Min = 11.876 ms, Q1 = 11.878 ms, Median = 11.880 ms, Q3 = 11.889 ms, Max = 11.898 ms
+IQR = 0.011 ms, LowerFence = 11.861 ms, UpperFence = 11.906 ms
+ConfidenceInterval = [11.670 ms; 12.100 ms] (CI 99.9%), Margin = 0.215 ms (1.81% of Mean)
+Skewness = 0.32, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 14 (70.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 2m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f6477781-14b7-4abc-a991-74eaf18c36b4.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryTwoFields --job 3.1.0 --benchmarkId 2 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/f6477781-14b7-4abc-a991-74eaf18c36b4/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.1.0(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 321780.00 ns, 321.7800 us/op
+WorkloadJitting  1: 1 op, 107366011.00 ns, 107.3660 ms/op
+
+WorkloadPilot    1: 2 op, 130937379.00 ns, 65.4687 ms/op
+WorkloadPilot    2: 3 op, 197029810.00 ns, 65.6766 ms/op
+WorkloadPilot    3: 4 op, 254663660.00 ns, 63.6659 ms/op
+WorkloadPilot    4: 5 op, 179970753.00 ns, 35.9942 ms/op
+WorkloadPilot    5: 6 op, 84347512.00 ns, 14.0579 ms/op
+WorkloadPilot    6: 7 op, 88751255.00 ns, 12.6788 ms/op
+WorkloadPilot    7: 8 op, 96665254.00 ns, 12.0832 ms/op
+WorkloadPilot    8: 9 op, 109565371.00 ns, 12.1739 ms/op
+WorkloadPilot    9: 10 op, 120096932.00 ns, 12.0097 ms/op
+WorkloadPilot   10: 11 op, 132934524.00 ns, 12.0850 ms/op
+WorkloadPilot   11: 12 op, 142290823.00 ns, 11.8576 ms/op
+WorkloadPilot   12: 13 op, 157944486.00 ns, 12.1496 ms/op
+WorkloadPilot   13: 14 op, 165471954.00 ns, 11.8194 ms/op
+WorkloadPilot   14: 15 op, 182366180.00 ns, 12.1577 ms/op
+WorkloadPilot   15: 16 op, 189993616.00 ns, 11.8746 ms/op
+WorkloadPilot   16: 32 op, 374514618.00 ns, 11.7036 ms/op
+WorkloadPilot   17: 64 op, 772537986.00 ns, 12.0709 ms/op
+
+WorkloadWarmup   1: 64 op, 754213251.00 ns, 11.7846 ms/op
+WorkloadWarmup   2: 64 op, 751073177.00 ns, 11.7355 ms/op
+WorkloadWarmup   3: 64 op, 750641701.00 ns, 11.7288 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 754793727.00 ns, 11.7937 ms/op
+WorkloadActual   2: 64 op, 754020856.00 ns, 11.7816 ms/op
+WorkloadActual   3: 64 op, 752102194.00 ns, 11.7516 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 754793727.00 ns, 11.7937 ms/op
+WorkloadResult   2: 64 op, 754020856.00 ns, 11.7816 ms/op
+WorkloadResult   3: 64 op, 752102194.00 ns, 11.7516 ms/op
+// GC:  5 3 0 84111856 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9694 has exited with code 0.
+
+Mean = 11.776 ms, StdErr = 0.013 ms (0.11%), N = 3, StdDev = 0.022 ms
+Min = 11.752 ms, Q1 = 11.767 ms, Median = 11.782 ms, Q3 = 11.788 ms, Max = 11.794 ms
+IQR = 0.021 ms, LowerFence = 11.735 ms, UpperFence = 11.819 ms
+ConfidenceInterval = [11.381 ms; 12.171 ms] (CI 99.9%), Margin = 0.395 ms (3.35% of Mean)
+Skewness = -0.25, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 13 (65.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 2m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f6477781-14b7-4abc-a991-74eaf18c36b4.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryThreeFields --job 3.1.0 --benchmarkId 3 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/f6477781-14b7-4abc-a991-74eaf18c36b4/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.1.0(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 288860.00 ns, 288.8600 us/op
+WorkloadJitting  1: 1 op, 106605286.00 ns, 106.6053 ms/op
+
+WorkloadPilot    1: 2 op, 137567887.00 ns, 68.7839 ms/op
+WorkloadPilot    2: 3 op, 217776907.00 ns, 72.5923 ms/op
+WorkloadPilot    3: 4 op, 248571620.00 ns, 62.1429 ms/op
+WorkloadPilot    4: 5 op, 178048458.00 ns, 35.6097 ms/op
+WorkloadPilot    5: 6 op, 85651683.00 ns, 14.2753 ms/op
+WorkloadPilot    6: 7 op, 84962684.00 ns, 12.1375 ms/op
+WorkloadPilot    7: 8 op, 95724258.00 ns, 11.9655 ms/op
+WorkloadPilot    8: 9 op, 107469392.00 ns, 11.9410 ms/op
+WorkloadPilot    9: 10 op, 118333629.00 ns, 11.8334 ms/op
+WorkloadPilot   10: 11 op, 131122514.00 ns, 11.9202 ms/op
+WorkloadPilot   11: 12 op, 142670551.00 ns, 11.8892 ms/op
+WorkloadPilot   12: 13 op, 153721826.00 ns, 11.8248 ms/op
+WorkloadPilot   13: 14 op, 164976363.00 ns, 11.7840 ms/op
+WorkloadPilot   14: 15 op, 176618715.00 ns, 11.7746 ms/op
+WorkloadPilot   15: 16 op, 187766411.00 ns, 11.7354 ms/op
+WorkloadPilot   16: 32 op, 377212654.00 ns, 11.7879 ms/op
+WorkloadPilot   17: 64 op, 752729277.00 ns, 11.7614 ms/op
+
+WorkloadWarmup   1: 64 op, 752300635.00 ns, 11.7547 ms/op
+WorkloadWarmup   2: 64 op, 751525164.00 ns, 11.7426 ms/op
+WorkloadWarmup   3: 64 op, 750073333.00 ns, 11.7199 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 751376691.00 ns, 11.7403 ms/op
+WorkloadActual   2: 64 op, 760818579.00 ns, 11.8878 ms/op
+WorkloadActual   3: 64 op, 752026105.00 ns, 11.7504 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 751376691.00 ns, 11.7403 ms/op
+WorkloadResult   2: 64 op, 760818579.00 ns, 11.8878 ms/op
+WorkloadResult   3: 64 op, 752026105.00 ns, 11.7504 ms/op
+// GC:  5 2 0 85605880 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9711 has exited with code 0.
+
+Mean = 11.793 ms, StdErr = 0.048 ms (0.40%), N = 3, StdDev = 0.082 ms
+Min = 11.740 ms, Q1 = 11.745 ms, Median = 11.750 ms, Q3 = 11.819 ms, Max = 11.888 ms
+IQR = 0.074 ms, LowerFence = 11.635 ms, UpperFence = 11.930 ms
+ConfidenceInterval = [10.289 ms; 13.296 ms] (CI 99.9%), Margin = 1.503 ms (12.75% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 12 (60.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 2m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryAllFields: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 19b16dc5-bbb0-4fce-a8ae-f21e58a5fe92.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryAllFields --job 3.2.1 --benchmarkId 0 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/19b16dc5-bbb0-4fce-a8ae-f21e58a5fe92/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.2.1(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 294191.00 ns, 294.1910 us/op
+WorkloadJitting  1: 1 op, 108667359.00 ns, 108.6674 ms/op
+
+WorkloadPilot    1: 2 op, 131876099.00 ns, 65.9380 ms/op
+WorkloadPilot    2: 3 op, 197030803.00 ns, 65.6769 ms/op
+WorkloadPilot    3: 4 op, 265487963.00 ns, 66.3720 ms/op
+WorkloadPilot    4: 5 op, 182100858.00 ns, 36.4202 ms/op
+WorkloadPilot    5: 6 op, 90602872.00 ns, 15.1005 ms/op
+WorkloadPilot    6: 7 op, 83259928.00 ns, 11.8943 ms/op
+WorkloadPilot    7: 8 op, 94317580.00 ns, 11.7897 ms/op
+WorkloadPilot    8: 9 op, 104053690.00 ns, 11.5615 ms/op
+WorkloadPilot    9: 10 op, 115400644.00 ns, 11.5401 ms/op
+WorkloadPilot   10: 11 op, 129585164.00 ns, 11.7805 ms/op
+WorkloadPilot   11: 12 op, 137838571.00 ns, 11.4865 ms/op
+WorkloadPilot   12: 13 op, 150371171.00 ns, 11.5670 ms/op
+WorkloadPilot   13: 14 op, 164188075.00 ns, 11.7277 ms/op
+WorkloadPilot   14: 15 op, 172023084.00 ns, 11.4682 ms/op
+WorkloadPilot   15: 16 op, 183533834.00 ns, 11.4709 ms/op
+WorkloadPilot   16: 32 op, 371094690.00 ns, 11.5967 ms/op
+WorkloadPilot   17: 64 op, 744302943.00 ns, 11.6297 ms/op
+
+WorkloadWarmup   1: 64 op, 740301489.00 ns, 11.5672 ms/op
+WorkloadWarmup   2: 64 op, 735888054.00 ns, 11.4983 ms/op
+WorkloadWarmup   3: 64 op, 734759725.00 ns, 11.4806 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 737976832.00 ns, 11.5309 ms/op
+WorkloadActual   2: 64 op, 738877234.00 ns, 11.5450 ms/op
+WorkloadActual   3: 64 op, 736326184.00 ns, 11.5051 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 737976832.00 ns, 11.5309 ms/op
+WorkloadResult   2: 64 op, 738877234.00 ns, 11.5450 ms/op
+WorkloadResult   3: 64 op, 736326184.00 ns, 11.5051 ms/op
+// GC:  5 2 0 86715384 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9729 has exited with code 0.
+
+Mean = 11.527 ms, StdErr = 0.012 ms (0.10%), N = 3, StdDev = 0.020 ms
+Min = 11.505 ms, Q1 = 11.518 ms, Median = 11.531 ms, Q3 = 11.538 ms, Max = 11.545 ms
+IQR = 0.020 ms, LowerFence = 11.488 ms, UpperFence = 11.568 ms
+ConfidenceInterval = [11.158 ms; 11.896 ms] (CI 99.9%), Margin = 0.369 ms (3.20% of Mean)
+Skewness = -0.19, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 11 (55.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 1m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQuerySingleField: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 19b16dc5-bbb0-4fce-a8ae-f21e58a5fe92.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQuerySingleField --job 3.2.1 --benchmarkId 1 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/19b16dc5-bbb0-4fce-a8ae-f21e58a5fe92/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.2.1(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 319908.00 ns, 319.9080 us/op
+WorkloadJitting  1: 1 op, 105837621.00 ns, 105.8376 ms/op
+
+WorkloadPilot    1: 2 op, 132040201.00 ns, 66.0201 ms/op
+WorkloadPilot    2: 3 op, 197354183.00 ns, 65.7847 ms/op
+WorkloadPilot    3: 4 op, 260693981.00 ns, 65.1735 ms/op
+WorkloadPilot    4: 5 op, 173342088.00 ns, 34.6684 ms/op
+WorkloadPilot    5: 6 op, 84636645.00 ns, 14.1061 ms/op
+WorkloadPilot    6: 7 op, 85500611.00 ns, 12.2144 ms/op
+WorkloadPilot    7: 8 op, 97389554.00 ns, 12.1737 ms/op
+WorkloadPilot    8: 9 op, 107527892.00 ns, 11.9475 ms/op
+WorkloadPilot    9: 10 op, 127501610.00 ns, 12.7502 ms/op
+WorkloadPilot   10: 11 op, 133460278.00 ns, 12.1328 ms/op
+WorkloadPilot   11: 12 op, 143243564.00 ns, 11.9370 ms/op
+WorkloadPilot   12: 13 op, 159662919.00 ns, 12.2818 ms/op
+WorkloadPilot   13: 14 op, 186746045.00 ns, 13.3390 ms/op
+WorkloadPilot   14: 15 op, 199380993.00 ns, 13.2921 ms/op
+WorkloadPilot   15: 16 op, 212812582.00 ns, 13.3008 ms/op
+WorkloadPilot   16: 32 op, 425959217.00 ns, 13.3112 ms/op
+WorkloadPilot   17: 64 op, 849869853.00 ns, 13.2792 ms/op
+
+WorkloadWarmup   1: 64 op, 832442693.00 ns, 13.0069 ms/op
+WorkloadWarmup   2: 64 op, 829811132.00 ns, 12.9658 ms/op
+WorkloadWarmup   3: 64 op, 831150737.00 ns, 12.9867 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 819020012.00 ns, 12.7972 ms/op
+WorkloadActual   2: 64 op, 814394783.00 ns, 12.7249 ms/op
+WorkloadActual   3: 64 op, 818163854.00 ns, 12.7838 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 819020012.00 ns, 12.7972 ms/op
+WorkloadResult   2: 64 op, 814394783.00 ns, 12.7249 ms/op
+WorkloadResult   3: 64 op, 818163854.00 ns, 12.7838 ms/op
+// GC:  4 3 0 82379352 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9743 has exited with code 0.
+
+Mean = 12.769 ms, StdErr = 0.022 ms (0.17%), N = 3, StdDev = 0.038 ms
+Min = 12.725 ms, Q1 = 12.754 ms, Median = 12.784 ms, Q3 = 12.790 ms, Max = 12.797 ms
+IQR = 0.036 ms, LowerFence = 12.700 ms, UpperFence = 12.845 ms
+ConfidenceInterval = [12.067 ms; 13.470 ms] (CI 99.9%), Margin = 0.701 ms (5.49% of Mean)
+Skewness = -0.33, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 10 (50.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 1m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 19b16dc5-bbb0-4fce-a8ae-f21e58a5fe92.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryTwoFields --job 3.2.1 --benchmarkId 2 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/19b16dc5-bbb0-4fce-a8ae-f21e58a5fe92/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.2.1(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 314949.00 ns, 314.9490 us/op
+WorkloadJitting  1: 1 op, 104870799.00 ns, 104.8708 ms/op
+
+WorkloadPilot    1: 2 op, 127036431.00 ns, 63.5182 ms/op
+WorkloadPilot    2: 3 op, 206783369.00 ns, 68.9278 ms/op
+WorkloadPilot    3: 4 op, 252440341.00 ns, 63.1101 ms/op
+WorkloadPilot    4: 5 op, 171762293.00 ns, 34.3525 ms/op
+WorkloadPilot    5: 6 op, 86560330.00 ns, 14.4267 ms/op
+WorkloadPilot    6: 7 op, 83547080.00 ns, 11.9353 ms/op
+WorkloadPilot    7: 8 op, 93410592.00 ns, 11.6763 ms/op
+WorkloadPilot    8: 9 op, 102744374.00 ns, 11.4160 ms/op
+WorkloadPilot    9: 10 op, 114126746.00 ns, 11.4127 ms/op
+WorkloadPilot   10: 11 op, 127447910.00 ns, 11.5862 ms/op
+WorkloadPilot   11: 12 op, 138852502.00 ns, 11.5710 ms/op
+WorkloadPilot   12: 13 op, 149185004.00 ns, 11.4758 ms/op
+WorkloadPilot   13: 14 op, 159970815.00 ns, 11.4265 ms/op
+WorkloadPilot   14: 15 op, 173045344.00 ns, 11.5364 ms/op
+WorkloadPilot   15: 16 op, 181436425.00 ns, 11.3398 ms/op
+WorkloadPilot   16: 32 op, 362792028.00 ns, 11.3373 ms/op
+WorkloadPilot   17: 64 op, 730371510.00 ns, 11.4121 ms/op
+
+WorkloadWarmup   1: 64 op, 726322086.00 ns, 11.3488 ms/op
+WorkloadWarmup   2: 64 op, 724681743.00 ns, 11.3232 ms/op
+WorkloadWarmup   3: 64 op, 724960512.00 ns, 11.3275 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 730686537.00 ns, 11.4170 ms/op
+WorkloadActual   2: 64 op, 723467320.00 ns, 11.3042 ms/op
+WorkloadActual   3: 64 op, 726770796.00 ns, 11.3558 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 730686537.00 ns, 11.4170 ms/op
+WorkloadResult   2: 64 op, 723467320.00 ns, 11.3042 ms/op
+WorkloadResult   3: 64 op, 726770796.00 ns, 11.3558 ms/op
+// GC:  5 3 0 83841008 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9759 has exited with code 0.
+
+Mean = 11.359 ms, StdErr = 0.033 ms (0.29%), N = 3, StdDev = 0.056 ms
+Min = 11.304 ms, Q1 = 11.330 ms, Median = 11.356 ms, Q3 = 11.386 ms, Max = 11.417 ms
+IQR = 0.056 ms, LowerFence = 11.245 ms, UpperFence = 11.471 ms
+ConfidenceInterval = [10.329 ms; 12.389 ms] (CI 99.9%), Margin = 1.030 ms (9.07% of Mean)
+Skewness = 0.06, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 9 (45.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 1m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 19b16dc5-bbb0-4fce-a8ae-f21e58a5fe92.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryThreeFields --job 3.2.1 --benchmarkId 3 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/19b16dc5-bbb0-4fce-a8ae-f21e58a5fe92/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.2.1(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 298027.00 ns, 298.0270 us/op
+WorkloadJitting  1: 1 op, 107861646.00 ns, 107.8616 ms/op
+
+WorkloadPilot    1: 2 op, 129545355.00 ns, 64.7727 ms/op
+WorkloadPilot    2: 3 op, 193874454.00 ns, 64.6248 ms/op
+WorkloadPilot    3: 4 op, 259369903.00 ns, 64.8425 ms/op
+WorkloadPilot    4: 5 op, 184697908.00 ns, 36.9396 ms/op
+WorkloadPilot    5: 6 op, 86172226.00 ns, 14.3620 ms/op
+WorkloadPilot    6: 7 op, 87442190.00 ns, 12.4917 ms/op
+WorkloadPilot    7: 8 op, 96608538.00 ns, 12.0761 ms/op
+WorkloadPilot    8: 9 op, 107415031.00 ns, 11.9350 ms/op
+WorkloadPilot    9: 10 op, 121125363.00 ns, 12.1125 ms/op
+WorkloadPilot   10: 11 op, 131264609.00 ns, 11.9331 ms/op
+WorkloadPilot   11: 12 op, 143552863.00 ns, 11.9627 ms/op
+WorkloadPilot   12: 13 op, 154552659.00 ns, 11.8887 ms/op
+WorkloadPilot   13: 14 op, 165426128.00 ns, 11.8162 ms/op
+WorkloadPilot   14: 15 op, 175910884.00 ns, 11.7274 ms/op
+WorkloadPilot   15: 16 op, 190935299.00 ns, 11.9335 ms/op
+WorkloadPilot   16: 32 op, 374904262.00 ns, 11.7158 ms/op
+WorkloadPilot   17: 64 op, 758238287.00 ns, 11.8475 ms/op
+
+WorkloadWarmup   1: 64 op, 757750171.00 ns, 11.8398 ms/op
+WorkloadWarmup   2: 64 op, 758364650.00 ns, 11.8494 ms/op
+WorkloadWarmup   3: 64 op, 760033581.00 ns, 11.8755 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 757202567.00 ns, 11.8313 ms/op
+WorkloadActual   2: 64 op, 751710960.00 ns, 11.7455 ms/op
+WorkloadActual   3: 64 op, 752597478.00 ns, 11.7593 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 757202567.00 ns, 11.8313 ms/op
+WorkloadResult   2: 64 op, 751710960.00 ns, 11.7455 ms/op
+WorkloadResult   3: 64 op, 752597478.00 ns, 11.7593 ms/op
+// GC:  5 2 0 85338616 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9771 has exited with code 0.
+
+Mean = 11.779 ms, StdErr = 0.027 ms (0.23%), N = 3, StdDev = 0.046 ms
+Min = 11.745 ms, Q1 = 11.752 ms, Median = 11.759 ms, Q3 = 11.795 ms, Max = 11.831 ms
+IQR = 0.043 ms, LowerFence = 11.688 ms, UpperFence = 11.860 ms
+ConfidenceInterval = [10.938 ms; 12.619 ms] (CI 99.9%), Margin = 0.840 ms (7.13% of Mean)
+Skewness = 0.35, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 8 (40.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 1m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryAllFields: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet a96b25b4-1877-4d83-b17f-f5f54513df64.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryAllFields --job 3.3.0 --benchmarkId 0 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/a96b25b4-1877-4d83-b17f-f5f54513df64/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.3.0(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 298097.00 ns, 298.0970 us/op
+WorkloadJitting  1: 1 op, 107211996.00 ns, 107.2120 ms/op
+
+WorkloadPilot    1: 2 op, 147423142.00 ns, 73.7116 ms/op
+WorkloadPilot    2: 3 op, 237406845.00 ns, 79.1356 ms/op
+WorkloadPilot    3: 4 op, 253725026.00 ns, 63.4313 ms/op
+WorkloadPilot    4: 5 op, 194181161.00 ns, 38.8362 ms/op
+WorkloadPilot    5: 6 op, 85965699.00 ns, 14.3276 ms/op
+WorkloadPilot    6: 7 op, 93552184.00 ns, 13.3646 ms/op
+WorkloadPilot    7: 8 op, 92915053.00 ns, 11.6144 ms/op
+WorkloadPilot    8: 9 op, 102944025.00 ns, 11.4382 ms/op
+WorkloadPilot    9: 10 op, 113926390.00 ns, 11.3926 ms/op
+WorkloadPilot   10: 11 op, 128117785.00 ns, 11.6471 ms/op
+WorkloadPilot   11: 12 op, 136042633.00 ns, 11.3369 ms/op
+WorkloadPilot   12: 13 op, 148592850.00 ns, 11.4302 ms/op
+WorkloadPilot   13: 14 op, 161652147.00 ns, 11.5466 ms/op
+WorkloadPilot   14: 15 op, 170159785.00 ns, 11.3440 ms/op
+WorkloadPilot   15: 16 op, 180999464.00 ns, 11.3125 ms/op
+WorkloadPilot   16: 32 op, 369772983.00 ns, 11.5554 ms/op
+WorkloadPilot   17: 64 op, 730674639.00 ns, 11.4168 ms/op
+
+WorkloadWarmup   1: 64 op, 725255136.00 ns, 11.3321 ms/op
+WorkloadWarmup   2: 64 op, 728435732.00 ns, 11.3818 ms/op
+WorkloadWarmup   3: 64 op, 726903367.00 ns, 11.3579 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 728878290.00 ns, 11.3887 ms/op
+WorkloadActual   2: 64 op, 734772300.00 ns, 11.4808 ms/op
+WorkloadActual   3: 64 op, 729266195.00 ns, 11.3948 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 728878290.00 ns, 11.3887 ms/op
+WorkloadResult   2: 64 op, 734772300.00 ns, 11.4808 ms/op
+WorkloadResult   3: 64 op, 729266195.00 ns, 11.3948 ms/op
+// GC:  5 2 0 86717432 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9784 has exited with code 0.
+
+Mean = 11.421 ms, StdErr = 0.030 ms (0.26%), N = 3, StdDev = 0.052 ms
+Min = 11.389 ms, Q1 = 11.392 ms, Median = 11.395 ms, Q3 = 11.438 ms, Max = 11.481 ms
+IQR = 0.046 ms, LowerFence = 11.323 ms, UpperFence = 11.507 ms
+ConfidenceInterval = [10.482 ms; 12.361 ms] (CI 99.9%), Margin = 0.940 ms (8.23% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 7 (35.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 1m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQuerySingleField: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet a96b25b4-1877-4d83-b17f-f5f54513df64.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQuerySingleField --job 3.3.0 --benchmarkId 1 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/a96b25b4-1877-4d83-b17f-f5f54513df64/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.3.0(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 291595.00 ns, 291.5950 us/op
+WorkloadJitting  1: 1 op, 105056729.00 ns, 105.0567 ms/op
+
+WorkloadPilot    1: 2 op, 126703135.00 ns, 63.3516 ms/op
+WorkloadPilot    2: 3 op, 207424406.00 ns, 69.1415 ms/op
+WorkloadPilot    3: 4 op, 250604062.00 ns, 62.6510 ms/op
+WorkloadPilot    4: 5 op, 174793682.00 ns, 34.9587 ms/op
+WorkloadPilot    5: 6 op, 81695392.00 ns, 13.6159 ms/op
+WorkloadPilot    6: 7 op, 85203831.00 ns, 12.1720 ms/op
+WorkloadPilot    7: 8 op, 96748564.00 ns, 12.0936 ms/op
+WorkloadPilot    8: 9 op, 107241401.00 ns, 11.9157 ms/op
+WorkloadPilot    9: 10 op, 121018308.00 ns, 12.1018 ms/op
+WorkloadPilot   10: 11 op, 162060747.00 ns, 14.7328 ms/op
+WorkloadPilot   11: 12 op, 146737831.00 ns, 12.2282 ms/op
+WorkloadPilot   12: 13 op, 159351513.00 ns, 12.2578 ms/op
+WorkloadPilot   13: 14 op, 166344606.00 ns, 11.8818 ms/op
+WorkloadPilot   14: 15 op, 179951515.00 ns, 11.9968 ms/op
+WorkloadPilot   15: 16 op, 188821097.00 ns, 11.8013 ms/op
+WorkloadPilot   16: 32 op, 379896749.00 ns, 11.8718 ms/op
+WorkloadPilot   17: 64 op, 777052634.00 ns, 12.1414 ms/op
+
+WorkloadWarmup   1: 64 op, 758315735.00 ns, 11.8487 ms/op
+WorkloadWarmup   2: 64 op, 761571718.00 ns, 11.8996 ms/op
+WorkloadWarmup   3: 64 op, 762782124.00 ns, 11.9185 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 793374311.00 ns, 12.3965 ms/op
+WorkloadActual   2: 64 op, 761116090.00 ns, 11.8924 ms/op
+WorkloadActual   3: 64 op, 781108785.00 ns, 12.2048 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 793374311.00 ns, 12.3965 ms/op
+WorkloadResult   2: 64 op, 761116090.00 ns, 11.8924 ms/op
+WorkloadResult   3: 64 op, 781108785.00 ns, 12.2048 ms/op
+// GC:  4 3 0 82379352 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9802 has exited with code 0.
+
+Mean = 12.165 ms, StdErr = 0.147 ms (1.21%), N = 3, StdDev = 0.254 ms
+Min = 11.892 ms, Q1 = 12.049 ms, Median = 12.205 ms, Q3 = 12.301 ms, Max = 12.396 ms
+IQR = 0.252 ms, LowerFence = 11.671 ms, UpperFence = 12.679 ms
+ConfidenceInterval = [7.523 ms; 16.806 ms] (CI 99.9%), Margin = 4.641 ms (38.16% of Mean)
+Skewness = -0.15, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 6 (30.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 1m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet a96b25b4-1877-4d83-b17f-f5f54513df64.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryTwoFields --job 3.3.0 --benchmarkId 2 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/a96b25b4-1877-4d83-b17f-f5f54513df64/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.3.0(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 323595.00 ns, 323.5950 us/op
+WorkloadJitting  1: 1 op, 107043260.00 ns, 107.0433 ms/op
+
+WorkloadPilot    1: 2 op, 128231655.00 ns, 64.1158 ms/op
+WorkloadPilot    2: 3 op, 208976434.00 ns, 69.6588 ms/op
+WorkloadPilot    3: 4 op, 250936811.00 ns, 62.7342 ms/op
+WorkloadPilot    4: 5 op, 176948533.00 ns, 35.3897 ms/op
+WorkloadPilot    5: 6 op, 83569989.00 ns, 13.9283 ms/op
+WorkloadPilot    6: 7 op, 87227736.00 ns, 12.4611 ms/op
+WorkloadPilot    7: 8 op, 96735579.00 ns, 12.0919 ms/op
+WorkloadPilot    8: 9 op, 106293176.00 ns, 11.8104 ms/op
+WorkloadPilot    9: 10 op, 118903248.00 ns, 11.8903 ms/op
+WorkloadPilot   10: 11 op, 133712372.00 ns, 12.1557 ms/op
+WorkloadPilot   11: 12 op, 141837550.00 ns, 11.8198 ms/op
+WorkloadPilot   12: 13 op, 157804167.00 ns, 12.1388 ms/op
+WorkloadPilot   13: 14 op, 165489864.00 ns, 11.8207 ms/op
+WorkloadPilot   14: 15 op, 176930560.00 ns, 11.7954 ms/op
+WorkloadPilot   15: 16 op, 185076008.00 ns, 11.5673 ms/op
+WorkloadPilot   16: 32 op, 369075395.00 ns, 11.5336 ms/op
+WorkloadPilot   17: 64 op, 742087089.00 ns, 11.5951 ms/op
+
+WorkloadWarmup   1: 64 op, 744509850.00 ns, 11.6330 ms/op
+WorkloadWarmup   2: 64 op, 742031456.00 ns, 11.5942 ms/op
+WorkloadWarmup   3: 64 op, 739801516.00 ns, 11.5594 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 747793520.00 ns, 11.6843 ms/op
+WorkloadActual   2: 64 op, 740939774.00 ns, 11.5772 ms/op
+WorkloadActual   3: 64 op, 739279861.00 ns, 11.5512 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 747793520.00 ns, 11.6843 ms/op
+WorkloadResult   2: 64 op, 740939774.00 ns, 11.5772 ms/op
+WorkloadResult   3: 64 op, 739279861.00 ns, 11.5512 ms/op
+// GC:  5 3 0 83838448 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9817 has exited with code 0.
+
+Mean = 11.604 ms, StdErr = 0.041 ms (0.35%), N = 3, StdDev = 0.071 ms
+Min = 11.551 ms, Q1 = 11.564 ms, Median = 11.577 ms, Q3 = 11.631 ms, Max = 11.684 ms
+IQR = 0.067 ms, LowerFence = 11.464 ms, UpperFence = 11.730 ms
+ConfidenceInterval = [10.318 ms; 12.891 ms] (CI 99.9%), Margin = 1.287 ms (11.09% of Mean)
+Skewness = 0.33, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 5 (25.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 0m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet a96b25b4-1877-4d83-b17f-f5f54513df64.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryThreeFields --job 3.3.0 --benchmarkId 3 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/a96b25b4-1877-4d83-b17f-f5f54513df64/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: 3.3.0(NuGetReferences=Empty, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 295823.00 ns, 295.8230 us/op
+WorkloadJitting  1: 1 op, 107758904.00 ns, 107.7589 ms/op
+
+WorkloadPilot    1: 2 op, 130729065.00 ns, 65.3645 ms/op
+WorkloadPilot    2: 3 op, 194578902.00 ns, 64.8596 ms/op
+WorkloadPilot    3: 4 op, 258691800.00 ns, 64.6730 ms/op
+WorkloadPilot    4: 5 op, 178009912.00 ns, 35.6020 ms/op
+WorkloadPilot    5: 6 op, 93480704.00 ns, 15.5801 ms/op
+WorkloadPilot    6: 7 op, 91140180.00 ns, 13.0200 ms/op
+WorkloadPilot    7: 8 op, 100042766.00 ns, 12.5053 ms/op
+WorkloadPilot    8: 9 op, 107853079.00 ns, 11.9837 ms/op
+WorkloadPilot    9: 10 op, 120396097.00 ns, 12.0396 ms/op
+WorkloadPilot   10: 11 op, 133197848.00 ns, 12.1089 ms/op
+WorkloadPilot   11: 12 op, 144327294.00 ns, 12.0273 ms/op
+WorkloadPilot   12: 13 op, 154413500.00 ns, 11.8780 ms/op
+WorkloadPilot   13: 14 op, 167254153.00 ns, 11.9467 ms/op
+WorkloadPilot   14: 15 op, 181051445.00 ns, 12.0701 ms/op
+WorkloadPilot   15: 16 op, 194326440.00 ns, 12.1454 ms/op
+WorkloadPilot   16: 32 op, 381322282.00 ns, 11.9163 ms/op
+WorkloadPilot   17: 64 op, 769153476.00 ns, 12.0180 ms/op
+
+WorkloadWarmup   1: 64 op, 769344864.00 ns, 12.0210 ms/op
+WorkloadWarmup   2: 64 op, 761387944.00 ns, 11.8967 ms/op
+WorkloadWarmup   3: 64 op, 766788762.00 ns, 11.9811 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 64 op, 848331324.00 ns, 13.2552 ms/op
+WorkloadActual   2: 64 op, 843485886.00 ns, 13.1795 ms/op
+WorkloadActual   3: 64 op, 841265546.00 ns, 13.1448 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 64 op, 848331324.00 ns, 13.2552 ms/op
+WorkloadResult   2: 64 op, 843485886.00 ns, 13.1795 ms/op
+WorkloadResult   3: 64 op, 841265546.00 ns, 13.1448 ms/op
+// GC:  5 2 0 85336056 64
+// Threading:  0 0 64
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9829 has exited with code 0.
+
+Mean = 13.193 ms, StdErr = 0.033 ms (0.25%), N = 3, StdDev = 0.056 ms
+Min = 13.145 ms, Q1 = 13.162 ms, Median = 13.179 ms, Q3 = 13.217 ms, Max = 13.255 ms
+IQR = 0.055 ms, LowerFence = 13.079 ms, UpperFence = 13.300 ms
+ConfidenceInterval = [12.163 ms; 14.223 ms] (CI 99.9%), Margin = 1.030 ms (7.81% of Mean)
+Skewness = 0.23, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 4 (20.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 0m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryAllFields: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet c3a986d5-a2de-45fe-8615-8793326e3e5e.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryAllFields --job Source --benchmarkId 0 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/c3a986d5-a2de-45fe-8615-8793326e3e5e/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: Source(IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 325898.00 ns, 325.8980 us/op
+WorkloadJitting  1: 1 op, 55486806.00 ns, 55.4868 ms/op
+
+WorkloadPilot    1: 2 op, 26985414.00 ns, 13.4927 ms/op
+WorkloadPilot    2: 3 op, 38607340.00 ns, 12.8691 ms/op
+WorkloadPilot    3: 4 op, 50970861.00 ns, 12.7427 ms/op
+WorkloadPilot    4: 5 op, 63434106.00 ns, 12.6868 ms/op
+WorkloadPilot    5: 6 op, 92661013.00 ns, 15.4435 ms/op
+WorkloadPilot    6: 7 op, 114373356.00 ns, 16.3391 ms/op
+WorkloadPilot    7: 8 op, 60504177.00 ns, 7.5630 ms/op
+WorkloadPilot    8: 9 op, 35236071.00 ns, 3.9151 ms/op
+WorkloadPilot    9: 10 op, 27831779.00 ns, 2.7832 ms/op
+WorkloadPilot   10: 11 op, 26020382.00 ns, 2.3655 ms/op
+WorkloadPilot   11: 12 op, 27914343.00 ns, 2.3262 ms/op
+WorkloadPilot   12: 13 op, 30976457.00 ns, 2.3828 ms/op
+WorkloadPilot   13: 14 op, 32757678.00 ns, 2.3398 ms/op
+WorkloadPilot   14: 15 op, 34378608.00 ns, 2.2919 ms/op
+WorkloadPilot   15: 16 op, 36227064.00 ns, 2.2642 ms/op
+WorkloadPilot   16: 32 op, 72961224.00 ns, 2.2800 ms/op
+WorkloadPilot   17: 64 op, 145015554.00 ns, 2.2659 ms/op
+WorkloadPilot   18: 128 op, 280464956.00 ns, 2.1911 ms/op
+WorkloadPilot   19: 256 op, 556097658.00 ns, 2.1723 ms/op
+
+WorkloadWarmup   1: 256 op, 556337997.00 ns, 2.1732 ms/op
+WorkloadWarmup   2: 256 op, 556233201.00 ns, 2.1728 ms/op
+WorkloadWarmup   3: 256 op, 555084974.00 ns, 2.1683 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 256 op, 553924775.00 ns, 2.1638 ms/op
+WorkloadActual   2: 256 op, 559737361.00 ns, 2.1865 ms/op
+WorkloadActual   3: 256 op, 553848349.00 ns, 2.1635 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 256 op, 553924775.00 ns, 2.1638 ms/op
+WorkloadResult   2: 256 op, 559737361.00 ns, 2.1865 ms/op
+WorkloadResult   3: 256 op, 553848349.00 ns, 2.1635 ms/op
+// GC:  5 1 0 97332096 256
+// Threading:  0 0 256
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9846 has exited with code 0.
+
+Mean = 2.171 ms, StdErr = 0.008 ms (0.35%), N = 3, StdDev = 0.013 ms
+Min = 2.163 ms, Q1 = 2.164 ms, Median = 2.164 ms, Q3 = 2.175 ms, Max = 2.186 ms
+IQR = 0.012 ms, LowerFence = 2.146 ms, UpperFence = 2.192 ms
+ConfidenceInterval = [1.930 ms; 2.412 ms] (CI 99.9%), Margin = 0.241 ms (11.09% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 3 (15.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 0m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQuerySingleField: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet c3a986d5-a2de-45fe-8615-8793326e3e5e.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQuerySingleField --job Source --benchmarkId 1 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/c3a986d5-a2de-45fe-8615-8793326e3e5e/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: Source(IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 290053.00 ns, 290.0530 us/op
+WorkloadJitting  1: 1 op, 53977681.00 ns, 53.9777 ms/op
+
+WorkloadPilot    1: 2 op, 25917708.00 ns, 12.9589 ms/op
+WorkloadPilot    2: 3 op, 37622041.00 ns, 12.5407 ms/op
+WorkloadPilot    3: 4 op, 49753453.00 ns, 12.4384 ms/op
+WorkloadPilot    4: 5 op, 62020057.00 ns, 12.4040 ms/op
+WorkloadPilot    5: 6 op, 90831174.00 ns, 15.1385 ms/op
+WorkloadPilot    6: 7 op, 111863318.00 ns, 15.9805 ms/op
+WorkloadPilot    7: 8 op, 53754293.00 ns, 6.7193 ms/op
+WorkloadPilot    8: 9 op, 31293449.00 ns, 3.4770 ms/op
+WorkloadPilot    9: 10 op, 24041550.00 ns, 2.4042 ms/op
+WorkloadPilot   10: 11 op, 25676807.00 ns, 2.3343 ms/op
+WorkloadPilot   11: 12 op, 27745695.00 ns, 2.3121 ms/op
+WorkloadPilot   12: 13 op, 30099968.00 ns, 2.3154 ms/op
+WorkloadPilot   13: 14 op, 32625579.00 ns, 2.3304 ms/op
+WorkloadPilot   14: 15 op, 34614417.00 ns, 2.3076 ms/op
+WorkloadPilot   15: 16 op, 36610701.00 ns, 2.2882 ms/op
+WorkloadPilot   16: 32 op, 73364327.00 ns, 2.2926 ms/op
+WorkloadPilot   17: 64 op, 150593612.00 ns, 2.3530 ms/op
+WorkloadPilot   18: 128 op, 286461931.00 ns, 2.2380 ms/op
+WorkloadPilot   19: 256 op, 556804054.00 ns, 2.1750 ms/op
+
+WorkloadWarmup   1: 256 op, 558122228.00 ns, 2.1802 ms/op
+WorkloadWarmup   2: 256 op, 583802152.00 ns, 2.2805 ms/op
+WorkloadWarmup   3: 256 op, 557306393.00 ns, 2.1770 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 256 op, 557036118.00 ns, 2.1759 ms/op
+WorkloadActual   2: 256 op, 557967559.00 ns, 2.1796 ms/op
+WorkloadActual   3: 256 op, 559655031.00 ns, 2.1862 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 256 op, 557036118.00 ns, 2.1759 ms/op
+WorkloadResult   2: 256 op, 557967559.00 ns, 2.1796 ms/op
+WorkloadResult   3: 256 op, 559655031.00 ns, 2.1862 ms/op
+// GC:  4 1 0 80343624 256
+// Threading:  0 0 256
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9859 has exited with code 0.
+
+Mean = 2.181 ms, StdErr = 0.003 ms (0.14%), N = 3, StdDev = 0.005 ms
+Min = 2.176 ms, Q1 = 2.178 ms, Median = 2.180 ms, Q3 = 2.183 ms, Max = 2.186 ms
+IQR = 0.005 ms, LowerFence = 2.170 ms, UpperFence = 2.191 ms
+ConfidenceInterval = [2.086 ms; 2.275 ms] (CI 99.9%), Margin = 0.095 ms (4.34% of Mean)
+Skewness = 0.18, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 2 (10.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 0m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryTwoFields: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet c3a986d5-a2de-45fe-8615-8793326e3e5e.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryTwoFields --job Source --benchmarkId 2 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/c3a986d5-a2de-45fe-8615-8793326e3e5e/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: Source(IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 302525.00 ns, 302.5250 us/op
+WorkloadJitting  1: 1 op, 55267618.00 ns, 55.2676 ms/op
+
+WorkloadPilot    1: 2 op, 26609951.00 ns, 13.3050 ms/op
+WorkloadPilot    2: 3 op, 38655316.00 ns, 12.8851 ms/op
+WorkloadPilot    3: 4 op, 51112132.00 ns, 12.7780 ms/op
+WorkloadPilot    4: 5 op, 63883133.00 ns, 12.7766 ms/op
+WorkloadPilot    5: 6 op, 95537844.00 ns, 15.9230 ms/op
+WorkloadPilot    6: 7 op, 113250002.00 ns, 16.1786 ms/op
+WorkloadPilot    7: 8 op, 58122875.00 ns, 7.2654 ms/op
+WorkloadPilot    8: 9 op, 34879638.00 ns, 3.8755 ms/op
+WorkloadPilot    9: 10 op, 24780411.00 ns, 2.4780 ms/op
+WorkloadPilot   10: 11 op, 26834019.00 ns, 2.4395 ms/op
+WorkloadPilot   11: 12 op, 28957308.00 ns, 2.4131 ms/op
+WorkloadPilot   12: 13 op, 31608203.00 ns, 2.4314 ms/op
+WorkloadPilot   13: 14 op, 34158662.00 ns, 2.4399 ms/op
+WorkloadPilot   14: 15 op, 35434295.00 ns, 2.3623 ms/op
+WorkloadPilot   15: 16 op, 37657441.00 ns, 2.3536 ms/op
+WorkloadPilot   16: 32 op, 78162355.00 ns, 2.4426 ms/op
+WorkloadPilot   17: 64 op, 149069447.00 ns, 2.3292 ms/op
+WorkloadPilot   18: 128 op, 291335347.00 ns, 2.2761 ms/op
+WorkloadPilot   19: 256 op, 581351918.00 ns, 2.2709 ms/op
+
+WorkloadWarmup   1: 256 op, 579502972.00 ns, 2.2637 ms/op
+WorkloadWarmup   2: 256 op, 581076451.00 ns, 2.2698 ms/op
+WorkloadWarmup   3: 256 op, 579071877.00 ns, 2.2620 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 256 op, 585204209.00 ns, 2.2860 ms/op
+WorkloadActual   2: 256 op, 584860737.00 ns, 2.2846 ms/op
+WorkloadActual   3: 256 op, 585690057.00 ns, 2.2879 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 256 op, 585204209.00 ns, 2.2860 ms/op
+WorkloadResult   2: 256 op, 584860737.00 ns, 2.2846 ms/op
+WorkloadResult   3: 256 op, 585690057.00 ns, 2.2879 ms/op
+// GC:  5 1 0 86082432 256
+// Threading:  0 0 256
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9871 has exited with code 0.
+
+Mean = 2.286 ms, StdErr = 0.001 ms (0.04%), N = 3, StdDev = 0.002 ms
+Min = 2.285 ms, Q1 = 2.285 ms, Median = 2.286 ms, Q3 = 2.287 ms, Max = 2.288 ms
+IQR = 0.002 ms, LowerFence = 2.283 ms, UpperFence = 2.289 ms
+ConfidenceInterval = [2.256 ms; 2.316 ms] (CI 99.9%), Margin = 0.030 ms (1.30% of Mean)
+Skewness = 0.11, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 1 (5.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 0m from now) **
+// **************************
+// Benchmark: ManagedQueryBenchmarks.ManagedQueryThreeFields: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet c3a986d5-a2de-45fe-8615-8793326e3e5e.dll --anonymousPipes 114 115 --benchmarkName Examine.Benchmarks.ManagedQueryBenchmarks.ManagedQueryThreeFields --job Source --benchmarkId 3 in /home/runner/work/Examine/Examine/src/Examine.Benchmarks/bin/Release/net8.0/c3a986d5-a2de-45fe-8615-8793326e3e5e/bin/Release/net8.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2,AES,BMI1,BMI2,FMA,LZCNT,PCLMUL,POPCNT VectorSize=256
+// Job: Source(IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+info: Examine.Benchmarks.ManagedQueryBenchmarks[0]
+      ManagedQuery benchmark index ready with 1000 docs
+OverheadJitting  1: 1 op, 316060.00 ns, 316.0600 us/op
+WorkloadJitting  1: 1 op, 56292285.00 ns, 56.2923 ms/op
+
+WorkloadPilot    1: 2 op, 26501427.00 ns, 13.2507 ms/op
+WorkloadPilot    2: 3 op, 38267866.00 ns, 12.7560 ms/op
+WorkloadPilot    3: 4 op, 50638854.00 ns, 12.6597 ms/op
+WorkloadPilot    4: 5 op, 62999551.00 ns, 12.5999 ms/op
+WorkloadPilot    5: 6 op, 95799013.00 ns, 15.9665 ms/op
+WorkloadPilot    6: 7 op, 115300497.00 ns, 16.4715 ms/op
+WorkloadPilot    7: 8 op, 59549452.00 ns, 7.4437 ms/op
+WorkloadPilot    8: 9 op, 37552321.00 ns, 4.1725 ms/op
+WorkloadPilot    9: 10 op, 26304010.00 ns, 2.6304 ms/op
+WorkloadPilot   10: 11 op, 26403495.00 ns, 2.4003 ms/op
+WorkloadPilot   11: 12 op, 28772777.00 ns, 2.3977 ms/op
+WorkloadPilot   12: 13 op, 31268815.00 ns, 2.4053 ms/op
+WorkloadPilot   13: 14 op, 34056697.00 ns, 2.4326 ms/op
+WorkloadPilot   14: 15 op, 35302282.00 ns, 2.3535 ms/op
+WorkloadPilot   15: 16 op, 36899603.00 ns, 2.3062 ms/op
+WorkloadPilot   16: 32 op, 76252885.00 ns, 2.3829 ms/op
+WorkloadPilot   17: 64 op, 145644115.00 ns, 2.2757 ms/op
+WorkloadPilot   18: 128 op, 286099788.00 ns, 2.2352 ms/op
+WorkloadPilot   19: 256 op, 570926830.00 ns, 2.2302 ms/op
+
+WorkloadWarmup   1: 256 op, 566007760.00 ns, 2.2110 ms/op
+WorkloadWarmup   2: 256 op, 565398342.00 ns, 2.2086 ms/op
+WorkloadWarmup   3: 256 op, 566440276.00 ns, 2.2127 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 256 op, 568318666.00 ns, 2.2200 ms/op
+WorkloadActual   2: 256 op, 564802944.00 ns, 2.2063 ms/op
+WorkloadActual   3: 256 op, 564291217.00 ns, 2.2043 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 256 op, 568318666.00 ns, 2.2200 ms/op
+WorkloadResult   2: 256 op, 564802944.00 ns, 2.2063 ms/op
+WorkloadResult   3: 256 op, 564291217.00 ns, 2.2043 ms/op
+// GC:  5 2 0 92015384 256
+// Threading:  0 0 256
+// Exceptions:  1
+
+// AfterAll
+// Benchmark Process 9883 has exited with code 0.
+
+Mean = 2.210 ms, StdErr = 0.005 ms (0.22%), N = 3, StdDev = 0.009 ms
+Min = 2.204 ms, Q1 = 2.205 ms, Median = 2.206 ms, Q3 = 2.213 ms, Max = 2.220 ms
+IQR = 0.008 ms, LowerFence = 2.193 ms, UpperFence = 2.225 ms
+ConfidenceInterval = [2.054 ms; 2.366 ms] (CI 99.9%), Margin = 0.156 ms (7.07% of Mean)
+Skewness = 0.36, Kurtosis = 0.67, MValue = 2
+
+// ** Remained 0 (0.0 %) benchmark(s) to run. Estimated finish 2026-06-30 17:47 (0h 0m from now) **
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts/results/Examine.Benchmarks.ManagedQueryBenchmarks-report.csv
+  BenchmarkDotNet.Artifacts/results/Examine.Benchmarks.ManagedQueryBenchmarks-report-github.md
+  BenchmarkDotNet.Artifacts/results/Examine.Benchmarks.ManagedQueryBenchmarks-report.html
+
+// * Detailed results *
+ManagedQueryBenchmarks.ManagedQueryAllFields: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.612 ms, StdErr = 0.097 ms (0.84%), N = 3, StdDev = 0.169 ms
+Min = 11.481 ms, Q1 = 11.516 ms, Median = 11.552 ms, Q3 = 11.677 ms, Max = 11.802 ms
+IQR = 0.161 ms, LowerFence = 11.276 ms, UpperFence = 11.918 ms
+ConfidenceInterval = [8.535 ms; 14.689 ms] (CI 99.9%), Margin = 3.077 ms (26.50% of Mean)
+Skewness = 0.31, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.363 ms ; 11.670 ms) | @@
+[11.670 ms ; 11.955 ms) | @
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQuerySingleField: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 12.082 ms, StdErr = 0.208 ms (1.72%), N = 3, StdDev = 0.361 ms
+Min = 11.871 ms, Q1 = 11.874 ms, Median = 11.878 ms, Q3 = 12.188 ms, Max = 12.499 ms
+IQR = 0.314 ms, LowerFence = 11.403 ms, UpperFence = 12.660 ms
+ConfidenceInterval = [5.504 ms; 18.661 ms] (CI 99.9%), Margin = 6.578 ms (54.45% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.857 ms ; 12.513 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.658 ms, StdErr = 0.013 ms (0.11%), N = 3, StdDev = 0.023 ms
+Min = 11.640 ms, Q1 = 11.645 ms, Median = 11.649 ms, Q3 = 11.666 ms, Max = 11.684 ms
+IQR = 0.022 ms, LowerFence = 11.612 ms, UpperFence = 11.699 ms
+ConfidenceInterval = [11.235 ms; 12.080 ms] (CI 99.9%), Margin = 0.422 ms (3.62% of Mean)
+Skewness = 0.33, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.619 ms ; 11.705 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.0.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.0.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.695 ms, StdErr = 0.055 ms (0.47%), N = 3, StdDev = 0.096 ms
+Min = 11.620 ms, Q1 = 11.641 ms, Median = 11.662 ms, Q3 = 11.732 ms, Max = 11.803 ms
+IQR = 0.091 ms, LowerFence = 11.504 ms, UpperFence = 11.869 ms
+ConfidenceInterval = [9.948 ms; 13.442 ms] (CI 99.9%), Margin = 1.747 ms (14.94% of Mean)
+Skewness = 0.3, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.533 ms ; 11.890 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryAllFields: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.730 ms, StdErr = 0.009 ms (0.08%), N = 3, StdDev = 0.016 ms
+Min = 11.714 ms, Q1 = 11.722 ms, Median = 11.730 ms, Q3 = 11.738 ms, Max = 11.746 ms
+IQR = 0.016 ms, LowerFence = 11.699 ms, UpperFence = 11.761 ms
+ConfidenceInterval = [11.445 ms; 12.015 ms] (CI 99.9%), Margin = 0.285 ms (2.43% of Mean)
+Skewness = 0, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.700 ms ; 11.760 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQuerySingleField: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.885 ms, StdErr = 0.007 ms (0.06%), N = 3, StdDev = 0.012 ms
+Min = 11.876 ms, Q1 = 11.878 ms, Median = 11.880 ms, Q3 = 11.889 ms, Max = 11.898 ms
+IQR = 0.011 ms, LowerFence = 11.861 ms, UpperFence = 11.906 ms
+ConfidenceInterval = [11.670 ms; 12.100 ms] (CI 99.9%), Margin = 0.215 ms (1.81% of Mean)
+Skewness = 0.32, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.865 ms ; 11.909 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.776 ms, StdErr = 0.013 ms (0.11%), N = 3, StdDev = 0.022 ms
+Min = 11.752 ms, Q1 = 11.767 ms, Median = 11.782 ms, Q3 = 11.788 ms, Max = 11.794 ms
+IQR = 0.021 ms, LowerFence = 11.735 ms, UpperFence = 11.819 ms
+ConfidenceInterval = [11.381 ms; 12.171 ms] (CI 99.9%), Margin = 0.395 ms (3.35% of Mean)
+Skewness = -0.25, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.732 ms ; 11.813 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.1.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.1.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.793 ms, StdErr = 0.048 ms (0.40%), N = 3, StdDev = 0.082 ms
+Min = 11.740 ms, Q1 = 11.745 ms, Median = 11.750 ms, Q3 = 11.819 ms, Max = 11.888 ms
+IQR = 0.074 ms, LowerFence = 11.635 ms, UpperFence = 11.930 ms
+ConfidenceInterval = [10.289 ms; 13.296 ms] (CI 99.9%), Margin = 1.503 ms (12.75% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.739 ms ; 11.889 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryAllFields: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.527 ms, StdErr = 0.012 ms (0.10%), N = 3, StdDev = 0.020 ms
+Min = 11.505 ms, Q1 = 11.518 ms, Median = 11.531 ms, Q3 = 11.538 ms, Max = 11.545 ms
+IQR = 0.020 ms, LowerFence = 11.488 ms, UpperFence = 11.568 ms
+ConfidenceInterval = [11.158 ms; 11.896 ms] (CI 99.9%), Margin = 0.369 ms (3.20% of Mean)
+Skewness = -0.19, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.487 ms ; 11.563 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQuerySingleField: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 12.769 ms, StdErr = 0.022 ms (0.17%), N = 3, StdDev = 0.038 ms
+Min = 12.725 ms, Q1 = 12.754 ms, Median = 12.784 ms, Q3 = 12.790 ms, Max = 12.797 ms
+IQR = 0.036 ms, LowerFence = 12.700 ms, UpperFence = 12.845 ms
+ConfidenceInterval = [12.067 ms; 13.470 ms] (CI 99.9%), Margin = 0.701 ms (5.49% of Mean)
+Skewness = -0.33, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[12.690 ms ; 12.832 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.359 ms, StdErr = 0.033 ms (0.29%), N = 3, StdDev = 0.056 ms
+Min = 11.304 ms, Q1 = 11.330 ms, Median = 11.356 ms, Q3 = 11.386 ms, Max = 11.417 ms
+IQR = 0.056 ms, LowerFence = 11.245 ms, UpperFence = 11.471 ms
+ConfidenceInterval = [10.329 ms; 12.389 ms] (CI 99.9%), Margin = 1.030 ms (9.07% of Mean)
+Skewness = 0.06, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.253 ms ; 11.468 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.2.1(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.2.1, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.779 ms, StdErr = 0.027 ms (0.23%), N = 3, StdDev = 0.046 ms
+Min = 11.745 ms, Q1 = 11.752 ms, Median = 11.759 ms, Q3 = 11.795 ms, Max = 11.831 ms
+IQR = 0.043 ms, LowerFence = 11.688 ms, UpperFence = 11.860 ms
+ConfidenceInterval = [10.938 ms; 12.619 ms] (CI 99.9%), Margin = 0.840 ms (7.13% of Mean)
+Skewness = 0.35, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.704 ms ; 11.873 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryAllFields: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.421 ms, StdErr = 0.030 ms (0.26%), N = 3, StdDev = 0.052 ms
+Min = 11.389 ms, Q1 = 11.392 ms, Median = 11.395 ms, Q3 = 11.438 ms, Max = 11.481 ms
+IQR = 0.046 ms, LowerFence = 11.323 ms, UpperFence = 11.507 ms
+ConfidenceInterval = [10.482 ms; 12.361 ms] (CI 99.9%), Margin = 0.940 ms (8.23% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.388 ms ; 11.482 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQuerySingleField: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 12.165 ms, StdErr = 0.147 ms (1.21%), N = 3, StdDev = 0.254 ms
+Min = 11.892 ms, Q1 = 12.049 ms, Median = 12.205 ms, Q3 = 12.301 ms, Max = 12.396 ms
+IQR = 0.252 ms, LowerFence = 11.671 ms, UpperFence = 12.679 ms
+ConfidenceInterval = [7.523 ms; 16.806 ms] (CI 99.9%), Margin = 4.641 ms (38.16% of Mean)
+Skewness = -0.15, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.661 ms ; 12.069 ms) | @
+[12.069 ms ; 12.532 ms) | @@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryTwoFields: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 11.604 ms, StdErr = 0.041 ms (0.35%), N = 3, StdDev = 0.071 ms
+Min = 11.551 ms, Q1 = 11.564 ms, Median = 11.577 ms, Q3 = 11.631 ms, Max = 11.684 ms
+IQR = 0.067 ms, LowerFence = 11.464 ms, UpperFence = 11.730 ms
+ConfidenceInterval = [10.318 ms; 12.891 ms] (CI 99.9%), Margin = 1.287 ms (11.09% of Mean)
+Skewness = 0.33, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.487 ms ; 11.748 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryThreeFields: 3.3.0(Runtime=.NET 8.0, Arguments=/p:LocalBuild=false, NuGetReferences=Examine 3.3.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 13.193 ms, StdErr = 0.033 ms (0.25%), N = 3, StdDev = 0.056 ms
+Min = 13.145 ms, Q1 = 13.162 ms, Median = 13.179 ms, Q3 = 13.217 ms, Max = 13.255 ms
+IQR = 0.055 ms, LowerFence = 13.079 ms, UpperFence = 13.300 ms
+ConfidenceInterval = [12.163 ms; 14.223 ms] (CI 99.9%), Margin = 1.030 ms (7.81% of Mean)
+Skewness = 0.23, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[13.093 ms ; 13.307 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryAllFields: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 2.171 ms, StdErr = 0.008 ms (0.35%), N = 3, StdDev = 0.013 ms
+Min = 2.163 ms, Q1 = 2.164 ms, Median = 2.164 ms, Q3 = 2.175 ms, Max = 2.186 ms
+IQR = 0.012 ms, LowerFence = 2.146 ms, UpperFence = 2.192 ms
+ConfidenceInterval = [1.930 ms; 2.412 ms] (CI 99.9%), Margin = 0.241 ms (11.09% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[2.163 ms ; 2.187 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQuerySingleField: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 2.181 ms, StdErr = 0.003 ms (0.14%), N = 3, StdDev = 0.005 ms
+Min = 2.176 ms, Q1 = 2.178 ms, Median = 2.180 ms, Q3 = 2.183 ms, Max = 2.186 ms
+IQR = 0.005 ms, LowerFence = 2.170 ms, UpperFence = 2.191 ms
+ConfidenceInterval = [2.086 ms; 2.275 ms] (CI 99.9%), Margin = 0.095 ms (4.34% of Mean)
+Skewness = 0.18, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[2.171 ms ; 2.191 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryTwoFields: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 2.286 ms, StdErr = 0.001 ms (0.04%), N = 3, StdDev = 0.002 ms
+Min = 2.285 ms, Q1 = 2.285 ms, Median = 2.286 ms, Q3 = 2.287 ms, Max = 2.288 ms
+IQR = 0.002 ms, LowerFence = 2.283 ms, UpperFence = 2.289 ms
+ConfidenceInterval = [2.256 ms; 2.316 ms] (CI 99.9%), Margin = 0.030 ms (1.30% of Mean)
+Skewness = 0.11, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[2.283 ms ; 2.289 ms) | @@@
+---------------------------------------------------
+
+ManagedQueryBenchmarks.ManagedQueryThreeFields: Source(Runtime=.NET 8.0, IterationCount=3, LaunchCount=1, WarmupCount=3)
+Runtime = .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2; GC = Concurrent Workstation
+Mean = 2.210 ms, StdErr = 0.005 ms (0.22%), N = 3, StdDev = 0.009 ms
+Min = 2.204 ms, Q1 = 2.205 ms, Median = 2.206 ms, Q3 = 2.213 ms, Max = 2.220 ms
+IQR = 0.008 ms, LowerFence = 2.193 ms, UpperFence = 2.225 ms
+ConfidenceInterval = [2.054 ms; 2.366 ms] (CI 99.9%), Margin = 0.156 ms (7.07% of Mean)
+Skewness = 0.36, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[2.196 ms ; 2.228 ms) | @@@
+---------------------------------------------------
+
+// * Summary *
+
+BenchmarkDotNet v0.14.0, Ubuntu 24.04.4 LTS (Noble Numbat)
+AMD EPYC 7763, 1 CPU, 4 logical and 2 physical cores
+.NET SDK 10.0.301
+  [Host] : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  3.0.1  : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  3.1.0  : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  3.2.1  : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  3.3.0  : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  Source : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+
+Runtime=.NET 8.0  IterationCount=3  LaunchCount=1  
+WarmupCount=3  
+
+| Method                  | Job    | Mean      | Ratio | RatioSD | Gen0    | Gen1    | Allocated  | Alloc Ratio |
+|------------------------ |------- |----------:|------:|--------:|--------:|--------:|-----------:|------------:|
+| ManagedQueryAllFields   | 3.0.1  | 11.612 ms |  1.00 |    0.02 | 78.1250 | 31.2500 | 1327.37 KB |        1.00 |
+| ManagedQuerySingleField | 3.0.1  | 12.082 ms |  1.04 |    0.03 | 62.5000 | 46.8750 | 1261.15 KB |        0.95 |
+| ManagedQueryTwoFields   | 3.0.1  | 11.658 ms |  1.00 |    0.01 | 78.1250 | 46.8750 |  1283.4 KB |        0.97 |
+| ManagedQueryThreeFields | 3.0.1  | 11.695 ms |  1.01 |    0.01 | 78.1250 | 31.2500 | 1306.22 KB |        0.98 |
+|                         |        |           |       |         |         |         |            |             |
+| ManagedQueryAllFields   | 3.1.0  | 11.730 ms |  1.00 |    0.00 | 78.1250 | 31.2500 | 1326.76 KB |        1.00 |
+| ManagedQuerySingleField | 3.1.0  | 11.885 ms |  1.01 |    0.00 | 62.5000 | 46.8750 | 1261.15 KB |        0.95 |
+| ManagedQueryTwoFields   | 3.1.0  | 11.776 ms |  1.00 |    0.00 | 78.1250 | 46.8750 | 1283.45 KB |        0.97 |
+| ManagedQueryThreeFields | 3.1.0  | 11.793 ms |  1.01 |    0.01 | 78.1250 | 31.2500 | 1306.24 KB |        0.98 |
+|                         |        |           |       |         |         |         |            |             |
+| ManagedQueryAllFields   | 3.2.1  | 11.527 ms |  1.00 |    0.00 | 78.1250 | 31.2500 | 1323.17 KB |        1.00 |
+| ManagedQuerySingleField | 3.2.1  | 12.769 ms |  1.11 |    0.00 | 62.5000 | 46.8750 | 1257.01 KB |        0.95 |
+| ManagedQueryTwoFields   | 3.2.1  | 11.359 ms |  0.99 |    0.00 | 78.1250 | 46.8750 | 1279.31 KB |        0.97 |
+| ManagedQueryThreeFields | 3.2.1  | 11.779 ms |  1.02 |    0.00 | 78.1250 | 31.2500 | 1302.16 KB |        0.98 |
+|                         |        |           |       |         |         |         |            |             |
+| ManagedQueryAllFields   | 3.3.0  | 11.421 ms |  1.00 |    0.01 | 78.1250 | 31.2500 |  1323.2 KB |        1.00 |
+| ManagedQuerySingleField | 3.3.0  | 12.165 ms |  1.07 |    0.02 | 62.5000 | 46.8750 | 1257.01 KB |        0.95 |
+| ManagedQueryTwoFields   | 3.3.0  | 11.604 ms |  1.02 |    0.01 | 78.1250 | 46.8750 | 1279.27 KB |        0.97 |
+| ManagedQueryThreeFields | 3.3.0  | 13.193 ms |  1.16 |    0.01 | 78.1250 | 31.2500 | 1302.13 KB |        0.98 |
+|                         |        |           |       |         |         |         |            |             |
+| ManagedQueryAllFields   | Source |  2.171 ms |  1.00 |    0.01 | 19.5313 |  3.9063 |  371.29 KB |        1.00 |
+| ManagedQuerySingleField | Source |  2.181 ms |  1.00 |    0.01 | 15.6250 |  3.9063 |  306.49 KB |        0.83 |
+| ManagedQueryTwoFields   | Source |  2.286 ms |  1.05 |    0.01 | 19.5313 |  3.9063 |  328.38 KB |        0.88 |
+| ManagedQueryThreeFields | Source |  2.210 ms |  1.02 |    0.01 | 19.5313 |  7.8125 |  351.01 KB |        0.95 |
+
+// * Hints *
+HideColumnsAnalyser
+  Summary -> Hidden columns: Arguments, NuGetReferences, Error, StdDev
+
+// * Legends *
+  Mean        : Arithmetic mean of all measurements
+  Ratio       : Mean of the ratio distribution ([Current]/[Baseline])
+  RatioSD     : Standard deviation of the ratio distribution ([Current]/[Baseline])
+  Gen0        : GC Generation 0 collects per 1000 operations
+  Gen1        : GC Generation 1 collects per 1000 operations
+  Allocated   : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  Alloc Ratio : Allocated memory ratio distribution ([Current]/[Baseline])
+  1 ms        : 1 Millisecond (0.001 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:03:21 (201.07 sec), executed benchmarks: 20
+
+Global total time: 00:03:54 (234 sec), executed benchmarks: 20
+// * Artifacts cleanup *
+Artifacts cleanup is finished

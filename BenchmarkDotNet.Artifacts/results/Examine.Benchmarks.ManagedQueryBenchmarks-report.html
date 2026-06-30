@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>Examine.Benchmarks.ManagedQueryBenchmarks-20260630-174420</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.14.0, Ubuntu 24.04.4 LTS (Noble Numbat)
+AMD EPYC 7763, 1 CPU, 4 logical and 2 physical cores
+.NET SDK 10.0.301
+  [Host] : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  3.0.1  : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  3.1.0  : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  3.2.1  : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  3.3.0  : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+  Source : .NET 8.0.28 (8.0.2826.26413), X64 RyuJIT AVX2
+</code></pre>
+<pre><code>Runtime=.NET 8.0  IterationCount=3  LaunchCount=1  
+WarmupCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>Method           </th><th>Job</th><th>Mean</th><th>Ratio</th><th>RatioSD</th><th>Gen0</th><th>Gen1</th><th>Allocated</th><th>Alloc Ratio</th>
+</tr>
+</thead><tbody><tr><td>ManagedQueryAllFields</td><td>3.0.1</td><td>11.612 ms</td><td>1.00</td><td>0.02</td><td>78.1250</td><td>31.2500</td><td>1327.37 KB</td><td>1.00</td>
+</tr><tr><td>ManagedQuerySingleField</td><td>3.0.1</td><td>12.082 ms</td><td>1.04</td><td>0.03</td><td>62.5000</td><td>46.8750</td><td>1261.15 KB</td><td>0.95</td>
+</tr><tr><td>ManagedQueryTwoFields</td><td>3.0.1</td><td>11.658 ms</td><td>1.00</td><td>0.01</td><td>78.1250</td><td>46.8750</td><td>1283.4 KB</td><td>0.97</td>
+</tr><tr><td>ManagedQueryThreeFields</td><td>3.0.1</td><td>11.695 ms</td><td>1.01</td><td>0.01</td><td>78.1250</td><td>31.2500</td><td>1306.22 KB</td><td>0.98</td>
+</tr><tr><td>ManagedQueryAllFields</td><td>3.1.0</td><td>11.730 ms</td><td>1.00</td><td>0.00</td><td>78.1250</td><td>31.2500</td><td>1326.76 KB</td><td>1.00</td>
+</tr><tr><td>ManagedQuerySingleField</td><td>3.1.0</td><td>11.885 ms</td><td>1.01</td><td>0.00</td><td>62.5000</td><td>46.8750</td><td>1261.15 KB</td><td>0.95</td>
+</tr><tr><td>ManagedQueryTwoFields</td><td>3.1.0</td><td>11.776 ms</td><td>1.00</td><td>0.00</td><td>78.1250</td><td>46.8750</td><td>1283.45 KB</td><td>0.97</td>
+</tr><tr><td>ManagedQueryThreeFields</td><td>3.1.0</td><td>11.793 ms</td><td>1.01</td><td>0.01</td><td>78.1250</td><td>31.2500</td><td>1306.24 KB</td><td>0.98</td>
+</tr><tr><td>ManagedQueryAllFields</td><td>3.2.1</td><td>11.527 ms</td><td>1.00</td><td>0.00</td><td>78.1250</td><td>31.2500</td><td>1323.17 KB</td><td>1.00</td>
+</tr><tr><td>ManagedQuerySingleField</td><td>3.2.1</td><td>12.769 ms</td><td>1.11</td><td>0.00</td><td>62.5000</td><td>46.8750</td><td>1257.01 KB</td><td>0.95</td>
+</tr><tr><td>ManagedQueryTwoFields</td><td>3.2.1</td><td>11.359 ms</td><td>0.99</td><td>0.00</td><td>78.1250</td><td>46.8750</td><td>1279.31 KB</td><td>0.97</td>
+</tr><tr><td>ManagedQueryThreeFields</td><td>3.2.1</td><td>11.779 ms</td><td>1.02</td><td>0.00</td><td>78.1250</td><td>31.2500</td><td>1302.16 KB</td><td>0.98</td>
+</tr><tr><td>ManagedQueryAllFields</td><td>3.3.0</td><td>11.421 ms</td><td>1.00</td><td>0.01</td><td>78.1250</td><td>31.2500</td><td>1323.2 KB</td><td>1.00</td>
+</tr><tr><td>ManagedQuerySingleField</td><td>3.3.0</td><td>12.165 ms</td><td>1.07</td><td>0.02</td><td>62.5000</td><td>46.8750</td><td>1257.01 KB</td><td>0.95</td>
+</tr><tr><td>ManagedQueryTwoFields</td><td>3.3.0</td><td>11.604 ms</td><td>1.02</td><td>0.01</td><td>78.1250</td><td>46.8750</td><td>1279.27 KB</td><td>0.97</td>
+</tr><tr><td>ManagedQueryThreeFields</td><td>3.3.0</td><td>13.193 ms</td><td>1.16</td><td>0.01</td><td>78.1250</td><td>31.2500</td><td>1302.13 KB</td><td>0.98</td>
+</tr><tr><td>ManagedQueryAllFields</td><td>Source</td><td>2.171 ms</td><td>1.00</td><td>0.01</td><td>19.5313</td><td>3.9063</td><td>371.29 KB</td><td>1.00</td>
+</tr><tr><td>ManagedQuerySingleField</td><td>Source</td><td>2.181 ms</td><td>1.00</td><td>0.01</td><td>15.6250</td><td>3.9063</td><td>306.49 KB</td><td>0.83</td>
+</tr><tr><td>ManagedQueryTwoFields</td><td>Source</td><td>2.286 ms</td><td>1.05</td><td>0.01</td><td>19.5313</td><td>3.9063</td><td>328.38 KB</td><td>0.88</td>
+</tr><tr><td>ManagedQueryThreeFields</td><td>Source</td><td>2.210 ms</td><td>1.02</td><td>0.01</td><td>19.5313</td><td>7.8125</td><td>351.01 KB</td><td>0.95</td>
+</tr></tbody></table>
+</body>
+</html>
