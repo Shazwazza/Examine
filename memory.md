@@ -10,12 +10,15 @@ dotnet test src/Examine.Test/Examine.Test.csproj --configuration Release --filte
 
 # Benchmarks (BenchmarkDotNet)
 dotnet run --project src/Examine.Benchmarks --configuration Release
+
+# Run specific benchmark
+dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-06-29)
-- Task 4: PRs #516 and #520 checked — both clean, no CI failures, no conflicts
-- Task 2: Noted overlap between PR #520 and efficiency-improver PR #521 (same StringComparison.Ordinal on same AddDocument line)
-- Task 7: Updated June 2026 monthly activity issue #513 (fixed #aw_pr518 → #520)
+## Last Run Tasks (2026-06-30)
+- Task 4: PRs #516 and #520 both MERGED ✅ (by Shazwazza)
+- Task 6: Added ManagedQueryBenchmarks.cs (PR #525 pending — actual number TBD by safe-output)
+- Task 7: Updated June 2026 monthly activity issue #513
 
 ## Optimization Backlog
 | Priority | Area | Opportunity |
@@ -28,14 +31,15 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 | DONE | BaseIndexProvider.IndexItems | PR #479 — fast-path when no validator (merged 2026-06-17) |
 | DONE | LuceneSearchExecutor | PR #506 — inline GetMaxDoc() + TryAdd in CreateSearchResult (merged 2026-06-24) |
 | DONE | LuceneIndex.AddDocument | PR #512 — cache 3 system field value types (merged 2026-06-25) |
-| OPEN PR | LuceneIndex.AddDocument + LuceneSearchExecutor | PR #516 — cache 2 loop factories + early BooleanQuery return + Array.Empty |
-| OPEN PR | SearchContext + LuceneIndex | PR #520 — factory cache + Ordinal StartsWith (NOTE: conflicts with efficiency-improver PR #521 on same StartsWith line) |
-| LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not clearly on hot path |
+| DONE | LuceneIndex.AddDocument + LuceneSearchExecutor | PR #516 — cache 2 loop factories + early BooleanQuery return + Array.Empty (MERGED 2026-06-30) |
+| DONE | SearchContext + LuceneIndex | PR #520 — factory cache + Ordinal StartsWith (MERGED 2026-06-29) |
+| OPEN PR | Benchmark infra | ManagedQueryBenchmarks.cs — covers ManagedQuery hot path for version comparison |
 | NOTE | MultiSearchContext | LINQ allocs — efficiency-improver PR #515 already covers this |
 | NOTE | ManagedQueryInternal LINQ | efficiency-improver PR #517 covers reflection + LINQ here |
 | NOTE | LuceneQuery GroupedAnd/Or/Not | efficiency-improver PR #518 covers this |
 | NOTE | GenerateHash/RemoveStopWords | efficiency-improver PR #519 covers redundant ToLower + allocs |
-| NOTE | AddDocument+CreateSearcher StringComparison | efficiency-improver PR #521 covers this (overlaps with PR #520) |
+| NOTE | AddDocument+CreateSearcher StringComparison | efficiency-improver PR #521 covers this (merged into #520) |
+| LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
 
 ## Completed Work
 - 2026-05-25: PR #441 merged
@@ -46,12 +50,14 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 - 2026-06-17: PR #479 merged
 - 2026-06-24: PR #506 merged
 - 2026-06-25: PR #512 merged
-- 2026-06-26: PR #516 created (open)
-- 2026-06-28: PR #520 created (open)
+- 2026-06-30: PR #516 merged
+- 2026-06-29: PR #520 merged
+- 2026-06-30: ManagedQueryBenchmarks PR created (number TBD)
 
 ## Open PRs (awaiting maintainer review)
-- #516: cache factory lookups in AddDocument + early-return BooleanQuery + Array.Empty<SortField>()
-- #520: cache FullText factory in SearchContext.GetFieldValueType + StringComparison.Ordinal for StartsWith
+- ManagedQueryBenchmarks PR (new): adds benchmark for ManagedQuery/BaseLuceneSearcher.Search hot path
+- efficiency-improver #517: reflection → pattern matching + LINQ → inline loop (ManagedQueryInternal)
+- efficiency-improver #518: LINQ in LuceneQuery GroupedAnd/Or/Not
 
 ## Notes
 - No AGENTS.md in this repo
@@ -60,12 +66,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
 - Default branch: support/3.x
 - Targets net6.0;net8.0 — Dictionary.TryAdd available on both
-- Benchmark suite covers: concurrent search (1/25/100 threads), bulk indexing (IndexVersionComparison), concurrent searcher acquire, QueryBuilder, ValueSet ctor
-- Monthly issue #513 open (June 2026) — last updated 2026-06-29
-- Maintainer keeps closing monthly activity issues as "not_planned" — note this pattern
+- Benchmark suite covers: concurrent search (1/25/100 threads), bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery (NEW)
+- Monthly issue #513 open (June 2026) — updated 2026-06-30
+- Backlog now exhausted of hot-path wins; remaining items are LOW priority or covered by efficiency-improver
 - efficiency-improver bot also working in parallel on similar areas (LINQ allocs, etc.)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
-- LuceneSearchQuery creates new instance per search — no caching of category query possible
-- IndexingItemEventArgs + DocumentWritingEventArgs are virtual methods — can't skip allocation based on null event
-- Backlog now nearly exhausted; remaining low-priority item is OrderedDictionary.Values (not hot path)
-- PR #520 conflicts with efficiency-improver PR #521 on AddDocument.StartsWith change — trivial rebase once one merges
+- ManagedQuery wraps query in LateBoundQuery — GetFieldValueType called during Execute() not during build
+- NugetConfig compares Source vs 3.3.0, 3.2.1, 3.1.0, 3.0.1
