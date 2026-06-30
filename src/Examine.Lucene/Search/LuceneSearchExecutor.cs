@@ -305,8 +305,13 @@ namespace Examine.Lucene.Search
                 return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException
             }
 
-            var queryType = query.GetType();
-            if (queryType.IsGenericType && queryType.GetGenericTypeDefinition() == typeof(NumericRangeQuery<>))
+            // Use pattern matching (isinst IL) for all four concrete NumericRangeQuery<T> instantiations
+            // instead of reflection (GetType + IsGenericType + GetGenericTypeDefinition), eliminating
+            // three reflection calls per query node on the hot search-execution path.
+            if (query is NumericRangeQuery<int>
+                or NumericRangeQuery<long>
+                or NumericRangeQuery<double>
+                or NumericRangeQuery<float>)
             {
                 return false; //ExtractTerms() not supported by NumericRangeQuery and will throw NotSupportedException
             }
