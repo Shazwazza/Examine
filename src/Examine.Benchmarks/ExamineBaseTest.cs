@@ -35,7 +35,11 @@ namespace Examine.Benchmarks
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,
+#if LocalBuild
                     DirectoryFactory = new GenericDirectoryFactory(_ => d, true),
+#else
+                    DirectoryFactory = new GenericDirectoryFactory(_ => d),
+#endif
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
