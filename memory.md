@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-06-30
+2026-07-01
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -15,7 +15,7 @@
 - Hot path: `AddDocument` - default field-type factories now cached (PR #522)
 - Hot path: `CheckQueryForExtractTerms` - reflection replaced with pattern matching (PR #517)
 - Hot path: `ManagedQueryInternal` - LINQ state-machine eliminated (PR #517)
-- `SearchResult.GetValues` - dead Values fallback removed (PR open, branch efficiency/simplify-searchresult-getvalues)
+- `SearchResult.GetValues` - dead Values fallback removed (PR #526 open)
 - `LuceneSearchQueryBase.GroupedAnd/Or/Not` - LINQ state-machine allocs eliminated (PR #515, merged)
 - `MultiSearchContext`: LINQ state-machine allocs eliminated (PR #515, merged)
 - `LuceneQuery.GroupedAnd/Or/Not`: LINQ state-machine allocs eliminated (PR #518, open)
@@ -23,17 +23,19 @@
 - `RemoveStopWords`: Action delegate/innerBuilder/string-concat allocs eliminated (PR #519, merged)
 - `AddDocument`: field.Key.StartsWith uses StringComparison.Ordinal (PR #521, merged)
 - `IsStandardAnalyzerStopWord`: ToLowerInvariant() replaces ToLower() (PR #521, merged)
+- `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array; for-loop eliminates SelectIterator (new PR this run, branch efficiency/cache-multiindexsearcher-array)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
 - `StringExtensions.ReplaceNonAlphanumericChars` is dead code (no callers found) with O(N²) pattern
 - `StringExtensions.EnsureEndsWith` is dead code (no callers found)
-- PRs from perf-improver: #516 (cache FieldValueType factories + early-return BooleanQuery + Array.Empty sort), #524 (ManagedQueryBenchmarks), #525 (benchmark results published)
+- PRs from perf-improver: #516 (cache FieldValueType factories + early-return BooleanQuery + Array.Empty sort), #524 (ManagedQueryBenchmarks), #525 (benchmark results published), #527 (FieldValueTypeCollection.GetValueType GetOrAdd TArg overload)
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
 |----------|------------|-------------|------------------|--------|
 | OPEN | Code-Level | LINQ state-machine allocs in LuceneQuery GroupedAnd/Or/Not | 6 SelectIterator allocs eliminated | PR #518 open |
-| OPEN | Code-Level | Dead Values fallback in SearchResult.GetValues | Eliminates _fields lazy-init + array alloc on miss | PR open (efficiency/simplify-searchresult-getvalues) |
+| OPEN | Code-Level | Dead Values fallback in SearchResult.GetValues | Eliminates _fields lazy-init + array alloc on miss | PR #526 open |
+| OPEN | Code-Level | MultiIndexSearcher LINQ allocs per search | 2 LINQ iterator allocs eliminated per search | PR open (efficiency/cache-multiindexsearcher-array) |
 | LOW | Code-Level | `StringExtensions.ReplaceNonAlphanumericChars` dead code with inefficient pattern | Cleanup if dead; or optimize if used | identified |
 | LOW | Code-Level | `StringExtensions.EnsureEndsWith` dead code with alloc-heavy EndsWith | Cleanup only | identified |
 
@@ -51,10 +53,15 @@
 - 2026-06-29: PR #521 merged — StringComparison.Ordinal in AddDocument StartsWith + ToLowerInvariant in IsStandardAnalyzerStopWord
 - 2026-06-29: PR #522 merged — cache default field-type factories in AddDocument loop
 - 2026-06-30: PR #517 merged — reflection→pattern matching in CheckQueryForExtractTerms + LINQ inline loop in ManagedQueryInternal
-- 2026-06-30: PR created (branch: efficiency/simplify-searchresult-getvalues) — remove dead Values fallback in SearchResult.GetValues
+- 2026-06-30: PR #526 created (branch: efficiency/simplify-searchresult-getvalues) — remove dead Values fallback in SearchResult.GetValues
+- 2026-07-01: New PR created (branch: efficiency/cache-multiindexsearcher-array) — cache LuceneSearcher[] in MultiIndexSearcher; eliminate 2 LINQ iterator allocs per search
+
+## Monthly Issues
+- June 2026: #510 (closed 2026-07-01)
+- July 2026: #aw_july2026 (created 2026-07-01)
 
 ## Backlog Cursor
-- Next scan: check PR #518 status; explore remaining hot paths in SearchContext/LuceneSearchExecutor; investigate SearchableFields LINQ chain in SearchContext (still uses LINQ after PR #515); explore LuceneSearchQueryBase.GroupedAndInternal/GetMultiFieldQuery allocation patterns
+- Next scan: check PR #518 and #526 status; explore `ExamineMultiFieldQueryParser` and `CustomMultiFieldQueryParser` for remaining alloc opportunities; check if `StringExtensions` dead code should be cleaned up (LOW priority); look at `LuceneSearcher.GetSearchContext()` for further improvements
 
 ## Last Run Tasks
-- 2026-06-30: Task 3 (remove dead Values fallback in SearchResult.GetValues), Task 7 (update June 2026 issue #510)
+- 2026-07-01: Task 2 (identified MultiIndexSearcher LINQ alloc opportunity), Task 3 (implemented cache), Task 7 (closed June issue #510, created July 2026 issue)
