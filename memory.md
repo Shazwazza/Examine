@@ -15,10 +15,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-06-30)
-- Task 4: PRs #516 and #520 both MERGED ✅ (by Shazwazza)
-- Task 6: Added ManagedQueryBenchmarks.cs (PR #525 pending — actual number TBD by safe-output)
-- Task 7: Updated June 2026 monthly activity issue #513
+## Last Run Tasks (2026-07-01)
+- Task 4: No open perf-improver PRs — PR #524 (ManagedQueryBenchmarks) merged ✅
+- Task 3: Created PR for FieldValueTypeCollection.GetValueType TArg optimization (PR #aw_pr_cda)
+- Task 7: Closed June issue #513; created July 2026 monthly issue (#aw_jul_activity)
 
 ## Optimization Backlog
 | Priority | Area | Opportunity |
@@ -33,12 +33,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | LuceneIndex.AddDocument | PR #512 — cache 3 system field value types (merged 2026-06-25) |
 | DONE | LuceneIndex.AddDocument + LuceneSearchExecutor | PR #516 — cache 2 loop factories + early BooleanQuery return + Array.Empty (MERGED 2026-06-30) |
 | DONE | SearchContext + LuceneIndex | PR #520 — factory cache + Ordinal StartsWith (MERGED 2026-06-29) |
-| OPEN PR | Benchmark infra | ManagedQueryBenchmarks.cs — covers ManagedQuery hot path for version comparison |
-| NOTE | MultiSearchContext | LINQ allocs — efficiency-improver PR #515 already covers this |
-| NOTE | ManagedQueryInternal LINQ | efficiency-improver PR #517 covers reflection + LINQ here |
-| NOTE | LuceneQuery GroupedAnd/Or/Not | efficiency-improver PR #518 covers this |
-| NOTE | GenerateHash/RemoveStopWords | efficiency-improver PR #519 covers redundant ToLower + allocs |
-| NOTE | AddDocument+CreateSearcher StringComparison | efficiency-improver PR #521 covers this (merged into #520) |
+| DONE | Benchmark infra | PR #524 — ManagedQueryBenchmarks (MERGED 2026-06-30) |
+| NEW PR | FieldValueTypeCollection.GetValueType | PR #aw_pr_cda — GetOrAdd TArg overload, static lambda — eliminates 1 closure/call |
+| NOTE | LuceneQuery GroupedAnd/Or/Not | efficiency-improver PR #518 covers LINQ → for-loop (still open) |
+| NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
 | LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
 
 ## Completed Work
@@ -52,12 +50,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-06-25: PR #512 merged
 - 2026-06-30: PR #516 merged
 - 2026-06-29: PR #520 merged
-- 2026-06-30: ManagedQueryBenchmarks PR created (number TBD)
+- 2026-06-30: PR #524 (ManagedQueryBenchmarks) merged by Shazwazza
 
 ## Open PRs (awaiting maintainer review)
-- ManagedQueryBenchmarks PR (new): adds benchmark for ManagedQuery/BaseLuceneSearcher.Search hot path
-- efficiency-improver #517: reflection → pattern matching + LINQ → inline loop (ManagedQueryInternal)
-- efficiency-improver #518: LINQ in LuceneQuery GroupedAnd/Or/Not
+- FieldValueTypeCollection TArg PR (new, #aw_pr_cda): GetOrAdd static lambda eliminating closure per call
 
 ## Notes
 - No AGENTS.md in this repo
@@ -65,11 +61,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
 - Default branch: support/3.x
-- Targets net6.0;net8.0 — Dictionary.TryAdd available on both
-- Benchmark suite covers: concurrent search (1/25/100 threads), bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery (NEW)
-- Monthly issue #513 open (June 2026) — updated 2026-06-30
-- Backlog now exhausted of hot-path wins; remaining items are LOW priority or covered by efficiency-improver
-- efficiency-improver bot also working in parallel on similar areas (LINQ allocs, etc.)
+- Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
+- Benchmark suite covers: concurrent search (1/25/100 threads), bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
+- Monthly issue: July 2026 (#aw_jul_activity); June 2026 issue (#513) closed
+- efficiency-improver bot also working in parallel: PRs #518, #526 still open
+- Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
-- ManagedQuery wraps query in LateBoundQuery — GetFieldValueType called during Execute() not during build
-- NugetConfig compares Source vs 3.3.0, 3.2.1, 3.1.0, 3.0.1
+- GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
