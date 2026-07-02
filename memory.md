@@ -15,10 +15,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-01)
-- Task 4: No open perf-improver PRs — PR #524 (ManagedQueryBenchmarks) merged ✅
-- Task 3: Created PR for FieldValueTypeCollection.GetValueType TArg optimization (PR #aw_pr_cda)
-- Task 7: Closed June issue #513; created July 2026 monthly issue (#aw_jul_activity)
+## Last Run Tasks (2026-07-02)
+- Task 4: PR #527 verified — no CI failures (mergeable_state "unstable" = CI pending, not failure)
+- Task 2: Deep-analysed remaining hot paths; no high-impact new target found; codebase is well-optimized
+- Task 7: Updated July 2026 monthly activity issue #528
 
 ## Optimization Backlog
 | Priority | Area | Opportunity |
@@ -34,10 +34,14 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | LuceneIndex.AddDocument + LuceneSearchExecutor | PR #516 — cache 2 loop factories + early BooleanQuery return + Array.Empty (MERGED 2026-06-30) |
 | DONE | SearchContext + LuceneIndex | PR #520 — factory cache + Ordinal StartsWith (MERGED 2026-06-29) |
 | DONE | Benchmark infra | PR #524 — ManagedQueryBenchmarks (MERGED 2026-06-30) |
-| NEW PR | FieldValueTypeCollection.GetValueType | PR #aw_pr_cda — GetOrAdd TArg overload, static lambda — eliminates 1 closure/call |
+| OPEN PR | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda — eliminates 1 closure/call |
 | NOTE | LuceneQuery GroupedAnd/Or/Not | efficiency-improver PR #518 covers LINQ → for-loop (still open) |
 | NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
+| NOTE | MultiIndexSearcher | efficiency-improver PR #529 covers LINQ allocs per search (still open) |
 | LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
+| LOW | ExamineValue boxing | ToExamineValues boxes struct per value (~32B/value); small savings only |
+| ANALYZED | CreateSearchResult closures | Lazy<>+2 closures per result (~64B each) — eliminates by changing ctor, but requires API work |
+| ANALYZED | AddDocument TryGetValue fast path | Case-sensitivity in _resolvedValueTypes vs FieldDefinitions makes this tricky; savings minimal |
 
 ## Completed Work
 - 2026-05-25: PR #441 merged
@@ -53,7 +57,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-06-30: PR #524 (ManagedQueryBenchmarks) merged by Shazwazza
 
 ## Open PRs (awaiting maintainer review)
-- FieldValueTypeCollection TArg PR (new, #aw_pr_cda): GetOrAdd static lambda eliminating closure per call
+- PR #527: FieldValueTypeCollection TArg optimization (GetOrAdd static lambda)
 
 ## Notes
 - No AGENTS.md in this repo
@@ -63,8 +67,12 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Default branch: support/3.x
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search (1/25/100 threads), bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
-- Monthly issue: July 2026 (#aw_jul_activity); June 2026 issue (#513) closed
-- efficiency-improver bot also working in parallel: PRs #518, #526 still open
+- Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
+- efficiency-improver bot also working in parallel: PRs #518, #526, #529 still open
 - Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
+- ManagedQueryAllFields benchmark: ~371 KB per query execution (500 results), ~5.3x faster than NuGet 3.3.0
+- CreateSearchResult: each result has Lazy<>+2 closures (~64B overhead); hard to eliminate without API changes
+- _resolvedValueTypes dict uses ordinal string comparison; FieldDefinitions uses InvariantCultureIgnoreCase — mismatch prevents simple TryGetValue fast-path for defined fields
+- TODO in ProcessIndexQueueItem: Document reuse could save GC but complex Lucene field lifecycle requirements
