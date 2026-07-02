@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-01
+2026-07-02
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -23,7 +23,8 @@
 - `RemoveStopWords`: Action delegate/innerBuilder/string-concat allocs eliminated (PR #519, merged)
 - `AddDocument`: field.Key.StartsWith uses StringComparison.Ordinal (PR #521, merged)
 - `IsStandardAnalyzerStopWord`: ToLowerInvariant() replaces ToLower() (PR #521, merged)
-- `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array; for-loop eliminates SelectIterator (new PR this run, branch efficiency/cache-multiindexsearcher-array)
+- `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array; for-loop eliminates SelectIterator (PR #529 open)
+- `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload eliminates string[1] alloc per call (new PR this run, open)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
 - `StringExtensions.ReplaceNonAlphanumericChars` is dead code (no callers found) with O(N²) pattern
@@ -35,7 +36,8 @@
 |----------|------------|-------------|------------------|--------|
 | OPEN | Code-Level | LINQ state-machine allocs in LuceneQuery GroupedAnd/Or/Not | 6 SelectIterator allocs eliminated | PR #518 open |
 | OPEN | Code-Level | Dead Values fallback in SearchResult.GetValues | Eliminates _fields lazy-init + array alloc on miss | PR #526 open |
-| OPEN | Code-Level | MultiIndexSearcher LINQ allocs per search | 2 LINQ iterator allocs eliminated per search | PR open (efficiency/cache-multiindexsearcher-array) |
+| OPEN | Code-Level | MultiIndexSearcher LINQ allocs per search | 2 LINQ iterator allocs eliminated per search | PR #529 open |
+| OPEN | Code-Level | string[1] alloc in Field<T> across 4 call sites | 1 array alloc eliminated per Field<T> call | New PR this run (open) |
 | LOW | Code-Level | `StringExtensions.ReplaceNonAlphanumericChars` dead code with inefficient pattern | Cleanup if dead; or optimize if used | identified |
 | LOW | Code-Level | `StringExtensions.EnsureEndsWith` dead code with alloc-heavy EndsWith | Cleanup only | identified |
 
@@ -54,14 +56,15 @@
 - 2026-06-29: PR #522 merged — cache default field-type factories in AddDocument loop
 - 2026-06-30: PR #517 merged — reflection→pattern matching in CheckQueryForExtractTerms + LINQ inline loop in ManagedQueryInternal
 - 2026-06-30: PR #526 created (branch: efficiency/simplify-searchresult-getvalues) — remove dead Values fallback in SearchResult.GetValues
-- 2026-07-01: New PR created (branch: efficiency/cache-multiindexsearcher-array) — cache LuceneSearcher[] in MultiIndexSearcher; eliminate 2 LINQ iterator allocs per search
+- 2026-07-01: PR #529 created (branch: efficiency/cache-multiindexsearcher-array) — cache LuceneSearcher[] in MultiIndexSearcher; eliminate 2 LINQ iterator allocs per search
+- 2026-07-02: New PR created (branch: efficiency/eliminate-single-field-range-array-alloc) — single-field RangeQueryInternal<T> overload; eliminate string[1] alloc per Field<T> call
 
 ## Monthly Issues
 - June 2026: #510 (closed 2026-07-01)
-- July 2026: #aw_july2026 (created 2026-07-01)
+- July 2026: #530 (open)
 
 ## Backlog Cursor
-- Next scan: check PR #518 and #526 status; explore `ExamineMultiFieldQueryParser` and `CustomMultiFieldQueryParser` for remaining alloc opportunities; check if `StringExtensions` dead code should be cleaned up (LOW priority); look at `LuceneSearcher.GetSearchContext()` for further improvements
+- Next scan: check if open PRs (#518, #526, #529, new Field<T> PR) have been merged; look for remaining alloc patterns in `LuceneBooleanOperationBase` and any remaining LINQ in `MultiIndexSearcher`; LOW priority: dead code cleanup of StringExtensions
 
 ## Last Run Tasks
-- 2026-07-01: Task 2 (identified MultiIndexSearcher LINQ alloc opportunity), Task 3 (implemented cache), Task 7 (closed June issue #510, created July 2026 issue)
+- 2026-07-02: Task 4 (checked PR CI — all clean), Task 2 (identified string[1] alloc in Field<T>), Task 3 (implemented single-field overload), Task 7 (updated July 2026 issue #530)
