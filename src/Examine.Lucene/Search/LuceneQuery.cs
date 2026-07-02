@@ -25,7 +25,7 @@ namespace Examine.Lucene.Search
         }
 
         public IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct
-            => RangeQuery<T>(new[] { fieldName }, fieldValue, fieldValue);
+            => _search.RangeQueryInternal<T>(fieldName, fieldValue, fieldValue, true, true, _occurrence);
 
         public IBooleanOperation Field(string fieldName, string fieldValue)
             => _search.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), _occurrence);
@@ -74,7 +74,7 @@ namespace Examine.Lucene.Search
         public IBooleanOperation Id(string id) => _search.IdInternal(id, _occurrence);
 
         INestedBooleanOperation INestedQuery.Field<T>(string fieldName, T fieldValue)
-            => _search.RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, _occurrence);
+            => _search.RangeQueryInternal<T>(fieldName, fieldValue, fieldValue, true, true, _occurrence);
 
         INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue)
             => _search.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), _occurrence);
