@@ -15,9 +15,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-02)
-- Task 4: PR #527 verified — no CI failures (mergeable_state "unstable" = CI pending, not failure)
-- Task 2: Deep-analysed remaining hot paths; no high-impact new target found; codebase is well-optimized
+## Last Run Tasks (2026-07-03)
+- Task 3: Created PR #aw_pr_sr_lazy (new PR): eliminate Lazy<T> + inner closure per SearchResult — measured −14.9 KB/query (−4.0%, ManagedQueryAllFields Source: 371.68→356.82 KB); all 150 tests pass
+- Task 4: PR #527 still open, base up-to-date, no action needed
+- Task 5: No open performance issues found (only #528 = monthly issue)
 - Task 7: Updated July 2026 monthly activity issue #528
 
 ## Optimization Backlog
@@ -34,6 +35,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | LuceneIndex.AddDocument + LuceneSearchExecutor | PR #516 — cache 2 loop factories + early BooleanQuery return + Array.Empty (MERGED 2026-06-30) |
 | DONE | SearchContext + LuceneIndex | PR #520 — factory cache + Ordinal StartsWith (MERGED 2026-06-29) |
 | DONE | Benchmark infra | PR #524 — ManagedQueryBenchmarks (MERGED 2026-06-30) |
+| OPEN PR | SearchResult Lazy<T> | PR #aw_pr_sr_lazy — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) |
 | OPEN PR | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda — eliminates 1 closure/call |
 | NOTE | LuceneQuery GroupedAnd/Or/Not | efficiency-improver PR #518 covers LINQ → for-loop (still open) |
 | NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
@@ -57,6 +59,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-06-30: PR #524 (ManagedQueryBenchmarks) merged by Shazwazza
 
 ## Open PRs (awaiting maintainer review)
+- PR #aw_pr_sr_lazy: SearchResult Lazy<T> elimination (−14.9 KB/query −4%)
 - PR #527: FieldValueTypeCollection TArg optimization (GetOrAdd static lambda)
 
 ## Notes
@@ -72,7 +75,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
-- ManagedQueryAllFields benchmark: ~371 KB per query execution (500 results), ~5.3x faster than NuGet 3.3.0
-- CreateSearchResult: each result has Lazy<>+2 closures (~64B overhead); hard to eliminate without API changes
+- ManagedQueryAllFields benchmark: ~371 KB per query execution (baseline), ~356 KB after SearchResult Lazy<T> elimination PR
+- CreateSearchResult: measured Lazy<T>+closure overhead at ~15 KB per 1000 results (not ~64B as estimated — GC allocation not purely proportional to object size)
 - _resolvedValueTypes dict uses ordinal string comparison; FieldDefinitions uses InvariantCultureIgnoreCase — mismatch prevents simple TryGetValue fast-path for defined fields
 - TODO in ProcessIndexQueueItem: Document reuse could save GC but complex Lucene field lifecycle requirements
