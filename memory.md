@@ -15,10 +15,9 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-03)
-- Task 3: Created PR #aw_pr_sr_lazy (new PR): eliminate Lazy<T> + inner closure per SearchResult — measured −14.9 KB/query (−4.0%, ManagedQueryAllFields Source: 371.68→356.82 KB); all 150 tests pass
-- Task 4: PR #527 still open, base up-to-date, no action needed
-- Task 5: No open performance issues found (only #528 = monthly issue)
+## Last Run Tasks (2026-07-04)
+- Task 4: PR #532 and #527 verified — no CI failures, base SHA e39c592 matches tip of support/3.x — no action needed
+- Task 3: Created PR #aw_pr_sort_cache: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType — eliminates 1 string alloc per doc per sortable field during indexing; 150 tests pass
 - Task 7: Updated July 2026 monthly activity issue #528
 
 ## Optimization Backlog
@@ -35,15 +34,17 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | LuceneIndex.AddDocument + LuceneSearchExecutor | PR #516 — cache 2 loop factories + early BooleanQuery return + Array.Empty (MERGED 2026-06-30) |
 | DONE | SearchContext + LuceneIndex | PR #520 — factory cache + Ordinal StartsWith (MERGED 2026-06-29) |
 | DONE | Benchmark infra | PR #524 — ManagedQueryBenchmarks (MERGED 2026-06-30) |
-| OPEN PR | SearchResult Lazy<T> | PR #aw_pr_sr_lazy — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) |
+| OPEN PR | SearchResult Lazy<T> | PR #532 — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) |
 | OPEN PR | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda — eliminates 1 closure/call |
+| OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #aw_pr_sort_cache — cache sortable field name; eliminates 1 string alloc per doc per sortable field |
 | NOTE | LuceneQuery GroupedAnd/Or/Not | efficiency-improver PR #518 covers LINQ → for-loop (still open) |
 | NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
 | NOTE | MultiIndexSearcher | efficiency-improver PR #529 covers LINQ allocs per search (still open) |
+| NOTE | LuceneSearchQuery.Field<T> | efficiency-improver PR #531 covers new[] {fieldName} single-element alloc (still open) |
 | LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
 | LOW | ExamineValue boxing | ToExamineValues boxes struct per value (~32B/value); small savings only |
-| ANALYZED | CreateSearchResult closures | Lazy<>+2 closures per result (~64B each) — eliminates by changing ctor, but requires API work |
-| ANALYZED | AddDocument TryGetValue fast path | Case-sensitivity in _resolvedValueTypes vs FieldDefinitions makes this tricky; savings minimal |
+| EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
+| EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; PR #532 eliminates Lazy<T> wrapper |
 
 ## Completed Work
 - 2026-05-25: PR #441 merged
@@ -59,8 +60,9 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-06-30: PR #524 (ManagedQueryBenchmarks) merged by Shazwazza
 
 ## Open PRs (awaiting maintainer review)
-- PR #aw_pr_sr_lazy: SearchResult Lazy<T> elimination (−14.9 KB/query −4%)
+- PR #532: SearchResult Lazy<T> elimination (−14.9 KB/query −4%)
 - PR #527: FieldValueTypeCollection TArg optimization (GetOrAdd static lambda)
+- PR #aw_pr_sort_cache: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType
 
 ## Notes
 - No AGENTS.md in this repo
@@ -71,11 +73,13 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search (1/25/100 threads), bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
-- efficiency-improver bot also working in parallel: PRs #518, #526, #529 still open
+- efficiency-improver bot also working in parallel: PRs #518, #526, #529, #531 still open
 - Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
 - ManagedQueryAllFields benchmark: ~371 KB per query execution (baseline), ~356 KB after SearchResult Lazy<T> elimination PR
-- CreateSearchResult: measured Lazy<T>+closure overhead at ~15 KB per 1000 results (not ~64B as estimated — GC allocation not purely proportional to object size)
+- CreateSearchResult: measured Lazy<>+closure overhead at ~15 KB per 1000 results (not ~64B as estimated — GC allocation not purely proportional to object size)
 - _resolvedValueTypes dict uses ordinal string comparison; FieldDefinitions uses InvariantCultureIgnoreCase — mismatch prevents simple TryGetValue fast-path for defined fields
-- TODO in ProcessIndexQueueItem: Document reuse could save GC but complex Lucene field lifecycle requirements
+- FullTextType._sortableFieldName: computed once in ctor — FieldName is immutable; only affects FullTextSortable type (sortable: true path)
+- Existing benchmarks don't use FullTextSortable fields — sortable field caching improvement not directly measurable with current suite
+- Backlog near-exhausted: remaining items covered by efficiency-improver PRs #518/#526/#529/#531
