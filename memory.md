@@ -15,10 +15,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-04)
-- Task 4: PR #532 and #527 verified — no CI failures, base SHA e39c592 matches tip of support/3.x — no action needed
-- Task 3: Created PR #aw_pr_sort_cache: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType — eliminates 1 string alloc per doc per sortable field during indexing; 150 tests pass
-- Task 7: Updated July 2026 monthly activity issue #528
+## Last Run Tasks (2026-07-05)
+- Task 4: PRs #527, #532, #533 verified — no CI failures, no action needed
+- Task 2: Codebase rescan confirmed backlog exhausted; no new opportunities
+- Task 7: Updated July 2026 monthly activity issue #528; fixed #aw_pr_sort_cache → #533
 
 ## Optimization Backlog
 | Priority | Area | Opportunity |
@@ -36,13 +36,12 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | Benchmark infra | PR #524 — ManagedQueryBenchmarks (MERGED 2026-06-30) |
 | OPEN PR | SearchResult Lazy<T> | PR #532 — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) |
 | OPEN PR | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda — eliminates 1 closure/call |
-| OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #aw_pr_sort_cache — cache sortable field name; eliminates 1 string alloc per doc per sortable field |
+| OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #533 — cache sortable field name; eliminates 1 string alloc per doc per sortable field |
 | NOTE | LuceneQuery GroupedAnd/Or/Not | efficiency-improver PR #518 covers LINQ → for-loop (still open) |
 | NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
 | NOTE | MultiIndexSearcher | efficiency-improver PR #529 covers LINQ allocs per search (still open) |
 | NOTE | LuceneSearchQuery.Field<T> | efficiency-improver PR #531 covers new[] {fieldName} single-element alloc (still open) |
 | LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
-| LOW | ExamineValue boxing | ToExamineValues boxes struct per value (~32B/value); small savings only |
 | EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
 | EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; PR #532 eliminates Lazy<T> wrapper |
 
@@ -62,14 +61,14 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 ## Open PRs (awaiting maintainer review)
 - PR #532: SearchResult Lazy<T> elimination (−14.9 KB/query −4%)
 - PR #527: FieldValueTypeCollection TArg optimization (GetOrAdd static lambda)
-- PR #aw_pr_sort_cache: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType
+- PR #533: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType
 
 ## Notes
 - No AGENTS.md in this repo
 - TreatWarningsAsErrors is on — zero warnings required
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
-- Default branch: support/3.x
+- Default branch: support/3.x (at e39c592)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search (1/25/100 threads), bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
@@ -82,4 +81,5 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - _resolvedValueTypes dict uses ordinal string comparison; FieldDefinitions uses InvariantCultureIgnoreCase — mismatch prevents simple TryGetValue fast-path for defined fields
 - FullTextType._sortableFieldName: computed once in ctor — FieldName is immutable; only affects FullTextSortable type (sortable: true path)
 - Existing benchmarks don't use FullTextSortable fields — sortable field caching improvement not directly measurable with current suite
-- Backlog near-exhausted: remaining items covered by efficiency-improver PRs #518/#526/#529/#531
+- Backlog exhausted: remaining items covered by efficiency-improver PRs #518/#526/#529/#531 or are LOW priority
+- 2026-07-05 rescan confirmed no new opportunities; codebase is well-optimized
