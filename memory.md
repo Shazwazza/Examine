@@ -15,10 +15,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-05)
-- Task 4: PRs #527, #532, #533 verified — no CI failures, no action needed
-- Task 2: Codebase rescan confirmed backlog exhausted; no new opportunities
-- Task 7: Updated July 2026 monthly activity issue #528; fixed #aw_pr_sort_cache → #533
+## Last Run Tasks (2026-07-06)
+- Task 4: PRs #527, #532, #533 verified — base branch unchanged (e39c592), no CI failures, no action needed
+- Task 2: No new opportunities; backlog confirmed exhausted
+- Task 7: Updated July 2026 monthly activity issue #528 with run entry
 
 ## Optimization Backlog
 | Priority | Area | Opportunity |
@@ -72,7 +72,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search (1/25/100 threads), bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
-- efficiency-improver bot also working in parallel: PRs #518, #526, #529, #531 still open
+- efficiency-improver bot also working in parallel: PRs #518, #526, #529, #531, #534 still open
 - Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
@@ -81,5 +81,5 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - _resolvedValueTypes dict uses ordinal string comparison; FieldDefinitions uses InvariantCultureIgnoreCase — mismatch prevents simple TryGetValue fast-path for defined fields
 - FullTextType._sortableFieldName: computed once in ctor — FieldName is immutable; only affects FullTextSortable type (sortable: true path)
 - Existing benchmarks don't use FullTextSortable fields — sortable field caching improvement not directly measurable with current suite
-- Backlog exhausted: remaining items covered by efficiency-improver PRs #518/#526/#529/#531 or are LOW priority
-- 2026-07-05 rescan confirmed no new opportunities; codebase is well-optimized
+- Backlog exhausted: remaining items covered by efficiency-improver PRs #518/#526/#529/#531/#534 or are LOW priority
+- 2026-07-06 rescan skipped (same state as 2026-07-05 — confirmed exhausted)
