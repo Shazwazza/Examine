@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-05
+2026-07-06
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -26,9 +26,10 @@
 - `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array; for-loop eliminates SelectIterator (PR #529 open)
 - `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload eliminates string[1] alloc per call (PR #531 open)
 - `StringExtensions.EnsureEndsWith` + `ReplaceNonAlphanumericChars`: dead internal code removed (PR #534 open)
+- `ObjectExtensions.ConvertObjectToDictionary`: LINQ cast+where pattern noted as LOW priority (reflection-dominated, not hot path)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
-- PRs from perf-improver (separate bot): #516, #524, #525, #527, #532, #533 (all open/awaiting review)
+- PRs from perf-improver (separate bot): #527, #532, #533 (all open/awaiting review)
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
@@ -38,6 +39,7 @@
 | OPEN | Code-Level | MultiIndexSearcher LINQ allocs per search | 2 LINQ iterator allocs eliminated per search | PR #529 open |
 | OPEN | Code-Level | string[1] alloc in Field<T> across 4 call sites | 1 array alloc eliminated per Field<T> call | PR #531 open |
 | OPEN | Code-Level | Dead EnsureEndsWith + ReplaceNonAlphanumericChars (O(N²) trap) | Dead code removal, eliminates O(N²) maintenance trap | PR #534 open |
+| LOW | Code-Level | ObjectExtensions.ConvertObjectToDictionary LINQ | reflection-dominated, skip | Not worth pursuing |
 
 ## Completed Work
 - 2026-05-25: PR #438 merged — CreateSearchResult dedup fix
@@ -58,6 +60,7 @@
 - 2026-07-02: PR #531 created — single-field RangeQueryInternal<T> overload; eliminate string[1] alloc per Field<T> call
 - 2026-07-04: PR #534 created — remove dead EnsureEndsWith + ReplaceNonAlphanumericChars internal methods + 2 unused imports
 - 2026-07-05: Task 4 — verified CI on all 5 open PRs (#518, #526, #529, #531, #534), all clean; comprehensive scan found no new opportunities
+- 2026-07-06: Task 4 — verified CI on all 5 open PRs, all remain clean; codebase scan confirmed no new commits and backlog exhausted
 
 ## Monthly Issues
 - June 2026: #510 (closed 2026-07-01)
@@ -65,7 +68,7 @@
 
 ## Backlog Cursor
 - Backlog exhausted for high-impact code-level changes; all remaining LINQ/alloc patterns addressed by open PRs (#518, #526, #529, #531, #534 from efficiency-improver; #527, #532, #533 from perf-improver)
-- Next run: consider expanding benchmarks or scanning for any new code added by maintainer
+- Next run: continue monitoring open PRs; if still no new code from maintainer, consider Task 6 (benchmark infrastructure)
 
 ## Last Run Tasks
-- 2026-07-05: Task 4 (all 5 open PRs CI clean), Task 2 (comprehensive codebase scan — no new opportunities), Task 7 (updated July 2026 issue #530)
+- 2026-07-06: Task 4 (all 5 open PRs CI clean), Task 2 (codebase scan — no new opportunities, no new commits), Task 7 (updated July 2026 issue #530)
