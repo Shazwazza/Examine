@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-07
+2026-07-08
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -19,29 +19,30 @@
 - `SearchResult.GetValues` - dead Values fallback to be removed (PR #526 open)
 - `LuceneSearchQueryBase.GroupedAnd/Or/Not` - LINQ state-machine allocs eliminated (PR #515, merged)
 - `MultiSearchContext`: LINQ state-machine allocs eliminated (PR #515, merged)
-- `LuceneQuery.GroupedAnd/Or/Not`: LINQ state-machine allocs eliminated (PR #518, open)
+- `LuceneQuery.GroupedAnd/Or/Not`: LINQ state-machine allocs eliminated (PR #518, MERGED 2026-07-08)
 - `GenerateHash`: removed redundant .ToLower() after "x2" format (PR #519, merged)
 - `RemoveStopWords`: Action delegate/innerBuilder/string-concat allocs eliminated (PR #519, merged)
 - `AddDocument`: field.Key.StartsWith uses StringComparison.Ordinal (PR #521, merged)
 - `IsStandardAnalyzerStopWord`: ToLowerInvariant() replaces ToLower() (PR #521, merged)
 - `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array; for-loop eliminates SelectIterator (PR #529 open)
 - `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload eliminates string[1] alloc per call (PR #531 open)
-- `StringExtensions.EnsureEndsWith` + `ReplaceNonAlphanumericChars`: dead internal code removed (PR #534 open)
+- `StringExtensions.EnsureEndsWith` + `ReplaceNonAlphanumericChars`: dead internal code removed (PR #534, MERGED 2026-07-08)
 - `ObjectExtensions.ConvertObjectToDictionary`: LINQ cast+where pattern noted as LOW priority (reflection-dominated, not hot path)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
 - PRs from perf-improver (separate bot): #527, #532, #533 (all open/awaiting review)
-- Benchmark infrastructure: `FieldQueryBenchmarks.cs` added (PR #aw_fqbench, open) — measures `Field<int>` typed query allocs vs NuGet versions
+- Benchmark infrastructure: `FieldQueryBenchmarks.cs` added (PR #535, open) — measures `Field<int>` typed query allocs vs NuGet versions
+- `LuceneSearchQueryBase.SortFields`: lazy-init `List<SortField>` (PR #aw_sortfields open) — 1 list alloc eliminated per unsorted query (common path)
+- PublicAPI analyzer active — `protected` members of public classes must be in PublicAPI.Unshipped.txt; use `internal` for intra-assembly-only helpers
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
 |----------|------------|-------------|------------------|--------|
-| OPEN | Code-Level | LINQ state-machine allocs in LuceneQuery GroupedAnd/Or/Not | 6 SelectIterator allocs eliminated | PR #518 open |
 | OPEN | Code-Level | Dead Values fallback in SearchResult.GetValues | Eliminates _fields lazy-init + array alloc on miss | PR #526 open |
 | OPEN | Code-Level | MultiIndexSearcher LINQ allocs per search | 2 LINQ iterator allocs eliminated per search | PR #529 open |
 | OPEN | Code-Level | string[1] alloc in Field<T> across 4 call sites | 1 array alloc eliminated per Field<T> call | PR #531 open |
-| OPEN | Code-Level | Dead EnsureEndsWith + ReplaceNonAlphanumericChars (O(N²) trap) | Dead code removal, eliminates O(N²) maintenance trap | PR #534 open |
-| INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap in benchmark suite | PR #aw_fqbench open |
+| OPEN | Code-Level | List<SortField> eager alloc per unsorted query | 1 list alloc eliminated per query (common path) | PR #aw_sortfields open |
+| INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap in benchmark suite | PR #535 open |
 | LOW | Code-Level | ObjectExtensions.ConvertObjectToDictionary LINQ | reflection-dominated, skip | Not worth pursuing |
 
 ## Completed Work
@@ -62,16 +63,19 @@
 - 2026-07-01: PR #529 created — cache LuceneSearcher[] in MultiIndexSearcher; eliminate 2 LINQ iterator allocs per search
 - 2026-07-02: PR #531 created — single-field RangeQueryInternal<T> overload; eliminate string[1] alloc per Field<T> call
 - 2026-07-04: PR #534 created — remove dead EnsureEndsWith + ReplaceNonAlphanumericChars internal methods + 2 unused imports
-- 2026-07-07: PR #aw_fqbench created — FieldQueryBenchmarks.cs; NuGet-version benchmark for typed Field<T> query hot path
+- 2026-07-07: PR #535 created — FieldQueryBenchmarks.cs; NuGet-version benchmark for typed Field<T> query hot path
+- 2026-07-08: PR #518 MERGED (Shazwazza) — LuceneQuery GroupedAnd/Or/Not LINQ allocs
+- 2026-07-08: PR #534 MERGED (Shazwazza) — dead string extension methods removed
+- 2026-07-08: PR #aw_sortfields created — lazy-init SortFields; eliminate List<SortField> per unsorted query
 
 ## Monthly Issues
 - June 2026: #510 (closed 2026-07-01)
 - July 2026: #530 (open)
 
 ## Backlog Cursor
-- Backlog exhausted for high-impact code-level changes; all remaining LINQ/alloc patterns addressed by open PRs
-- Benchmark infrastructure: FieldQueryBenchmarks added — next gap would be AddDocument per-field benchmarks or MultiIndexSearcher search benchmarks
-- Next run: continue monitoring open PRs; if still no new code from maintainer, consider Task 5 (issue comments) or more benchmark infrastructure
+- All high-impact code-level patterns addressed; open PRs cover remaining known opportunities
+- Next logical step: AddDocument per-field benchmarks or MultiIndexSearcher search benchmarks (after open PRs are merged)
+- Scanned codebase on 2026-07-08: no new high-impact opportunities found beyond what's already in open PRs
 
 ## Last Run Tasks
-- 2026-07-07: Task 4 (all 5 open PRs CI/status verified), Task 5 (no open efficiency issues found), Task 6 (FieldQueryBenchmarks PR created), Task 7 (updated July 2026 issue #530)
+- 2026-07-08: Task 4 (PRs #518, #534 confirmed merged; #526, #529, #531, #535 CI ok), Task 3 (created PR for lazy SortFields), Task 7 (updated July 2026 issue #530)
