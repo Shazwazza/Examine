@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-08
+2026-07-09
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -33,7 +33,7 @@
 - PRs from perf-improver (separate bot): #527, #532, #533 (all open/awaiting review)
 - Benchmark infrastructure: `FieldQueryBenchmarks.cs` added (PR #535, open) — measures `Field<int>` typed query allocs vs NuGet versions
 - `LuceneSearchQueryBase.SortFields`: lazy-init `List<SortField>` (PR #aw_sortfields open) — 1 list alloc eliminated per unsorted query (common path)
-- PublicAPI analyzer active — `protected` members of public classes must be in PublicAPI.Unshipped.txt; use `internal` for intra-assembly-only helpers
+- `LuceneSearchQuery.Search()`: category TermQuery cached via `??=`; eliminates ExamineValue boxing + TermQuery alloc per categorised Execute() call (PR #aw_catquery open)
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
@@ -41,7 +41,8 @@
 | OPEN | Code-Level | Dead Values fallback in SearchResult.GetValues | Eliminates _fields lazy-init + array alloc on miss | PR #526 open |
 | OPEN | Code-Level | MultiIndexSearcher LINQ allocs per search | 2 LINQ iterator allocs eliminated per search | PR #529 open |
 | OPEN | Code-Level | string[1] alloc in Field<T> across 4 call sites | 1 array alloc eliminated per Field<T> call | PR #531 open |
-| OPEN | Code-Level | List<SortField> eager alloc per unsorted query | 1 list alloc eliminated per query (common path) | PR #aw_sortfields open |
+| OPEN | Code-Level | List<SortField> eager alloc per unsorted query | 1 list alloc eliminated per query (common path) | PR #536 open |
+| OPEN | Code-Level | Category TermQuery recreated per Execute() | ~56-64 B eliminated per categorised search | PR #aw_catquery open |
 | INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap in benchmark suite | PR #535 open |
 | LOW | Code-Level | ObjectExtensions.ConvertObjectToDictionary LINQ | reflection-dominated, skip | Not worth pursuing |
 
@@ -66,7 +67,8 @@
 - 2026-07-07: PR #535 created — FieldQueryBenchmarks.cs; NuGet-version benchmark for typed Field<T> query hot path
 - 2026-07-08: PR #518 MERGED (Shazwazza) — LuceneQuery GroupedAnd/Or/Not LINQ allocs
 - 2026-07-08: PR #534 MERGED (Shazwazza) — dead string extension methods removed
-- 2026-07-08: PR #aw_sortfields created — lazy-init SortFields; eliminate List<SortField> per unsorted query
+- 2026-07-08: PR #536 created (was #aw_sortfields) — lazy-init SortFields; eliminate List<SortField> per unsorted query
+- 2026-07-09: PR #aw_catquery created — cache category TermQuery in LuceneSearchQuery; eliminate ~56-64 B alloc per categorised Execute() call
 
 ## Monthly Issues
 - June 2026: #510 (closed 2026-07-01)
@@ -78,4 +80,4 @@
 - Scanned codebase on 2026-07-08: no new high-impact opportunities found beyond what's already in open PRs
 
 ## Last Run Tasks
-- 2026-07-08: Task 4 (PRs #518, #534 confirmed merged; #526, #529, #531, #535 CI ok), Task 3 (created PR for lazy SortFields), Task 7 (updated July 2026 issue #530)
+- 2026-07-09: Task 4 (PRs #526, #529, #531, #535, #536 CI ok; confirmed #536 = lazy SortFields), Task 3 (created PR #aw_catquery for category TermQuery caching), Task 7 (updated July 2026 issue #530)
