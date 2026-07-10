@@ -15,9 +15,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-08)
-- Task 4: PRs #527, #532, #533 verified — new base SHA 0ee95db (PRs #518+#534 merged today); no conflicts with my PRs, no CI failures
-- Task 2: Post-merge rescan — backlog confirmed exhausted; no new opportunities from PR #518 (LuceneQuery.cs) or #534 (StringExtensions.cs)
+## Last Run Tasks (2026-07-10)
+- Task 4: PR #533 was "behind" (based on e39c592, branch now at 0ee95db) — recreated changes on current tip and pushed updated branch
 - Task 7: Updated July 2026 monthly activity issue #528 with run entry
 
 ## Optimization Backlog
@@ -64,7 +63,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 ## Open PRs (awaiting maintainer review)
 - PR #532: SearchResult Lazy<T> elimination (−14.9 KB/query −4%) — maintainer commented 2026-07-08; Copilot SWE confirmed thread-safety rationale
 - PR #527: FieldValueTypeCollection TArg optimization (GetOrAdd static lambda)
-- PR #533: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType (mergeable_state: clean)
+- PR #533: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType — rebased 2026-07-10
 
 ## Notes
 - No AGENTS.md in this repo
@@ -75,11 +74,11 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
-- efficiency-improver bot also working in parallel: PRs #526, #529, #531, #aw_fqbench still open
+- efficiency-improver bot also working in parallel: PRs #526, #529, #531 still open
 - Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
 - ManagedQueryAllFields benchmark: ~371 KB per query execution (baseline), ~356 KB after SearchResult Lazy<T> elimination PR
 - Backlog exhausted: remaining items covered by efficiency-improver PRs #526/#529/#531 or are LOW priority
 - PR #532: thread-safety of null-check lazy-init same as existing Values getter; SearchResult not shared across threads
-- PR #533: mergeable_state=clean; FullTextType._sortableFieldName cached once in ctor (FieldName immutable)
+- PR #533: FullTextType._sortableFieldName cached once in ctor (FieldName immutable); rebased onto 0ee95db 2026-07-10
