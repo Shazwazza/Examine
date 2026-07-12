@@ -15,7 +15,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-11)
+## Last Run Tasks (2026-07-12)
 - Task 4: PRs #527, #532, #533 all up-to-date (base 0ee95db = tip of support/3.x), no action needed
 - Task 7: Updated July 2026 monthly activity issue #528
 
@@ -41,7 +41,9 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
 | NOTE | MultiIndexSearcher | efficiency-improver PR #529 covers LINQ allocs per search (still open) |
 | NOTE | LuceneSearchQuery.Field<T> | efficiency-improver PR #531 covers new[] {fieldName} single-element alloc (still open) |
-| NOTE | LuceneSearchQuery.Search() | efficiency-improver PR #537 — cache category filter query (still open, based on 0ee95db) |
+| NOTE | LuceneSearchQuery.Search() | efficiency-improver PR #537 — cache category filter query (still open) |
+| NOTE | LuceneSearchQueryBase SortFields | efficiency-improver PR #536 — lazy-init SortFields (still open, new 2026-07-12) |
+| NOTE | FieldQueryBenchmarks | efficiency-improver PR #535 — adds FieldQueryBenchmarks (still open, new 2026-07-12) |
 | LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
 | EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
 | EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; PR #532 eliminates Lazy<T> wrapper |
@@ -71,11 +73,11 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - TreatWarningsAsErrors is on — zero warnings required
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
-- Default branch: support/3.x (at 0ee95db as of 2026-07-08, unchanged through 2026-07-11)
+- Default branch: support/3.x (at 0ee95db as of 2026-07-08, unchanged through 2026-07-12)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
-- efficiency-improver bot also working in parallel: PRs #526, #529, #531 (behind: based on e39c592), #537 (current: based on 0ee95db) still open
+- efficiency-improver bot also working in parallel: PRs #526, #529, #531, #535, #536, #537 still open
 - Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
