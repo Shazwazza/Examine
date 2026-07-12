@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-11
+2026-07-12
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -35,7 +35,7 @@
 - `LuceneSearchQueryBase.SortFields`: lazy-init `List<SortField>` (PR #536 open) — 1 list alloc eliminated per unsorted query (common path)
 - `LuceneSearchQuery.Search()`: category TermQuery cached via `??=`; eliminates ExamineValue boxing + TermQuery alloc per categorised Execute() call (PR #537 open)
 - `OrderedDictionary.Values`: creates new array via LINQ Select+ToArray on every call — LOW priority (not a confirmed hot path)
-- Scanned 2026-07-11: no new high-impact opportunities found; all known opportunities in open PRs
+- Scanned 2026-07-12: no new commits on support/3.x; all known opportunities covered by open PRs
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
@@ -79,8 +79,8 @@
 
 ## Backlog Cursor
 - All high-impact code-level patterns addressed; open PRs cover remaining known opportunities
-- Scanned full codebase 2026-07-11: no new high-impact opportunities found
-- Next logical step: AddDocument per-field benchmarks or MultiIndexSearcher search benchmarks (after open PRs are merged)
+- Scanned full codebase 2026-07-12: no new commits on support/3.x; no new opportunities
+- Next logical step: wait for maintainer to merge/review open PRs
 
 ## Last Run Tasks
-- 2026-07-11: Task 4 (verified all open efficiency-improver PRs CI-green: #526, #529, #531, #535, #536, #537), Task 2 (no new opportunities), Task 7 (updated July 2026 issue #530)
+- 2026-07-12: Task 4 (verified 6 open efficiency-improver PRs still open, no new commits), Task 7 (updated July 2026 issue #530)
