@@ -15,7 +15,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-14)
+## Last Run Tasks (2026-07-15)
 - Task 4: PRs #527, #532, #533 all passing CI; base SHA unchanged (0ee95db); no action needed
 - Task 7: Updated July 2026 monthly activity issue #528
 
@@ -73,7 +73,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - TreatWarningsAsErrors is on — zero warnings required
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
-- Default branch: support/3.x (at 0ee95db as of 2026-07-08, unchanged through 2026-07-14)
+- Default branch: support/3.x (at 0ee95db as of 2026-07-08, unchanged through 2026-07-15)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
