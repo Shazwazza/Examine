@@ -15,8 +15,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-19)
-- Task 4: PRs #527, #532, #533 all passing CI; base SHA unchanged (0ee95db); no action needed
+## Last Run Tasks (2026-07-20)
+- Task 4: PR #533 was behind — rebased onto 0ee95db and pushed update
 - Task 7: Updated July 2026 monthly activity issue #528
 
 ## Optimization Backlog
@@ -66,14 +66,14 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 ## Open PRs (awaiting maintainer review)
 - PR #532: SearchResult Lazy<T> elimination (−14.9 KB/query −4%) — maintainer commented 2026-07-08; Copilot SWE confirmed thread-safety rationale
 - PR #527: FieldValueTypeCollection TArg optimization (GetOrAdd static lambda)
-- PR #533: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType — rebased 2026-07-10
+- PR #533: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType — rebased 2026-07-20
 
 ## Notes
 - No AGENTS.md in this repo
 - TreatWarningsAsErrors is on — zero warnings required
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
-- Default branch: support/3.x (at 0ee95db as of 2026-07-08, unchanged through 2026-07-19)
+- Default branch: support/3.x (at 0ee95db as of 2026-07-08, unchanged through 2026-07-20)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
@@ -84,4 +84,5 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - ManagedQueryAllFields benchmark: ~371 KB per query execution (baseline), ~356 KB after SearchResult Lazy<T> elimination PR
 - Backlog exhausted: remaining items covered by efficiency-improver PRs or are LOW priority
 - PR #532: thread-safety of null-check lazy-init same as existing Values getter; SearchResult not shared across threads
-- PR #533: FullTextType._sortableFieldName cached once in ctor (FieldName immutable); rebased onto 0ee95db 2026-07-10
+- PR #533: FullTextType._sortableFieldName cached once in ctor (FieldName immutable); rebased onto 0ee95db 2026-07-20
+- PR #533 was behind again on 2026-07-20 despite rebasing on 2026-07-10 — unclear why; rebased again
