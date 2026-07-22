@@ -15,8 +15,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-21)
-- Task 4: PR #533 was behind — rebased onto 0ee95db and pushed update
+## Last Run Tasks (2026-07-22)
+- Task 4: PR #533 stuck `behind` due to shallow-clone — created replacement PR (new branch `perf-assist/cache-sortable-field-name-rebased-2026-07-22`); commented on #533 noting supersession
 - Task 7: Updated July 2026 monthly activity issue #528
 
 ## Optimization Backlog
@@ -37,7 +37,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | StringExtensions | efficiency-improver PR #534 — dead code removed (MERGED 2026-07-08) |
 | OPEN PR | SearchResult Lazy<T> | PR #532 — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) |
 | OPEN PR | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda — eliminates 1 closure/call |
-| OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #533 — cache sortable field name; eliminates 1 string alloc per doc per sortable field |
+| OPEN PR | FullTextType + GenericAnalyzerFieldValueType | NEW PR (2026-07-22) — cache sortable field name; replaces #533 (stuck behind, commented on) |
 | NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
 | NOTE | MultiIndexSearcher | efficiency-improver PR #529 covers LINQ allocs per search (still open) |
 | NOTE | LuceneSearchQuery.Field<T> | efficiency-improver PR #531 covers new[] {fieldName} single-element alloc (still open) |
@@ -66,14 +66,14 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 ## Open PRs (awaiting maintainer review)
 - PR #532: SearchResult Lazy<T> elimination (−14.9 KB/query −4%) — maintainer commented 2026-07-08; Copilot SWE confirmed thread-safety rationale
 - PR #527: FieldValueTypeCollection TArg optimization (GetOrAdd static lambda)
-- PR #533: cache sortable field name in FullTextType + GenericAnalyzerFieldValueType — rebased 2026-07-21
+- PR #533: superseded — commented on 2026-07-22; new replacement PR created from branch `perf-assist/cache-sortable-field-name-rebased-2026-07-22`
 
 ## Notes
 - No AGENTS.md in this repo
 - TreatWarningsAsErrors is on — zero warnings required
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
-- Default branch: support/3.x (at 0ee95db as of 2026-07-08, unchanged through 2026-07-21)
+- Default branch: support/3.x (at 0ee95db as of 2026-07-08, unchanged through 2026-07-22)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
@@ -84,4 +84,5 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - ManagedQueryAllFields benchmark: ~371 KB per query execution (baseline), ~356 KB after SearchResult Lazy<T> elimination PR
 - Backlog exhausted: remaining items covered by efficiency-improver PRs or are LOW priority
 - PR #532: thread-safety of null-check lazy-init same as existing Values getter; SearchResult not shared across threads
-- PR #533: FullTextType._sortableFieldName cached once in ctor (FieldName immutable); rebased repeatedly — PR keeps going "behind" despite rebases; may be GitHub's PR diffing, not actual conflicts
+- SHALLOW CLONE ISSUE: CI checkout is shallow (depth:1 for default branch). git rebase fails with "unrelated histories" when trying to rebase PR branches because the merge base can't be found. git merge fails similarly. Workaround: cherry-pick PR change onto fresh branch from origin/support/3.x and create a new PR.
+- PR #533 was repeatedly stuck `behind` — finally replaced with new PR on 2026-07-22
