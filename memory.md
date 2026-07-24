@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-22
+2026-07-24
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -33,7 +33,7 @@
 - Benchmark infrastructure: `FieldQueryBenchmarks.cs` added (PR #535, open) — measures `Field<int>` typed query allocs vs NuGet versions
 - `LuceneSearchQueryBase.SortFields`: lazy-init `List<SortField>` (PR #536 open) — 1 list alloc eliminated per unsorted query (common path)
 - `LuceneSearchQuery.Search()`: category TermQuery cached via `??=`; eliminates ExamineValue boxing + TermQuery alloc per categorised Execute() call (PR #537 open)
-- Scanned 2026-07-22: no new commits on support/3.x; all known opportunities covered by open PRs
+- Scanned 2026-07-24: no new commits on support/3.x; all known opportunities covered by open PRs
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
@@ -67,5 +67,5 @@
 - Next logical step: wait for maintainer to merge/review open PRs
 
 ## Last Run Tasks
-- 2026-07-23: Task 7 (updated July 2026 issue #530); no new commits on support/3.x; all 6 efficiency-improver PRs (#526, #529, #531, #535, #536, #537) still open
-- 2026-07-21: Task 7 (updated July 2026 issue #530); no new commits on support/3.x; all 6 efficiency-improver PRs still open
+- 2026-07-24: Task 7 (updated July 2026 issue #530); no new commits on support/3.x; all 6 efficiency-improver PRs (#526, #529, #531, #535, #536, #537) still open
+- 2026-07-23: Task 7 (updated July 2026 issue #530); no new commits on support/3.x; all 6 efficiency-improver PRs still open
