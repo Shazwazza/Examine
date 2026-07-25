@@ -15,7 +15,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-24)
+## Last Run Tasks (2026-07-25)
 - Task 4: PRs #527, #532, #540 verified — all CI passing, base SHA `0ee95db` unchanged, no action needed
 - Task 7: Updated July 2026 monthly activity issue #528
 
