@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-25
+2026-07-26
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -19,21 +19,16 @@
 - `SearchResult.GetValues` - dead Values fallback to be removed (PR #526 open)
 - `LuceneSearchQueryBase.GroupedAnd/Or/Not` - LINQ state-machine allocs eliminated (PR #515, merged)
 - `MultiSearchContext`: LINQ state-machine allocs eliminated (PR #515, merged)
-- `LuceneQuery.GroupedAnd/Or/Not`: LINQ state-machine allocs eliminated (PR #518, MERGED 2026-07-08)
+- `LuceneQuery.GroupedAnd/Or/Not`: LINQ state-machine allocs eliminated (PR #518, MERGED)
 - `GenerateHash`: removed redundant .ToLower() after "x2" format (PR #519, merged)
 - `RemoveStopWords`: Action delegate/innerBuilder/string-concat allocs eliminated (PR #519, merged)
 - `AddDocument`: field.Key.StartsWith uses StringComparison.Ordinal (PR #521, merged)
 - `IsStandardAnalyzerStopWord`: ToLowerInvariant() replaces ToLower() (PR #521, merged)
-- `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array; for-loop eliminates SelectIterator (PR #529 open)
-- `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload eliminates string[1] alloc per call (PR #531 open)
-- `StringExtensions.EnsureEndsWith` + `ReplaceNonAlphanumericChars`: dead internal code removed (PR #534, MERGED 2026-07-08)
+- `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array (PR #529 open)
+- `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload (PR #531 open)
+- `StringExtensions.EnsureEndsWith` + `ReplaceNonAlphanumericChars`: dead code removed (PR #534, MERGED)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
-- PRs from perf-improver (separate bot): #527, #533 (open), #540 (new, open 2026-07-22)
-- Benchmark infrastructure: `FieldQueryBenchmarks.cs` added (PR #535, open) — measures `Field<int>` typed query allocs vs NuGet versions
-- `LuceneSearchQueryBase.SortFields`: lazy-init `List<SortField>` (PR #536 open) — 1 list alloc eliminated per unsorted query (common path)
-- `LuceneSearchQuery.Search()`: category TermQuery cached via `??=`; eliminates ExamineValue boxing + TermQuery alloc per categorised Execute() call (PR #537 open)
-- Scanned 2026-07-25: no new commits on support/3.x; all known opportunities covered by open PRs
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
@@ -43,9 +38,7 @@
 | OPEN | Code-Level | string[1] alloc in Field<T> across 4 call sites | 1 array alloc eliminated per Field<T> call | PR #531 open |
 | OPEN | Code-Level | List<SortField> eager alloc per unsorted query | 1 list alloc eliminated per query (common path) | PR #536 open |
 | OPEN | Code-Level | Category TermQuery recreated per Execute() | ~56-64 B eliminated per categorised search | PR #537 open |
-| INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap in benchmark suite | PR #535 open |
-| LOW | Code-Level | OrderedDictionary.Values LINQ Select+ToArray | Minor alloc savings; not confirmed hot path | Not pursuing |
-| LOW | Code-Level | ObjectExtensions.ConvertObjectToDictionary LINQ | reflection-dominated, skip | Not worth pursuing |
+| INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap | PR #535 open |
 
 ## Completed Work
 - 2026-06-25: PR #509 merged — single-pass field collection in CreateSearchResult (O(N²)→O(N))
@@ -67,5 +60,4 @@
 - Next logical step: wait for maintainer to merge/review open PRs
 
 ## Last Run Tasks
-- 2026-07-25: Task 7 (updated July 2026 issue #530); no new commits on support/3.x; all 6 efficiency-improver PRs (#526, #529, #531, #535, #536, #537) still open
-- 2026-07-24: Task 7 (updated July 2026 issue #530); no new commits on support/3.x; all 6 efficiency-improver PRs still open
+- 2026-07-26: Task 7 (updated July 2026 issue #530); no new commits on support/3.x; all 6 efficiency-improver PRs (#526, #529, #531, #535, #536, #537) still open
