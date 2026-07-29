@@ -15,8 +15,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-28)
-- Task 4: PRs #527, #532, #540 verified — all CI passing, no action needed
+## Last Run Tasks (2026-07-29)
+- Task 4: PR #527 merged by Shazwazza ✅; PRs #532, #540 CI passing, no action needed
 - Task 7: Updated July 2026 monthly activity issue #528
 
 ## Optimization Backlog
@@ -35,8 +35,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | Benchmark infra | PR #524 — ManagedQueryBenchmarks (MERGED 2026-06-30) |
 | DONE | LuceneQuery GroupedAnd/Or/Not | efficiency-improver PR #518 — LINQ → for-loop (MERGED 2026-07-08) |
 | DONE | StringExtensions | efficiency-improver PR #534 — dead code removed (MERGED 2026-07-08) |
+| DONE | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda (MERGED 2026-07-29) |
 | OPEN PR | SearchResult Lazy<T> | PR #532 — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) |
-| OPEN PR | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda — eliminates 1 closure/call |
 | OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #540 — cache sortable field name; replaces #533 |
 | NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
 | NOTE | MultiIndexSearcher | efficiency-improver PR #529 covers LINQ allocs per search (still open) |
@@ -62,10 +62,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-06-30: PR #524 (ManagedQueryBenchmarks) merged by Shazwazza
 - 2026-07-08: PR #518 (efficiency-improver) merged — LuceneQuery GroupedAnd/Or/Not LINQ → for-loop
 - 2026-07-08: PR #534 (efficiency-improver) merged — dead StringExtensions removed
+- 2026-07-29: PR #527 merged by Shazwazza — FieldValueTypeCollection closure elimination
 
 ## Open PRs (awaiting maintainer review)
 - PR #532: SearchResult Lazy<T> elimination (−14.9 KB/query −4%) — maintainer commented 2026-07-08; Copilot SWE confirmed thread-safety rationale
-- PR #527: FieldValueTypeCollection TArg optimization (GetOrAdd static lambda)
 - PR #540: Cache sortable field name (replaces superseded #533)
 
 ## Notes
