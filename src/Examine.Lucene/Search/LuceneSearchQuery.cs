@@ -83,7 +83,7 @@ namespace Examine.Lucene.Search
         public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
         public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
-            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
+            => RangeQueryInternal<T>(fieldName, fieldValue, fieldValue, true, true, Occurrence);
 
         public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
             => ManagedQueryInternal(query, fields, Occurrence);
@@ -92,7 +92,7 @@ namespace Examine.Lucene.Search
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
         protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue)
-            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
+            => RangeQueryInternal<T>(fieldName, fieldValue, fieldValue, true, true, Occurrence);
 
         protected override INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null)
             => ManagedQueryInternal(query, fields, Occurrence);
@@ -186,6 +186,57 @@ namespace Examine.Lucene.Search
                     {
                         throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
                     }
+                }
+
+                outer.Add(inner, Occur.SHOULD);
+
+                return outer;
+            }), occurance);
+
+            return CreateOp();
+        }
+
+        // Single-field overload — avoids the string[1] heap allocation of the array overload above.
+        // Called by Field<T> and FieldNested<T> when only one field is involved.
+        internal LuceneBooleanOperationBase RangeQueryInternal<T>(string field, T? min, T? max, bool minInclusive, bool maxInclusive, Occur occurance)
+            where T : struct
+        {
+            Query.Add(new LateBoundQuery(() =>
+            {
+                var outer = new BooleanQuery();
+                var inner = new BooleanQuery();
+
+                var valueType = _searchContext.GetFieldValueType(field);
+
+                if (valueType is IIndexRangeValueType<T> type)
+                {
+                    var q = type.GetQuery(min, max, minInclusive, maxInclusive);
+
+                    if (q != null)
+                    {
+                        inner.Add(q, Occur.SHOULD);
+                    }
+                }
+#if !NETSTANDARD2_0 && !NETSTANDARD2_1
+                else if (typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
+                {
+                    TimeOnly minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
+                    var minValue = min.HasValue ? (min.Value as DateOnly?)?.ToDateTime(minValueTime) : null;
+
+                    TimeOnly maxValueTime = maxInclusive ? TimeOnly.MaxValue : TimeOnly.MinValue;
+                    var maxValue = max.HasValue ? (max.Value as DateOnly?)?.ToDateTime(maxValueTime) : null;
+
+                    var q = dateOnlyType.GetQuery(minValue, maxValue, minInclusive, maxInclusive);
+
+                    if (q != null)
+                    {
+                        inner.Add(q, Occur.SHOULD);
+                    }
+                }
+#endif
+                else
+                {
+                    throw new InvalidOperationException($"Could not perform a range query on the field {field}, it's value type is {valueType?.GetType()}");
                 }
 
                 outer.Add(inner, Occur.SHOULD);
