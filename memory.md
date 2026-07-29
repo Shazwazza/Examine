@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-28
+2026-07-29
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -25,7 +25,7 @@
 - `AddDocument`: field.Key.StartsWith uses StringComparison.Ordinal (PR #521, merged)
 - `IsStandardAnalyzerStopWord`: ToLowerInvariant() replaces ToLower() (PR #521, merged)
 - `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array (PR #529 open)
-- `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload (PR #531 open)
+- `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload (PR #531, MERGED)
 - `StringExtensions.EnsureEndsWith` + `ReplaceNonAlphanumericChars`: dead code removed (PR #534, MERGED)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
@@ -35,7 +35,6 @@
 |----------|------------|-------------|------------------|--------|
 | OPEN | Code-Level | Dead `Values` fallback in `SearchResult.GetValues` | Eliminates _fields lazy-init + array alloc on cache-miss | PR #526 open |
 | OPEN | Code-Level | MultiIndexSearcher LINQ allocs per search | 2 LINQ iterator allocs eliminated per search | PR #529 open |
-| OPEN | Code-Level | string[1] alloc in Field<T> across 4 call sites | 1 array alloc eliminated per Field<T> call | PR #531 open |
 | OPEN | Code-Level | List<SortField> eager alloc per unsorted query | 1 list alloc eliminated per query (common path) | PR #536 open |
 | OPEN | Code-Level | Category TermQuery recreated per Execute() | ~56-64 B eliminated per categorised search | PR #537 open |
 | INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap | PR #535 open |
@@ -50,6 +49,7 @@
 - 2026-06-30: PR #517 merged — reflection→pattern matching in CheckQueryForExtractTerms + LINQ inline loop in ManagedQueryInternal
 - 2026-07-08: PR #518 MERGED — LuceneQuery GroupedAnd/Or/Not LINQ allocs
 - 2026-07-08: PR #534 MERGED — dead string extension methods removed
+- 2026-07-29: PR #531 MERGED — single-field RangeQueryInternal<T> overload (string[1] alloc eliminated)
 
 ## Monthly Issues
 - June 2026: #510 (closed 2026-07-01)
@@ -60,4 +60,4 @@
 - Next logical step: wait for maintainer to merge/review open PRs
 
 ## Last Run Tasks
-- 2026-07-28: Task 4 (all PRs passing CI, no maintenance needed); Task 7 (updated July 2026 issue #530); all 6 efficiency-improver PRs (#526, #529, #531, #535, #536, #537) still open
+- 2026-07-29: Task 4 (verified PR #531 merged, 5 PRs remain open); Task 7 (updated July 2026 issue #530 to reflect #531 merge)
