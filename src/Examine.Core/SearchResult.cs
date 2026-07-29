@@ -7,7 +7,14 @@ namespace Examine
     public class SearchResult : ISearchResult
     {
         private OrderedDictionary<string, string> _fields;
-        private readonly Lazy<OrderedDictionary<string, IReadOnlyList<string>>> _fieldValues;
+
+        // Storing the factory directly avoids allocating a Lazy<T> object and an inner closure
+        // per SearchResult — two heap objects (~80 bytes total) that would otherwise be created
+        // unconditionally on every search result even if field values are never accessed.
+        // The first access to AllValues (or Values) calls the factory, builds and caches the result.
+        // This matches the same non-thread-safe lazy pattern already used by the Values getter.
+        private readonly Func<IDictionary<string, List<string>>> _lazyFieldVals;
+        private OrderedDictionary<string, IReadOnlyList<string>> _allValues;
 
         /// <summary>
         /// Constructor
@@ -16,25 +23,29 @@ namespace Examine
         {
             Id = id;
             Score = score;
-            _fieldValues = new Lazy<OrderedDictionary<string, IReadOnlyList<string>>>(() =>
-            {
-                var result = new OrderedDictionary<string, IReadOnlyList<string>>();
-                var asWritable = (IDictionary<string, IReadOnlyList<string>>)result;
-
-                var fieldVals = lazyFieldVals(); //defer execution of collection to here
-
-                foreach (var fieldValue in fieldVals)
-                {
-                    asWritable[fieldValue.Key] = fieldValue.Value;
-                }
-
-                return result;
-            });
+            _lazyFieldVals = lazyFieldVals;
         }
 
         public string Id { get;  }
 
         public float Score { get; }
+
+        private OrderedDictionary<string, IReadOnlyList<string>> BuildAllValues()
+        {
+            if (_allValues != null) return _allValues;
+
+            var result = new OrderedDictionary<string, IReadOnlyList<string>>();
+            var asWritable = (IDictionary<string, IReadOnlyList<string>>)result;
+
+            var fieldVals = _lazyFieldVals(); //defer execution of collection to here
+
+            foreach (var fieldValue in fieldVals)
+            {
+                asWritable[fieldValue.Key] = fieldValue.Value;
+            }
+
+            return _allValues = result;
+        }
 
         /// <summary>
         /// Returns the values in the result
@@ -48,7 +59,7 @@ namespace Examine
                 //initialize from the multi fields
                 _fields = new OrderedDictionary<string, string>();
                 var asWritable = (IDictionary<string, string>) _fields;
-                foreach (var fieldValue in _fieldValues.Value)
+                foreach (var fieldValue in BuildAllValues())
                 {
                     if (fieldValue.Value.Count > 0)
                         asWritable[fieldValue.Key] = fieldValue.Value[0];
@@ -63,7 +74,7 @@ namespace Examine
         /// <remarks>
         /// This is used to retrieve multiple values per field if there are any
         /// </remarks>
-        public IReadOnlyDictionary<string, IReadOnlyList<string>> AllValues => _fieldValues.Value;
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> AllValues => BuildAllValues();
 
 
         /// <summary>
