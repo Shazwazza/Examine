@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
 
 namespace Examine
 {
@@ -86,12 +85,15 @@ namespace Examine
         /// <returns></returns>
         public IEnumerable<string> GetValues(string key)
         {
+            // AllValues is the canonical source; Values (_fields) is always derived from AllValues,
+            // so any key present in Values is also present in AllValues. The fallback to Values is
+            // unreachable dead code that also forces lazy initialisation of _fields unnecessarily.
             if (AllValues.TryGetValue(key, out var found))
             {
                 return found;
             }
 
-            return Values.TryGetValue(key, out var single) ? new[] { single } : Enumerable.Empty<string>();
+            return Array.Empty<string>();
         } 
 
         /// <summary>
