@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-29
+2026-07-30
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -16,7 +16,6 @@
 - Hot path: `AddDocument` - default field-type factories now cached (PR #522)
 - Hot path: `CheckQueryForExtractTerms` - reflection replaced with pattern matching (PR #517)
 - Hot path: `ManagedQueryInternal` - LINQ state-machine eliminated (PR #517)
-- `SearchResult.GetValues` - dead Values fallback to be removed (PR #526 open)
 - `LuceneSearchQueryBase.GroupedAnd/Or/Not` - LINQ state-machine allocs eliminated (PR #515, merged)
 - `MultiSearchContext`: LINQ state-machine allocs eliminated (PR #515, merged)
 - `LuceneQuery.GroupedAnd/Or/Not`: LINQ state-machine allocs eliminated (PR #518, MERGED)
@@ -24,19 +23,20 @@
 - `RemoveStopWords`: Action delegate/innerBuilder/string-concat allocs eliminated (PR #519, merged)
 - `AddDocument`: field.Key.StartsWith uses StringComparison.Ordinal (PR #521, merged)
 - `IsStandardAnalyzerStopWord`: ToLowerInvariant() replaces ToLower() (PR #521, merged)
-- `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array (PR #529 open)
+- `MultiIndexSearcher.GetSearchContext()`: Lazy<LuceneSearcher[]> caches array (PR #529, MERGED 2026-07-29)
 - `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload (PR #531, MERGED)
 - `StringExtensions.EnsureEndsWith` + `ReplaceNonAlphanumericChars`: dead code removed (PR #534, MERGED)
+- `SearchResult.GetValues`: dead Values fallback removed (PR #526, MERGED 2026-07-29)
+- `ValueSet` constructors: LINQ ToDictionary → pre-sized foreach loops (PR #538, open)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
 |----------|------------|-------------|------------------|--------|
-| OPEN | Code-Level | Dead `Values` fallback in `SearchResult.GetValues` | Eliminates _fields lazy-init + array alloc on cache-miss | PR #526 open |
-| OPEN | Code-Level | MultiIndexSearcher LINQ allocs per search | 2 LINQ iterator allocs eliminated per search | PR #529 open |
 | OPEN | Code-Level | List<SortField> eager alloc per unsorted query | 1 list alloc eliminated per query (common path) | PR #536 open |
 | OPEN | Code-Level | Category TermQuery recreated per Execute() | ~56-64 B eliminated per categorised search | PR #537 open |
+| OPEN | Code-Level | ValueSet constructor LINQ ToDictionary | 1 state-machine alloc per document indexed | PR #538 open |
 | INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap | PR #535 open |
 
 ## Completed Work
@@ -50,14 +50,17 @@
 - 2026-07-08: PR #518 MERGED — LuceneQuery GroupedAnd/Or/Not LINQ allocs
 - 2026-07-08: PR #534 MERGED — dead string extension methods removed
 - 2026-07-29: PR #531 MERGED — single-field RangeQueryInternal<T> overload (string[1] alloc eliminated)
+- 2026-07-29: PR #526 MERGED — dead Values fallback in SearchResult.GetValues removed
+- 2026-07-29: PR #529 MERGED — MultiIndexSearcher.GetSearchContext() LINQ allocs eliminated
+- 2026-07-30: PR #538 created — ValueSet constructor LINQ ToDictionary allocs
 
 ## Monthly Issues
 - June 2026: #510 (closed 2026-07-01)
 - July 2026: #530 (open)
 
 ## Backlog Cursor
-- All high-impact code-level patterns addressed; open PRs cover remaining known opportunities
-- Next logical step: wait for maintainer to merge/review open PRs
+- Most high-impact code-level patterns addressed; open PRs cover remaining known opportunities
+- Next: wait for maintainer to merge/review open PRs; check for new opportunities on next run
 
 ## Last Run Tasks
-- 2026-07-29: Task 4 (verified PR #531 merged, 5 PRs remain open); Task 7 (updated July 2026 issue #530 to reflect #531 merge)
+- 2026-07-30: Task 3 (created PR #538 - ValueSet LINQ allocs); Task 4 (verified #526 and #529 merged); Task 7 (updated July 2026 issue #530)
