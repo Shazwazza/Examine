@@ -15,8 +15,9 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-29)
-- Task 4: PR #527 merged by Shazwazza ✅; PRs #532, #540 CI passing, no action needed
+## Last Run Tasks (2026-07-30)
+- Task 4: PR #532 merged by Shazwazza ✅ (Lazy<T> + inner closure elimination); PR #540 CI passing (behind by 1 non-conflicting commit)
+- Task 2: Quick scan — backlog exhausted, no new opportunities
 - Task 7: Updated July 2026 monthly activity issue #528
 
 ## Optimization Backlog
@@ -36,7 +37,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | LuceneQuery GroupedAnd/Or/Not | efficiency-improver PR #518 — LINQ → for-loop (MERGED 2026-07-08) |
 | DONE | StringExtensions | efficiency-improver PR #534 — dead code removed (MERGED 2026-07-08) |
 | DONE | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda (MERGED 2026-07-29) |
-| OPEN PR | SearchResult Lazy<T> | PR #532 — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) |
+| DONE | SearchResult Lazy<T> | PR #532 — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) (MERGED 2026-07-30) |
 | OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #540 — cache sortable field name; replaces #533 |
 | NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
 | NOTE | MultiIndexSearcher | efficiency-improver PR #529 covers LINQ allocs per search (still open) |
@@ -46,7 +47,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | NOTE | FieldQueryBenchmarks | efficiency-improver PR #535 — adds FieldQueryBenchmarks (still open) |
 | LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
 | EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
-| EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; PR #532 eliminates Lazy<T> wrapper |
+| EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; Lazy<T> wrapper eliminated by PR #532 |
 
 ## Completed Work
 - 2026-05-25: PR #441 merged
@@ -63,17 +64,18 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-07-08: PR #518 (efficiency-improver) merged — LuceneQuery GroupedAnd/Or/Not LINQ → for-loop
 - 2026-07-08: PR #534 (efficiency-improver) merged — dead StringExtensions removed
 - 2026-07-29: PR #527 merged by Shazwazza — FieldValueTypeCollection closure elimination
+- 2026-07-30: PR #532 merged by Shazwazza — SearchResult Lazy<T> + inner closure elimination (−14.9 KB/query, −4%)
 
 ## Open PRs (awaiting maintainer review)
-- PR #532: SearchResult Lazy<T> elimination (−14.9 KB/query −4%) — maintainer commented 2026-07-08; Copilot SWE confirmed thread-safety rationale
-- PR #540: Cache sortable field name (replaces superseded #533)
+- PR #540: Cache sortable field name in FullTextType + GenericAnalyzerFieldValueType — CI passing; behind default by 1 commit (non-conflicting, maintainer can merge)
+- PR #533: Superseded by #540 — maintainer should close
 
 ## Notes
 - No AGENTS.md in this repo
 - TreatWarningsAsErrors is on — zero warnings required
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
-- Default branch: support/3.x (at 0ee95db — unchanged since 2026-07-08)
+- Default branch: support/3.x (at fd63863 as of 2026-07-30)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
