@@ -15,9 +15,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-30)
-- Task 4: PR #532 merged by Shazwazza ✅ (Lazy<T> + inner closure elimination); PR #540 CI passing (behind by 1 non-conflicting commit)
-- Task 2: Quick scan — backlog exhausted, no new opportunities
+## Last Run Tasks (2026-07-31)
+- Task 4: PR #540 still behind — created replacement PR #aw_pr541 (same change, clean on fd63863); please close #533 and #540 after merging
 - Task 7: Updated July 2026 monthly activity issue #528
 
 ## Optimization Backlog
@@ -38,13 +37,14 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | StringExtensions | efficiency-improver PR #534 — dead code removed (MERGED 2026-07-08) |
 | DONE | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda (MERGED 2026-07-29) |
 | DONE | SearchResult Lazy<T> | PR #532 — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) (MERGED 2026-07-30) |
-| OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #540 — cache sortable field name; replaces #533 |
+| OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #aw_pr541 — cache sortable field name (supersedes #540, #533) |
 | NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
 | NOTE | MultiIndexSearcher | efficiency-improver PR #529 covers LINQ allocs per search (still open) |
 | NOTE | LuceneSearchQuery.Field<T> | efficiency-improver PR #531 covers new[] {fieldName} single-element alloc (still open) |
 | NOTE | LuceneSearchQuery.Search() | efficiency-improver PR #537 — cache category filter query (still open) |
 | NOTE | LuceneSearchQueryBase SortFields | efficiency-improver PR #536 — lazy-init SortFields (still open) |
 | NOTE | FieldQueryBenchmarks | efficiency-improver PR #535 — adds FieldQueryBenchmarks (still open) |
+| NOTE | ValueSet constructor | efficiency-improver PR #541 — eliminate LINQ ToDictionary allocs (still open) |
 | LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
 | EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
 | EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; Lazy<T> wrapper eliminated by PR #532 |
@@ -67,19 +67,20 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-07-30: PR #532 merged by Shazwazza — SearchResult Lazy<T> + inner closure elimination (−14.9 KB/query, −4%)
 
 ## Open PRs (awaiting maintainer review)
-- PR #540: Cache sortable field name in FullTextType + GenericAnalyzerFieldValueType — CI passing; behind default by 1 commit (non-conflicting, maintainer can merge)
-- PR #533: Superseded by #540 — maintainer should close
+- PR #aw_pr541: Cache sortable field name — supersedes #540 and #533; maintainer should close both after merging
+- PR #533: Superseded by #540 and now by #aw_pr541 — maintainer should close
+- PR #540: Superseded by #aw_pr541 — maintainer should close
 
 ## Notes
 - No AGENTS.md in this repo
 - TreatWarningsAsErrors is on — zero warnings required
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
-- Default branch: support/3.x (at fd63863 as of 2026-07-30)
+- Default branch: support/3.x (at fd63863 as of 2026-07-31)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
 - Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
-- efficiency-improver bot also working in parallel: PRs #526, #529, #531, #535, #536, #537 still open
+- efficiency-improver bot also working in parallel: PRs #526, #529, #531, #535, #536, #537, #541 still open
 - Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
@@ -87,4 +88,4 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Backlog exhausted: remaining items covered by efficiency-improver PRs or are LOW priority
 - PR #532: thread-safety of null-check lazy-init same as existing Values getter; SearchResult not shared across threads
 - SHALLOW CLONE ISSUE: CI checkout is shallow (depth:1 for default branch). git rebase fails with "unrelated histories". Workaround: cherry-pick PR change onto fresh branch from origin/support/3.x and create a new PR.
-- PR #533 superseded by #540 — maintainer to close #533
+- PR #533 and #540 both superseded by #aw_pr541 — maintainer to close both
