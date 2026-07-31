@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-30
+2026-07-31
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -27,16 +27,17 @@
 - `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload (PR #531, MERGED)
 - `StringExtensions.EnsureEndsWith` + `ReplaceNonAlphanumericChars`: dead code removed (PR #534, MERGED)
 - `SearchResult.GetValues`: dead Values fallback removed (PR #526, MERGED 2026-07-29)
-- `ValueSet` constructors: LINQ ToDictionary → pre-sized foreach loops (PR #538, open)
+- `ValueSet` constructors: LINQ ToDictionary → pre-sized foreach loops (PR #541, open)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
+- Note: Perf Improver (separate agent) also active; PR #542 caches sortable field name in FullTextType/GenericAnalyzerFieldValueType
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
 |----------|------------|-------------|------------------|--------|
 | OPEN | Code-Level | List<SortField> eager alloc per unsorted query | 1 list alloc eliminated per query (common path) | PR #536 open |
 | OPEN | Code-Level | Category TermQuery recreated per Execute() | ~56-64 B eliminated per categorised search | PR #537 open |
-| OPEN | Code-Level | ValueSet constructor LINQ ToDictionary | 1 state-machine alloc per document indexed | PR #538 open |
+| OPEN | Code-Level | ValueSet constructor LINQ ToDictionary | 1 state-machine alloc per document indexed | PR #541 open |
 | INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap | PR #535 open |
 
 ## Completed Work
@@ -52,7 +53,7 @@
 - 2026-07-29: PR #531 MERGED — single-field RangeQueryInternal<T> overload (string[1] alloc eliminated)
 - 2026-07-29: PR #526 MERGED — dead Values fallback in SearchResult.GetValues removed
 - 2026-07-29: PR #529 MERGED — MultiIndexSearcher.GetSearchContext() LINQ allocs eliminated
-- 2026-07-30: PR #538 created — ValueSet constructor LINQ ToDictionary allocs
+- 2026-07-30: PR #538 created then deleted, replaced by PR #541 (same ValueSet LINQ fix, clean branch)
 
 ## Monthly Issues
 - June 2026: #510 (closed 2026-07-01)
@@ -63,4 +64,4 @@
 - Next: wait for maintainer to merge/review open PRs; check for new opportunities on next run
 
 ## Last Run Tasks
-- 2026-07-30: Task 3 (created PR #538 - ValueSet LINQ allocs); Task 4 (verified #526 and #529 merged); Task 7 (updated July 2026 issue #530)
+- 2026-07-31: Task 4 (verified all open PRs CI passing); Task 2 (scanned for new opportunities - none found); Task 7 (updated July 2026 issue #530)
