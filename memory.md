@@ -15,9 +15,9 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-07-31)
-- Task 4: PR #540 still behind — created replacement PR #aw_pr541 (same change, clean on fd63863); please close #533 and #540 after merging
-- Task 7: Updated July 2026 monthly activity issue #528
+## Last Run Tasks (2026-08-01)
+- Task 4: PR #542 CI passing, based on HEAD fd63863, no action needed
+- Task 7: Closed July issue #528, created August 2026 monthly activity issue
 
 ## Optimization Backlog
 | Priority | Area | Opportunity |
@@ -37,10 +37,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | StringExtensions | efficiency-improver PR #534 — dead code removed (MERGED 2026-07-08) |
 | DONE | FieldValueTypeCollection.GetValueType | PR #527 — GetOrAdd TArg overload, static lambda (MERGED 2026-07-29) |
 | DONE | SearchResult Lazy<T> | PR #532 — eliminate Lazy<T>+closure per result; −14.9 KB/query (−4%) (MERGED 2026-07-30) |
-| OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #aw_pr541 — cache sortable field name (supersedes #540, #533) |
-| NOTE | SearchResult.GetValues | efficiency-improver PR #526 covers dead Values fallback (still open) |
-| NOTE | MultiIndexSearcher | efficiency-improver PR #529 covers LINQ allocs per search (still open) |
-| NOTE | LuceneSearchQuery.Field<T> | efficiency-improver PR #531 covers new[] {fieldName} single-element alloc (still open) |
+| DONE | SearchResult.GetValues | efficiency-improver PR #526 — dead Values fallback removed (MERGED 2026-07-29) |
+| DONE | MultiIndexSearcher | efficiency-improver PR #529 — Lazy<LuceneSearcher[]> + for-loop (MERGED 2026-07-29) |
+| DONE | LuceneSearchQuery.Field<T> | efficiency-improver PR #531 — string overload eliminates new[]{fieldName} (MERGED 2026-07-29) |
+| OPEN PR | FullTextType + GenericAnalyzerFieldValueType | PR #542 — cache sortable field name (supersedes #540, #533) |
 | NOTE | LuceneSearchQuery.Search() | efficiency-improver PR #537 — cache category filter query (still open) |
 | NOTE | LuceneSearchQueryBase SortFields | efficiency-improver PR #536 — lazy-init SortFields (still open) |
 | NOTE | FieldQueryBenchmarks | efficiency-improver PR #535 — adds FieldQueryBenchmarks (still open) |
@@ -64,23 +64,26 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-07-08: PR #518 (efficiency-improver) merged — LuceneQuery GroupedAnd/Or/Not LINQ → for-loop
 - 2026-07-08: PR #534 (efficiency-improver) merged — dead StringExtensions removed
 - 2026-07-29: PR #527 merged by Shazwazza — FieldValueTypeCollection closure elimination
+- 2026-07-29: PR #526 (efficiency-improver) merged — dead SearchResult.GetValues fallback removed
+- 2026-07-29: PR #529 (efficiency-improver) merged — MultiIndexSearcher Lazy<LuceneSearcher[]>
+- 2026-07-29: PR #531 (efficiency-improver) merged — Field<T> single-element string[1] alloc eliminated
 - 2026-07-30: PR #532 merged by Shazwazza — SearchResult Lazy<T> + inner closure elimination (−14.9 KB/query, −4%)
 
 ## Open PRs (awaiting maintainer review)
-- PR #aw_pr541: Cache sortable field name — supersedes #540 and #533; maintainer should close both after merging
-- PR #533: Superseded by #540 and now by #aw_pr541 — maintainer should close
-- PR #540: Superseded by #aw_pr541 — maintainer should close
+- PR #542: Cache sortable field name — supersedes #540 and #533; maintainer should close both after merging
+- PR #533: Superseded by #540 and now by #542 — maintainer should close
+- PR #540: Superseded by #542 — maintainer should close
 
 ## Notes
 - No AGENTS.md in this repo
 - TreatWarningsAsErrors is on — zero warnings required
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
-- Default branch: support/3.x (at fd63863 as of 2026-07-31)
+- Default branch: support/3.x (at fd63863 as of 2026-08-01)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
-- Monthly issue: July 2026 (#528); June 2026 issue (#513) closed
-- efficiency-improver bot also working in parallel: PRs #526, #529, #531, #535, #536, #537, #541 still open
+- Monthly issue: August 2026 (new); July 2026 issue #528 closed
+- efficiency-improver bot also working in parallel: PRs #535, #536, #537, #541 still open
 - Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
@@ -88,4 +91,4 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Backlog exhausted: remaining items covered by efficiency-improver PRs or are LOW priority
 - PR #532: thread-safety of null-check lazy-init same as existing Values getter; SearchResult not shared across threads
 - SHALLOW CLONE ISSUE: CI checkout is shallow (depth:1 for default branch). git rebase fails with "unrelated histories". Workaround: cherry-pick PR change onto fresh branch from origin/support/3.x and create a new PR.
-- PR #533 and #540 both superseded by #aw_pr541 — maintainer to close both
+- PR #533 and #540 both superseded by #542 — maintainer to close both
