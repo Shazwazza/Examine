@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-07-31
+2026-08-01
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -30,7 +30,6 @@
 - `ValueSet` constructors: LINQ ToDictionary → pre-sized foreach loops (PR #541, open)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
-- Note: Perf Improver (separate agent) also active; PR #542 caches sortable field name in FullTextType/GenericAnalyzerFieldValueType
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
@@ -53,15 +52,15 @@
 - 2026-07-29: PR #531 MERGED — single-field RangeQueryInternal<T> overload (string[1] alloc eliminated)
 - 2026-07-29: PR #526 MERGED — dead Values fallback in SearchResult.GetValues removed
 - 2026-07-29: PR #529 MERGED — MultiIndexSearcher.GetSearchContext() LINQ allocs eliminated
-- 2026-07-30: PR #538 created then deleted, replaced by PR #541 (same ValueSet LINQ fix, clean branch)
 
 ## Monthly Issues
-- June 2026: #510 (closed 2026-07-01)
-- July 2026: #530 (open)
+- June 2026: #510 (closed)
+- July 2026: #530 (closed 2026-08-01)
+- August 2026: #aw_aug2026 (open)
 
 ## Backlog Cursor
 - Most high-impact code-level patterns addressed; open PRs cover remaining known opportunities
 - Next: wait for maintainer to merge/review open PRs; check for new opportunities on next run
 
 ## Last Run Tasks
-- 2026-07-31: Task 4 (verified all open PRs CI passing); Task 2 (scanned for new opportunities - none found); Task 7 (updated July 2026 issue #530)
+- 2026-08-01: Task 4 (verified all open PRs CI passing); Task 7 (closed July #530, created August monthly issue)
