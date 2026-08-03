@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-08-02
+2026-08-03
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -29,6 +29,8 @@
 - `SearchResult.GetValues`: dead Values fallback removed (PR #526, MERGED 2026-07-29)
 - `ValueSet` constructors: LINQ ToDictionary → pre-sized foreach loops (PR #541, open)
 - `SearchContext.SearchableFields`: LINQ Select+Where+ToArray → foreach loop (PR #545, open)
+- `GetFieldNames`: materialize .ToArray() inside using block (PR #548, open)
+- `ReadOnlyFieldDefinitionCollection`: GroupBy+FirstOrDefault → foreach+TryAdd (PR #548, open)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
 
@@ -39,6 +41,7 @@
 | OPEN | Code-Level | Category TermQuery recreated per Execute() | ~56-64 B eliminated per categorised search | PR #537 open |
 | OPEN | Code-Level | ValueSet constructor LINQ ToDictionary | 1 state-machine alloc per document indexed | PR #541 open |
 | OPEN | Code-Level | SearchContext.SearchableFields LINQ chain | 2 state-machine allocs per rebuild | PR #545 open |
+| OPEN | Code-Level | GetFieldNames deferred iterator + GroupBy in ReadOnlyFieldDefinitionCollection | Iterator alloc + GroupBy state-machine eliminated | PR #548 open |
 | INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap | PR #535 open |
 
 ## Completed Work
@@ -55,6 +58,7 @@
 - 2026-07-29: PR #526 MERGED — dead Values fallback in SearchResult.GetValues removed
 - 2026-07-29: PR #529 MERGED — MultiIndexSearcher.GetSearchContext() LINQ allocs eliminated
 - 2026-08-02: PR #545 open — SearchContext.SearchableFields LINQ chain → foreach loop
+- 2026-08-03: PR #548 open — GetFieldNames materialization + ReadOnlyFieldDefinitionCollection GroupBy removal
 
 ## Monthly Issues
 - June 2026: #510 (closed)
@@ -63,7 +67,8 @@
 
 ## Backlog Cursor
 - Most high-impact code-level patterns addressed; open PRs cover remaining known opportunities
-- Next: wait for maintainer to merge/review open PRs; check for new opportunities on next run
+- Scanned: LuceneIndex, SearchContext, ReadOnlyFieldDefinitionCollection, ValueTypeFactoryCollection
+- Next: continue scanning other files; wait for maintainer to merge/review open PRs
 
 ## Last Run Tasks
-- 2026-08-02: Task 4 (verified PRs #535,#536,#537,#541 all CI passing); Task 3 (created PR #545); Task 7 (updated August monthly issue #544)
+- 2026-08-03: Task 3 (created PR #548); Task 4 (verified open PRs still open); Task 7 (updated August monthly issue #544)
