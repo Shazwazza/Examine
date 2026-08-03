@@ -1313,8 +1313,7 @@ namespace Examine.Lucene.Providers
             var writer = IndexWriter;
             using (var reader = writer.IndexWriter.GetReader(false))
             {
-                var fieldInfos = MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name);
-                return fieldInfos;
+                return MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name).ToArray();
             }
         }
 
