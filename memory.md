@@ -15,9 +15,9 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-08-03)
-- Task 2: Scanned codebase for new opportunities — backlog exhausted, no new high-priority targets
-- Task 4: PR #542 CI passing, based on HEAD fd63863, no action needed
+## Last Run Tasks (2026-08-04)
+- Task 4: PR #542 CI passing, draft on HEAD fd63863 — no action needed
+- Task 2: Backlog exhausted, no new high-priority opportunities
 - Task 7: Updated August 2026 monthly activity issue #543
 
 ## Optimization Backlog
@@ -46,6 +46,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | NOTE | LuceneSearchQueryBase SortFields | efficiency-improver PR #536 — lazy-init SortFields (still open) |
 | NOTE | FieldQueryBenchmarks | efficiency-improver PR #535 — adds FieldQueryBenchmarks (still open) |
 | NOTE | ValueSet constructor | efficiency-improver PR #541 — eliminate LINQ ToDictionary allocs (still open) |
+| NOTE | Various | efficiency-improver PRs #545, #546 also still open |
 | LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
 | EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
 | EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; Lazy<T> wrapper eliminated by PR #532 |
@@ -80,11 +81,11 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - TreatWarningsAsErrors is on — zero warnings required
 - Nullable reference types enabled
 - Tests: ~150 tests (net8.0 filter), takes ~2.5 min
-- Default branch: support/3.x (at fd63863 as of 2026-08-02)
+- Default branch: support/3.x (at fd63863 as of 2026-08-04)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
-- Monthly issue: August 2026 #543 (updated 2026-08-02)
-- efficiency-improver bot also working in parallel: PRs #535, #536, #537, #541 still open
+- Monthly issue: August 2026 #543 (updated 2026-08-04)
+- efficiency-improver bot also working in parallel: PRs #535, #536, #537, #541, #545, #546 still open
 - Lucene.NET upgraded to 4.8.0-beta00018 on 2026-06-29 (#523)
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
