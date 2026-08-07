@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-08-05
+2026-08-07
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -37,6 +37,8 @@
 - Note: Event args allocation skip (`IndexingItemEventArgs`, `DocumentWritingEventArgs`) is a potential optimization but risks breaking virtual method overrides — needs maintainer input
 - Note: `GetDefaultValueTypes` uses `.ToDictionary()` (LINQ state machine), but this is init-time only — not worth optimizing
 - Note: `BaseIndexProvider.IndexItems` validator path uses 2 LINQ state machines — only active when validator configured (not common case); fast-path already bypasses when no validator
+- Note: String concat in `LuceneSearchQueryBase` query fallback paths (fuzzy/wildcard/boosted/proximity) — only hit in `!useQueryParser` case, not hot path
+- Full codebase scan 2026-08-07: no new high-impact opportunities found; all major patterns covered
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
@@ -71,8 +73,8 @@
 
 ## Backlog Cursor
 - All major hot-path code-level patterns addressed; 6 open PRs cover remaining known opportunities
-- Scanned: LuceneIndex, SearchContext, ReadOnlyFieldDefinitionCollection, ValueTypeFactoryCollection, LuceneSearchExecutor, LuceneSearchQueryBase, MultiIndexSearcher, SearchResult, IndexFieldValueTypeBase, FullTextType, GenericAnalyzerFieldValueType, ExamineManager, BaseIndexProvider, OrderedDictionary, ObjectExtensions, ValueSet, LuceneBooleanOperation, FieldValueTypeCollection
+- Scanned: LuceneIndex, SearchContext, ReadOnlyFieldDefinitionCollection, ValueTypeFactoryCollection, LuceneSearchExecutor, LuceneSearchQueryBase, MultiIndexSearcher, SearchResult, IndexFieldValueTypeBase, FullTextType, GenericAnalyzerFieldValueType, ExamineManager, BaseIndexProvider, OrderedDictionary, ObjectExtensions, ValueSet, LuceneBooleanOperation, FieldValueTypeCollection, LuceneSearchResults, LuceneSearchResult, ExamineExtensions, LuceneExtensions, BaseLuceneSearcher, CustomMultiFieldQueryParser, ExamineMultiFieldQueryParser, MultiSearchSearcherReference
 - Next: wait for maintainer to merge/review open PRs; look for new patterns after merges
 
 ## Last Run Tasks
-- 2026-08-05: Task 4 (verified all 6 open PRs have passing CI); Task 7 (updated August monthly issue #544)
+- 2026-08-07: Task 4 (verified all 6 open PRs have passing CI); Task 2 (full rescan — no new opportunities); Task 7 (updated August monthly issue #544)
