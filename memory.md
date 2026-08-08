@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-08-07
+2026-08-08
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -73,8 +73,7 @@
 
 ## Backlog Cursor
 - All major hot-path code-level patterns addressed; 6 open PRs cover remaining known opportunities
-- Scanned: LuceneIndex, SearchContext, ReadOnlyFieldDefinitionCollection, ValueTypeFactoryCollection, LuceneSearchExecutor, LuceneSearchQueryBase, MultiIndexSearcher, SearchResult, IndexFieldValueTypeBase, FullTextType, GenericAnalyzerFieldValueType, ExamineManager, BaseIndexProvider, OrderedDictionary, ObjectExtensions, ValueSet, LuceneBooleanOperation, FieldValueTypeCollection, LuceneSearchResults, LuceneSearchResult, ExamineExtensions, LuceneExtensions, BaseLuceneSearcher, CustomMultiFieldQueryParser, ExamineMultiFieldQueryParser, MultiSearchSearcherReference
 - Next: wait for maintainer to merge/review open PRs; look for new patterns after merges
 
 ## Last Run Tasks
-- 2026-08-07 20:22 UTC: Task 4 (verified all 6 open PRs have passing CI); Task 7 (updated August monthly issue #544)
+- 2026-08-08 20:02 UTC: Task 4 (verified all 6 open PRs still open, CI passing); Task 7 (updated August monthly issue #544)
