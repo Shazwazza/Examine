@@ -185,7 +185,6 @@ virtual Examine.Lucene.Search.TaxonomySearcherReference.Dispose(bool disposing) 
 *REMOVED*Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string name, System.Collections.Generic.IEnumerable<Examine.IIndex> indexes, Lucene.Net.Analysis.Analyzer analyzer = null) -> void
 *REMOVED*Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string name, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher>> searchers, Lucene.Net.Analysis.Analyzer analyzer = null) -> void
 *REMOVED*Examine.Lucene.Providers.MultiIndexSearcher.Searchers.get -> System.Collections.Generic.IEnumerable<Examine.Lucene.Providers.LuceneSearcher>
-*REMOVED*Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(int skip, int? take = null, Examine.Lucene.Search.SearchAfterOptions searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, int skipTakeMaxResults = 10000, bool autoCalculateSkipTakeMaxResults = false) -> void
 *REMOVED*Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult> results, int totalItemCount, float maxScore, Examine.Lucene.Search.SearchAfterOptions searchAfterOptions) -> void
 *REMOVED*Examine.Lucene.Search.SearchAfterOptions.ShardIndex.get -> int?
 *REMOVED*Examine.Lucene.Search.SearchContext.SearchContext(Lucene.Net.Search.SearcherManager searcherManager, Examine.Lucene.FieldValueTypeCollection fieldValueTypeCollection) -> void

@@ -39,6 +39,37 @@ namespace Examine.Lucene.Search
         }
 
         /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="skip">Number of result documents to skip.</param>
+        /// <param name="take">Optional number of result documents to take.</param>
+        /// <param name="searchAfter">Optionally skip to results after the results from the previous search execution. Used for efficent deep paging.</param>
+        /// <param name="trackDocumentMaxScore">Whether to track the maximum document score. For best performance, if not needed, leave false.</param>
+        /// <param name="skipTakeMaxResults">When using Skip/Take (not SearchAfter) this will be the maximum data set size that can be paged.</param>
+        /// <param name="autoCalculateSkipTakeMaxResults">If enabled, this will pre-calculate the document count in the index to use for <see cref="SkipTakeMaxResults"/>.</param>
+        /// <param name="trackDocumentScores">Whether to Track Document Scores. For best performance, if not needed, leave false.</param>
+        [Obsolete("To remove in Examine 5.0")]
+        public LuceneQueryOptions(
+            int skip,
+            int? take = null,
+            SearchAfterOptions? searchAfter = null,
+            bool trackDocumentScores = false,
+            bool trackDocumentMaxScore = false,
+            int skipTakeMaxResults = AbsoluteMaxResults,
+            bool autoCalculateSkipTakeMaxResults = false)
+            : this(
+                skip,
+                take ?? DefaultMaxResults,
+                searchAfter,
+                trackDocumentScores,
+                trackDocumentMaxScore,
+                skipTakeMaxResults,
+                autoCalculateSkipTakeMaxResults,
+                facetSampling: null)
+        {
+        }
+
+        /// <summary>
         /// Whether to Track Document Scores. For best performance, if not needed, leave false.
         /// </summary>
         public bool TrackDocumentScores { get; }
