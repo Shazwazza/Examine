@@ -283,7 +283,7 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad);
+            var executor = new LuceneSearchExecutor(options, query, (IEnumerable<SortField>)SortFieldsIfSet ?? Array.Empty<SortField>(), _searchContext, _fieldsToLoad);
 
             var pagesResults = executor.Execute();
 
