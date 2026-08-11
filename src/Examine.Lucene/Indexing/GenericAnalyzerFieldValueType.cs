@@ -14,18 +14,20 @@ namespace Examine.Lucene.Indexing
     {
         private readonly Analyzer _analyzer;
         private readonly bool _sortable;
+        private readonly string _sortableFieldName;
 
         public GenericAnalyzerFieldValueType(string fieldName, ILoggerFactory logger, Analyzer analyzer, bool sortable = false)
             : base(fieldName, logger, true)
         {
             _analyzer = analyzer ?? throw new ArgumentNullException(nameof(analyzer));
             _sortable = sortable;
+            _sortableFieldName = sortable ? ExamineFieldNames.SortedFieldNamePrefix + fieldName : null;
         }
 
         /// <summary>
         /// Can be sorted by a concatenated field name since to be sortable it cannot be analyzed
         /// </summary>
-        public override string SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
+        public override string SortableFieldName => _sortableFieldName;
 
         public override Analyzer Analyzer => _analyzer;
 
@@ -40,7 +42,7 @@ namespace Examine.Lucene.Indexing
                     //to be sortable it cannot be analyzed so we have to make a different field
                     // TODO: Investigate https://lucene.apache.org/core/4_3_0/core/org/apache/lucene/document/SortedDocValuesField.html
                     doc.Add(new StringField(
-                        ExamineFieldNames.SortedFieldNamePrefix + FieldName,
+                        _sortableFieldName,
                         str,
                         Field.Store.YES));
                 }
