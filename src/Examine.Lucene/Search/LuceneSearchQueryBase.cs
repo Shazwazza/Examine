@@ -17,7 +17,15 @@ namespace Examine.Lucene.Search
         internal Stack<BooleanQuery> Queries { get; } = new Stack<BooleanQuery>();
         public BooleanQuery Query => Queries.Peek();
 
-        public IList<SortField> SortFields { get; } = new List<SortField>();
+        // Null until the first OrderBy*/OrderByDescending* call. Avoids allocating
+        // a List<SortField> on every query construction for the common unsorted path.
+        private List<SortField> _sortFields;
+        public IList<SortField> SortFields => _sortFields ??= new List<SortField>();
+
+        // Internal read without triggering lazy-init; returns null when no sort has been set.
+        // Used by LuceneSearchQuery.Search() to pass Array.Empty<SortField>() to the executor
+        // on the unsorted path, avoiding one List<SortField> allocation per query.
+        internal List<SortField> SortFieldsIfSet => _sortFields;
 
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
