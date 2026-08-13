@@ -28,7 +28,10 @@ namespace Examine
 
             foreach (var f in definitions)
             {
-                Definitions.TryAdd(f.Name, f);
+                if (f != default)
+                {
+                    Definitions.TryAdd(f.Name, f);
+                }
             }
         }
 
