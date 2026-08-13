@@ -16,6 +16,8 @@ namespace Examine.Lucene.Search
     {
         private readonly ISearchContext _searchContext;
         private ISet<string> _fieldsToLoad = null;
+        // Cached on first Execute(); ExamineValue boxing + TermQuery alloc saved on each subsequent call.
+        private Query _categoryFilterQuery;
 
         public LuceneSearchQuery(
             ISearchContext searchContext,
@@ -270,10 +272,14 @@ namespace Examine.Lucene.Search
 
                 // TODO: Use a Filter for category, not a query
                 // https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
+                // Cache on first use: Category is invariant per query instance; the resulting TermQuery
+                // is immutable and safe to share across multiple Execute() calls.
+                _categoryFilterQuery ??= GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), true);
+
                 query = new BooleanQuery
                 {
                     // prefix the category field query as a must
-                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), true), Occur.MUST }
+                    { _categoryFilterQuery, Occur.MUST }
                 };
 
                 // add the ones that were already existing
@@ -283,7 +289,7 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad);
+            var executor = new LuceneSearchExecutor(options, query, (IEnumerable<SortField>)SortFieldsIfSet ?? Array.Empty<SortField>(), _searchContext, _fieldsToLoad);
 
             var pagesResults = executor.Execute();
 
