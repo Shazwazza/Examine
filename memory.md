@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-08-09
+2026-08-13
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -27,28 +27,25 @@
 - `Field<T>` / `FieldNested<T>`: new single-field RangeQueryInternal<T> overload (PR #531, MERGED)
 - `StringExtensions.EnsureEndsWith` + `ReplaceNonAlphanumericChars`: dead code removed (PR #534, MERGED)
 - `SearchResult.GetValues`: dead Values fallback removed (PR #526, MERGED 2026-07-29)
-- `ValueSet` constructors: LINQ ToDictionary → pre-sized foreach loops (PR #541, open)
-- `SearchContext.SearchableFields`: LINQ Select+Where+ToArray → foreach loop (PR #545, open)
-- `GetFieldNames`: materialize .ToArray() inside using block (PR #546, open)
-- `ReadOnlyFieldDefinitionCollection`: GroupBy+FirstOrDefault → foreach+TryAdd (PR #546, open)
+- `ValueSet` constructors: LINQ ToDictionary → pre-sized foreach loops (PR #541, MERGED 2026-08-13)
+- `SearchContext.SearchableFields`: LINQ Select+Where+ToArray → foreach loop (PR #545, MERGED 2026-08-13)
+- `GetFieldNames`: materialize .ToArray() inside using block (PR #546, MERGED 2026-08-13)
+- `ReadOnlyFieldDefinitionCollection`: GroupBy+FirstOrDefault → foreach+TryAdd (PR #546, MERGED 2026-08-13)
+- `LuceneSearchQueryBase.SortFields`: lazy-init List eliminates alloc for unsorted queries (PR #536, MERGED 2026-08-11)
+- `LuceneSearchQuery._categoryFilterQuery`: cached per instance (PR #537, MERGED 2026-08-11)
+- `FieldQueryBenchmarks`: benchmark infrastructure added (PR #535, MERGED 2026-08-11)
 - Tests run via NUnit, CI uses `dotnet test`. Test count 150 passed / 2 skipped (net8.0).
 - Branch convention: `efficiency/<desc>` off `support/3.x`
-- Note: `FullTextType`/`GenericAnalyzerFieldValueType` SortedFieldName caching targeted by separate `perf-improver` PR #542
 - Note: Event args allocation skip (`IndexingItemEventArgs`, `DocumentWritingEventArgs`) is a potential optimization but risks breaking virtual method overrides — needs maintainer input
 - Note: `GetDefaultValueTypes` uses `.ToDictionary()` (LINQ state machine), but this is init-time only — not worth optimizing
 - Note: `BaseIndexProvider.IndexItems` validator path uses 2 LINQ state machines — only active when validator configured (not common case); fast-path already bypasses when no validator
-- Note: String concat in `LuceneSearchQueryBase` query fallback paths (fuzzy/wildcard/boosted/proximity) — only hit in `!useQueryParser` case, not hot path
-- Full codebase scan 2026-08-07: no new high-impact opportunities found; all major patterns covered
+- Full codebase rescan 2026-08-13: no new high-impact opportunities found; all major patterns comprehensively covered
 
 ## Optimisation Backlog
 | Priority | Focus Area | Opportunity | Estimated Impact | Status |
 |----------|------------|-------------|------------------|--------|
-| OPEN | Code-Level | List<SortField> eager alloc per unsorted query | 1 list alloc eliminated per query (common path) | PR #536 open |
-| OPEN | Code-Level | Category TermQuery recreated per Execute() | ~56-64 B eliminated per categorised search | PR #537 open |
-| OPEN | Code-Level | ValueSet constructor LINQ ToDictionary | 1 state-machine alloc per document indexed | PR #541 open |
-| OPEN | Code-Level | SearchContext.SearchableFields LINQ chain | 2 state-machine allocs per rebuild | PR #545 open |
-| OPEN | Code-Level | GetFieldNames deferred iterator + GroupBy in ReadOnlyFieldDefinitionCollection | Iterator alloc + GroupBy state-machine eliminated | PR #546 open |
-| INFRA | Measurement | FieldQueryBenchmarks for typed Field<T> hot path | NuGet-version benchmark fills gap | PR #535 open |
+| LOW | Code-Level | `EmptySearchResults.GetEnumerator()` allocates boxed enumerator | 1 alloc per empty result call (rare path) | Not worth doing |
+| LOW | Code-Level | Event args allocation skip (`IndexingItemEventArgs`, `DocumentWritingEventArgs`) | Small alloc elimination, but risks breaking virtual overrides | Needs maintainer input |
 
 ## Completed Work
 - 2026-06-25: PR #509 merged — single-pass field collection in CreateSearchResult (O(N²)→O(N))
@@ -63,8 +60,12 @@
 - 2026-07-29: PR #531 MERGED — single-field RangeQueryInternal<T> overload (string[1] alloc eliminated)
 - 2026-07-29: PR #526 MERGED — dead Values fallback in SearchResult.GetValues removed
 - 2026-07-29: PR #529 MERGED — MultiIndexSearcher.GetSearchContext() LINQ allocs eliminated
-- 2026-08-02: PR #545 open — SearchContext.SearchableFields LINQ chain → foreach loop
-- 2026-08-03: PR #546 open — GetFieldNames materialization + ReadOnlyFieldDefinitionCollection GroupBy removal
+- 2026-08-11: PR #535 MERGED — FieldQueryBenchmarks for typed Field<T> query hot path
+- 2026-08-11: PR #536 MERGED — lazy-init SortFields in LuceneSearchQueryBase
+- 2026-08-11: PR #537 MERGED — cache category filter query in LuceneSearchQuery
+- 2026-08-13: PR #541 MERGED — eliminate LINQ state-machine allocs in ValueSet constructors
+- 2026-08-13: PR #545 MERGED — replace LINQ chain with foreach loop in SearchContext.SearchableFields
+- 2026-08-13: PR #546 MERGED — materialize GetFieldNames inside using block; replace GroupBy in ReadOnlyFieldDefinitionCollection
 
 ## Monthly Issues
 - June 2026: #510 (closed)
@@ -72,8 +73,9 @@
 - August 2026: #544 (open)
 
 ## Backlog Cursor
-- All major hot-path code-level patterns addressed; 6 open PRs cover remaining known opportunities
-- Next: wait for maintainer to merge/review open PRs; look for new patterns after merges
+- All open PRs merged as of 2026-08-13; no remaining high/medium priority opportunities
+- All major hot-path code-level patterns addressed
+- Next: monitor for new code additions; consider measurement infra improvements
 
 ## Last Run Tasks
-- 2026-08-09 20:04 UTC: Task 4 (verified all 6 open PRs still open); Task 7 (updated August monthly issue #544)
+- 2026-08-13 20:21 UTC: Task 4 (all 6 PRs confirmed merged); Task 2 (full scan, no new opportunities); Task 7 (update monthly issue #544)
