@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
@@ -20,6 +19,9 @@ namespace Examine.Lucene.Search
         private readonly FacetsConfig? _facetsConfig;
         private ISet<string>? _fieldsToLoad = null;
         private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
+
+        // Cached on first Execute(); ExamineValue boxing + TermQuery alloc saved on each subsequent call.
+        private Query? _categoryFilterQuery;
 
         /// <inheritdoc/>
         [Obsolete("To be removed in Examine V5")]
@@ -108,7 +110,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
-            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
+            => RangeQueryInternal<T>(fieldName, fieldValue, fieldValue, true, true, Occurrence);
 
         /// <inheritdoc/>
         public override IBooleanOperation ManagedQuery(string query, string[]? fields = null)
@@ -120,7 +122,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue)
-            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
+            => RangeQueryInternal<T>(fieldName, fieldValue, fieldValue, true, true, Occurrence);
 
         /// <inheritdoc/>
         protected override INestedBooleanOperation ManagedQueryNested(string query, string[]? fields = null)
@@ -137,8 +139,8 @@ namespace Examine.Lucene.Search
                 //if no fields are specified then use all fields
                 fields ??= AllFields;
 
-                var types = fields.Select(f => _searchContext.GetFieldValueType(f)).OfType<IIndexFieldValueType>();
-
+                // Inline loop replaces Select+OfType LINQ chain to eliminate two state-machine
+                // allocations (SelectIterator + OfTypeIterator) per ManagedQuery call.
                 //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
                 //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
                 //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
@@ -146,8 +148,14 @@ namespace Examine.Lucene.Search
                 var outer = new BooleanQuery();
                 var inner = new BooleanQuery();
 
-                foreach (var type in types)
+                foreach (var f in fields)
                 {
+                    var type = _searchContext.GetFieldValueType(f);
+                    if (type == null)
+                    {
+                        continue;
+                    }
+
                     var q = type.GetQuery(query);
 
                     if (q != null)
@@ -220,6 +228,57 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        // Single-field overload — avoids the string[1] heap allocation of the array overload above.
+        // Called by Field<T> and FieldNested<T> when only one field is involved.
+        internal LuceneBooleanOperationBase RangeQueryInternal<T>(string field, T? min, T? max, bool minInclusive, bool maxInclusive, Occur occurance)
+            where T : struct
+        {
+            Query.Add(new LateBoundQuery(() =>
+            {
+                var outer = new BooleanQuery();
+                var inner = new BooleanQuery();
+
+                var valueType = _searchContext.GetFieldValueType(field);
+
+                if (valueType is IIndexRangeValueType<T> type)
+                {
+                    var q = type.GetQuery(min, max, minInclusive, maxInclusive);
+
+                    if (q != null)
+                    {
+                        inner.Add(q, Occur.SHOULD);
+                    }
+                }
+#if !NETSTANDARD2_0 && !NETSTANDARD2_1
+                else if (typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
+                {
+                    TimeOnly minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
+                    var minValue = min.HasValue ? (min.Value as DateOnly?)?.ToDateTime(minValueTime) : null;
+
+                    TimeOnly maxValueTime = maxInclusive ? TimeOnly.MaxValue : TimeOnly.MinValue;
+                    var maxValue = max.HasValue ? (max.Value as DateOnly?)?.ToDateTime(maxValueTime) : null;
+
+                    var q = dateOnlyType.GetQuery(minValue, maxValue, minInclusive, maxInclusive);
+
+                    if (q != null)
+                    {
+                        inner.Add(q, Occur.SHOULD);
+                    }
+                }
+#endif
+                else
+                {
+                    throw new InvalidOperationException($"Could not perform a range query on the field {field}, it's value type is {valueType?.GetType()}");
+                }
+
+                outer.Add(inner, Occur.SHOULD);
+
+                return outer;
+            }), occurance);
+
+            return CreateOp();
+        }
+
         /// <inheritdoc />
         public ISearchResults Execute(QueryOptions? options = null) => Search(options);
 
@@ -245,10 +304,14 @@ namespace Examine.Lucene.Search
 
                 // TODO: Use a Filter for category, not a query
                 // https://cwiki.apache.org/confluence/display/lucene/ImproveSearchingSpeed
+                // Cache on first use: Category is invariant per query instance; the resulting TermQuery
+                // is immutable and safe to share across multiple Execute() calls.
+                _categoryFilterQuery ??= GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, ExamineValue.Create(Examineness.Default, Category));
+
                 query = new BooleanQuery
                 {
                     // prefix the category field query as a must
-                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, ExamineValue.Create(Examineness.Default, Category)), Occur.MUST }
+                    { _categoryFilterQuery, Occur.MUST }
                 };
 
                 // add the ones that were already existing
@@ -258,7 +321,7 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields, _facetsConfig);
+            var executor = new LuceneSearchExecutor(options, query, SortFieldsIfSet ?? (IEnumerable<SortField>)Array.Empty<SortField>(), _searchContext, _fieldsToLoad, _facetFields, _facetsConfig);
 
             var pagesResults = executor.Execute();
 

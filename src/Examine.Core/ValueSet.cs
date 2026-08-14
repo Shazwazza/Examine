@@ -89,8 +89,22 @@ namespace Examine
         /// <param name="itemType"></param>
         /// <param name="values"></param>
         public ValueSet(string id, string category, string itemType, IDictionary<string, object> values)
-            : this(id, category, itemType, values.ToDictionary(x => x.Key, x => Yield(x.Value)))
+            : this(id, category, itemType, (IReadOnlyDictionary<string, IReadOnlyList<object>>)BuildSingleValueDict(values))
         {
+        }
+
+        // Replaces values.ToDictionary(x => x.Key, x => Yield(x.Value))
+        // — eliminates one LINQ state-machine allocation per ValueSet construction, and pre-sizes
+        // the output dictionary to avoid internal resizes.
+        private static Dictionary<string, IReadOnlyList<object>> BuildSingleValueDict(IDictionary<string, object> values)
+        {
+            var dict = new Dictionary<string, IReadOnlyList<object>>(values.Count);
+            foreach (var kvp in values)
+            {
+                dict[kvp.Key] = Yield(kvp.Value).ToList();
+            }
+
+            return dict;
         }
 
         /// <summary>
@@ -117,8 +131,22 @@ namespace Examine
         /// </param>
         /// <param name="values"></param>
         public ValueSet(string id, string category, string itemType, IDictionary<string, IEnumerable<object>> values)
-            : this(id, category, itemType, values.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList()))
+            : this(id, category, itemType, (IReadOnlyDictionary<string, IReadOnlyList<object>>)BuildMultiValueDict(values))
         {
+        }
+
+        // Replaces values.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList())
+        // — eliminates the LINQ state-machine allocation and pre-sizes the output dictionary.
+        // Fast-paths when the value is already an IReadOnlyList<object> to skip ToList() allocation.
+        private static Dictionary<string, IReadOnlyList<object>> BuildMultiValueDict(IDictionary<string, IEnumerable<object>> values)
+        {
+            var dict = new Dictionary<string, IReadOnlyList<object>>(values.Count);
+            foreach (var kvp in values)
+            {
+                dict[kvp.Key] = kvp.Value is IReadOnlyList<object> rl ? rl : (IReadOnlyList<object>)kvp.Value.ToList();
+            }
+
+            return dict;
         }
 
         private ValueSet(string id, string category, string itemType, IReadOnlyDictionary<string, IReadOnlyList<object>> values)

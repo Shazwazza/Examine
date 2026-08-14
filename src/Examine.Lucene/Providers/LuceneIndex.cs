@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -215,6 +215,11 @@ namespace Examine.Lucene.Providers
         private volatile IIndexFieldValueType? _indexTypeValueType;
 
         private readonly Lazy<Directory?>? _lazyTaxonomyDirectory;
+
+        // Cached default field-type factories — resolved once on first use and reused for every field of every
+        // indexed document, eliminating repeated ConcurrentDictionary lookups on the per-field hot path.
+        private volatile IFieldValueTypeFactory? _fullTextFactory;
+        private volatile IFieldValueTypeFactory? _invariantCultureFactory;
 
         #region Properties
 
@@ -923,6 +928,11 @@ namespace Examine.Lucene.Providers
             (_indexTypeValueType ??= FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase)))
                 .AddValue(doc, valueSet.ItemType);
 
+            // Resolve factory references once - these two lookups are otherwise repeated for
+            // every field in every document, even though the factory collection never changes.
+            var fullTextFac = _fullTextFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText);
+            var invariantFac = _invariantCultureFactory ??= FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase);
+
             if (valueSet.Values != null)
             {
                 foreach (var field in valueSet.Values)
@@ -934,18 +944,18 @@ namespace Examine.Lucene.Providers
                             definedFieldDefinition.Name,
                             FieldValueTypeCollection.ValueTypeFactories.TryGetFactory(definedFieldDefinition.Type, out var valTypeFactory)
                                 ? valTypeFactory
-                                : FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+                                : fullTextFac);
 
                         foreach (var o in field.Value)
                         {
                             valueType.AddValue(doc, o);
                         }
                     }
-                    else if (field.Key.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
+                    else if (field.Key.StartsWith(ExamineFieldNames.SpecialFieldPrefix, StringComparison.Ordinal))
                     {
                         //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
 
-                        var valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+                        var valueType = FieldValueTypeCollection.GetValueType(field.Key, invariantFac);
                         foreach (var o in field.Value)
                         {
                             valueType.AddValue(doc, o);
@@ -957,7 +967,7 @@ namespace Examine.Lucene.Providers
 
                         var valueType = FieldValueTypeCollection.GetValueType(
                             field.Key,
-                            FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+                            fullTextFac);
 
                         foreach (var o in field.Value)
                         {
@@ -1261,7 +1271,7 @@ namespace Examine.Lucene.Providers
             foreach (var suffix in PossibleSuffixes)
             {
                 //trim the "Indexer" / "Index" suffix if it exists
-                if (!name.EndsWith(suffix))
+                if (!name.EndsWith(suffix, StringComparison.Ordinal))
                 {
                     continue;
                 }
@@ -1554,8 +1564,7 @@ namespace Examine.Lucene.Providers
             var writer = IndexWriter;
             using (var reader = writer.IndexWriter.GetReader(false))
             {
-                var fieldInfos = MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name);
-                return fieldInfos;
+                return MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name).ToArray();
             }
         }
 

@@ -15,6 +15,7 @@ on:
   workflow_dispatch:
   slash_command:
     name: perf-assist
+    strategy: centralized
   reaction: "eyes"
   permissions:
     pull-requests: read
@@ -63,6 +64,7 @@ safe-outputs:
     title-prefix: "[perf-improver] "
     labels: [automation, performance]
     max: 4
+    expires: 60
   update-issue:
     target: "*"
     required-title-prefix: "[perf-improver] "
@@ -75,7 +77,7 @@ tools:
   bash: true
   repo-memory: true
 
-source: githubnext/agentics/workflows/perf-improver.md@d63b34de41bc0dc052096e094c732cf28eafc659
+source: githubnext/agentics/workflows/perf-improver.md@42c2ab5b4e4c9273534c39259b2e0df7f20f07e9
 ---
 
 # Perf Improver

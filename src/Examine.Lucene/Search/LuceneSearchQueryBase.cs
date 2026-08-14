@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -32,7 +32,18 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// The sort fields of the query
         /// </summary>
-        public IList<SortField> SortFields { get; } = new List<SortField>();
+        /// <remarks>
+        /// Null until the first OrderBy*/OrderByDescending* call. Avoids allocating
+        /// a List&lt;SortField&gt; on every query construction for the common unsorted path.
+        /// </remarks>
+        public IList<SortField> SortFields => _sortFields ??= new List<SortField>();
+
+        private List<SortField>? _sortFields;
+
+        // Internal read without triggering lazy-init; returns null when no sort has been set.
+        // Used by LuceneSearchQuery.Search() to pass Array.Empty<SortField>() to the executor
+        // on the unsorted path, avoiding one List<SortField> allocation per query.
+        internal List<SortField>? SortFieldsIfSet => _sortFields;
 
         /// <summary>
         /// Specifies how clauses are to occur in matching documents
@@ -140,7 +151,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => GroupedAnd(fields, query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray());
+            => GroupedAnd(fields, ToExamineValues(query));
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[]? fieldVals)
@@ -160,7 +171,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
-            => GroupedOr(fields, query?.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray());
+            => GroupedOr(fields, ToExamineValues(query));
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[]? query)
@@ -180,7 +191,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
-            => GroupedNot(fields, query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray());
+            => GroupedNot(fields, ToExamineValues(query));
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
@@ -196,6 +207,26 @@ namespace Examine.Lucene.Search
             }
 
             return GroupedNotInternal(fields as string[] ?? fields.ToArray(), query);
+        }
+
+        // Converts a string[] to IExamineValue[] using a for-loop rather than LINQ Select+ToArray.
+        // This eliminates the LINQ SelectIterator state-machine allocation (1 heap object per call)
+        // and avoids the LINQ pipeline overhead on this hot query-building path.
+        [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(query))]
+        private static IExamineValue[]? ToExamineValues(string[]? query)
+        {
+            if (query == null)
+            {
+                return null;
+            }
+
+            var result = new IExamineValue[query.Length];
+            for (var i = 0; i < query.Length; i++)
+            {
+                result[i] = ExamineValue.Create(Examineness.Default, query[i]);
+            }
+
+            return result;
         }
 
         #region INested
@@ -239,19 +270,19 @@ namespace Examine.Lucene.Search
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => GroupedAndInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), Occurrence);
+            => GroupedAndInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), ToExamineValues(query), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
             => GroupedAndInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params string[] query)
-            => GroupedOrInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query?.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), Occurrence);
+            => GroupedOrInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), ToExamineValues(query), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
             => GroupedOrInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params string[] query)
-            => GroupedNotInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray());
+            => GroupedNotInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), ToExamineValues(query));
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
             => GroupedNotInternal(fields == null ? EmptyStringArray : fields as string[] ?? fields.ToArray(), query);

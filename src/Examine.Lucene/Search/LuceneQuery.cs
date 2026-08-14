@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +30,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct
-            => RangeQuery<T>(new[] { fieldName }, fieldValue, fieldValue);
+            => _search.RangeQueryInternal<T>(fieldName, fieldValue, fieldValue, true, true, _occurrence);
 
         /// <inheritdoc/>
         public IBooleanOperation Field(string fieldName, string fieldValue)
@@ -42,7 +42,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => _search.GroupedAndInternal(fields as string[] ?? fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), _occurrence);
+            => _search.GroupedAndInternal(fields as string[] ?? fields.ToArray(), ToExamineValues(query), _occurrence);
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
@@ -50,7 +50,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
-            => _search.GroupedOrInternal(fields as string[] ?? fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), _occurrence);
+            => _search.GroupedOrInternal(fields as string[] ?? fields.ToArray(), ToExamineValues(query), _occurrence);
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
@@ -58,7 +58,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
-            => _search.GroupedNotInternal(fields as string[] ?? fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray());
+            => _search.GroupedNotInternal(fields as string[] ?? fields.ToArray(), ToExamineValues(query));
 
         /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
@@ -96,7 +96,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.Field<T>(string fieldName, T fieldValue)
-            => _search.RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, _occurrence);
+            => _search.RangeQueryInternal<T>(fieldName, fieldValue, fieldValue, true, true, _occurrence);
 
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue)
@@ -108,7 +108,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => _search.GroupedAndInternal(fields as string[] ?? fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), _occurrence);
+            => _search.GroupedAndInternal(fields as string[] ?? fields.ToArray(), ToExamineValues(query), _occurrence);
 
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
@@ -116,7 +116,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params string[] query)
-            => _search.GroupedOrInternal(fields as string[] ?? fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray(), _occurrence);
+            => _search.GroupedOrInternal(fields as string[] ?? fields.ToArray(), ToExamineValues(query), _occurrence);
 
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
@@ -124,7 +124,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params string[] query)
-            => _search.GroupedNotInternal(fields as string[] ?? fields.ToArray(), query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray());
+            => _search.GroupedNotInternal(fields as string[] ?? fields.ToArray(), ToExamineValues(query));
 
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
@@ -137,5 +137,19 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive)
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
+
+        // Replaces query.Select(f => ExamineValue.Create(Examineness.Default, f)).ToArray()
+        // to eliminate a LINQ state-machine allocation on the grouped-query hot path.
+        private static IExamineValue[] ToExamineValues(string[] query)
+        {
+            ArgumentNullException.ThrowIfNull(query);
+            var result = new IExamineValue[query.Length];
+            for (var i = 0; i < query.Length; i++)
+            {
+                result[i] = ExamineValue.Create(Examineness.Default, query[i]);
+            }
+
+            return result;
+        }
     }
 }
