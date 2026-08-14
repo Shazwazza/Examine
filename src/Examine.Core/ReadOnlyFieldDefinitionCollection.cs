@@ -26,12 +26,11 @@ namespace Examine
         {
             if (definitions == null) return;
 
-            foreach (var f in definitions.GroupBy(x => x.Name))
+            foreach (var f in definitions)
             {
-                var indexField = f.FirstOrDefault();
-                if (indexField != default)
+                if (f != default)
                 {
-                    Definitions.TryAdd(f.Key, indexField);
+                    Definitions.TryAdd(f.Name, f);
                 }
             }
         }

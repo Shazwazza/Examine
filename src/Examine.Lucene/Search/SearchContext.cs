@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using Examine.Lucene.Indexing;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -57,12 +57,19 @@ namespace Examine.Lucene.Search
 
                     try
                     {
-                        // Single-pass: select + filter in one LINQ chain to avoid
-                        // materialising an intermediate List<string>.
-                        var filtered = MultiFields.GetMergedFieldInfos(searcher.IndexReader)
-                                    .Select(x => x.Name)
-                                    .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix, StringComparison.Ordinal))
-                                    .ToArray();
+                        // Manual foreach replaces the Select+Where+ToArray LINQ chain to
+                        // eliminate two iterator-state-machine allocations per SearchableFields
+                        // rebuild. The rebuild happens at most once per SearchContext lifetime
+                        // (or once per empty-index probe); removing the state machines reduces
+                        // per-rebuild GC pressure.
+                        var fieldInfos = MultiFields.GetMergedFieldInfos(searcher.IndexReader);
+                        var list = new List<string>(fieldInfos.Count);
+                        foreach (var info in fieldInfos)
+                        {
+                            if (!info.Name.StartsWith(ExamineFieldNames.SpecialFieldPrefix, StringComparison.Ordinal))
+                                list.Add(info.Name);
+                        }
+                        var filtered = list.ToArray();
 
                         // Only cache non-empty results so that an initially empty index
                         // will re-read fields once documents have been indexed.
