@@ -15,6 +15,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
+## Last Run Tasks (2026-08-17)
+- Task 2/3: Implemented remaining LOW-priority backlog item — OrderedDictionary.Values LINQ Select+ToArray → direct array copy. Measured -68% allocs/call (728→232 bytes), -45% time (2M-call micro-benchmark, GC.GetAllocatedBytesForCurrentThread). Created draft PR branch perf-assist/ordereddict-values. Tests: 150 passed, 0 failed, 2 skipped.
+- Task 7: Updated monthly activity issue #543
+
 ## Last Run Tasks (2026-08-14)
 - Task 2: Scanned codebase — backlog exhausted, no new high-priority opportunities
 - Task 7: Updated August 2026 monthly activity issue #543
@@ -46,7 +50,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | SearchContext.SearchableFields | efficiency-improver PR #545 — foreach loop (MERGED 2026-08-13) |
 | DONE | ValueSet constructor | efficiency-improver PR #541 — eliminate LINQ ToDictionary allocs (MERGED 2026-08-13) |
 | DONE | ReadOnlyFieldDefinitionCollection + LuceneIndex.GetFieldNames | efficiency-improver PR #546 — replace GroupBy + materialize ToArray (MERGED 2026-08-13) |
-| LOW | OrderedDictionary.Values | Allocates TVal[] via LINQ on every access — not on hot path |
+| LOW | OrderedDictionary.Values | DONE — replaced LINQ Select+ToArray with direct array copy (perf-assist/ordereddict-values, this run 2026-08-17) |
 | LOW | Stack<BooleanQuery> initial capacity | new Stack<BooleanQuery>() defaults to capacity 4 — could use 1 for shallow queries |
 | EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
 | EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; Lazy<T> wrapper eliminated by PR #532 |
@@ -85,3 +89,5 @@ None — all optimization PRs merged or closed.
 - SHALLOW CLONE ISSUE: CI checkout is shallow (depth:1 for default branch). git rebase fails with "unrelated histories". Workaround: cherry-pick PR change onto fresh branch from origin/support/3.x and create a new PR.
 - GetOrAdd<TArg> pattern: use static lambda + TArg state to avoid closure allocs in ConcurrentDictionary hot paths
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
+- 2026-08-17: Repo default branch fetched cleanly this run (no shallow-clone issue hit) — origin/support/3.x fetched with --depth=5 successfully, branch created directly off it
+- OrderedDictionary.Values micro-benchmark technique: standalone console app referencing Examine.Core.csproj, GC.GetAllocatedBytesForCurrentThread() before/after N iterations, compare via git stash for baseline vs optimized
