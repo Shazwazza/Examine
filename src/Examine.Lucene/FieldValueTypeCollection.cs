@@ -81,11 +81,7 @@ namespace Examine.Lucene
         /// If it's not found it will create one with the factory supplied and initialize it.
         /// </remarks>
         public IIndexFieldValueType GetValueType(string fieldName, IFieldValueTypeFactory fieldValueTypeFactory)
-            => _resolvedValueTypes.Value.GetOrAdd(fieldName, n =>
-                {
-                    IIndexFieldValueType t = fieldValueTypeFactory.Create(n);
-                    return t;
-                });
+            => _resolvedValueTypes.Value.GetOrAdd(fieldName, static (n, f) => f.Create(n), fieldValueTypeFactory);
 
         /// <summary>
         /// Returns the value type for the field name specified

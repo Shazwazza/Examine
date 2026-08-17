@@ -1,1 +1,10 @@
-.github/workflows/*.lock.yml linguist-generated=true merge=ours
+.github/workflows/*.lock.yml linguist-generated=true
+
+# gh-aw fetches upstream workflow sources with LF endings and 3-way merges them
+# against the working copy. With core.autocrlf=true the working copy is CRLF, so
+# every single line differs and `gh aw update` conflicts on the whole file.
+# Pinning these to LF keeps upgrade merges to the few lines that actually changed.
+.github/workflows/*.md text eol=lf
+.github/workflows/*.lock.yml text eol=lf
+.github/workflows/aw.json text eol=lf
+.github/aw/** text eol=lf

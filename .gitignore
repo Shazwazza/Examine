@@ -28,3 +28,4 @@ src/packages/*
 .idea/
 /src/Examine.Web.Demo/Examine/*
 TEMP/
+BenchmarkDotNet.Artifacts/

@@ -33,6 +33,7 @@ namespace Examine.Lucene.Indexing
 #pragma warning disable IDE0032 // Use auto property
         private readonly bool _taxonomyIndex;
 #pragma warning restore IDE0032 // Use auto property
+        private readonly string? _sortableFieldName;
 
         /// <summary>
         /// Constructor
@@ -52,6 +53,7 @@ namespace Examine.Lucene.Indexing
             _analyzer = analyzer;
             _isFacetable = isFacetable;
             _taxonomyIndex = taxonomyIndex;
+            _sortableFieldName = sortable ? ExamineFieldNames.SortedFieldNamePrefix + fieldName : null;
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace Examine.Lucene.Indexing
         /// <summary>
         /// Can be sorted by a concatenated field name since to be sortable it cannot be analyzed
         /// </summary>
-        public override string? SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
+        public override string? SortableFieldName => _sortableFieldName;
 
         /// <inheritdoc/>
         public override Analyzer Analyzer => _analyzer;
@@ -125,7 +127,7 @@ namespace Examine.Lucene.Indexing
                     //to be sortable it cannot be analyzed so we have to make a different field
                     // TODO: Investigate https://lucene.apache.org/core/4_3_0/core/org/apache/lucene/document/SortedDocValuesField.html
                     doc.Add(new StringField(
-                        ExamineFieldNames.SortedFieldNamePrefix + FieldName,
+                        _sortableFieldName,
                         str,
                         Field.Store.YES));
                 }
