@@ -15,8 +15,13 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
-## Last Run Tasks (2026-08-17)
-- Task 2/3: Implemented remaining LOW-priority backlog item — OrderedDictionary.Values LINQ Select+ToArray → direct array copy. Measured -68% allocs/call (728→232 bytes), -45% time (2M-call micro-benchmark, GC.GetAllocatedBytesForCurrentThread). Created draft PR branch perf-assist/ordereddict-values. Tests: 150 passed, 0 failed, 2 skipped.
+## Last Run Tasks (2026-08-17 20:44 run)
+- Task 3: PR #569 (ordereddict-values, previous run) — CI passing (CodeQL success), no action needed.
+- Task 3: Implemented Stack<BooleanQuery> initial capacity fix (LOW priority backlog item) — `new Stack<BooleanQuery>()` (default capacity 4) → `new Stack<BooleanQuery>(1)`. Measured via Stack<int> stand-in (allocation size independent of element type): 72.00 bytes/instance (default) → 64.00 bytes/instance (capacity 1), ~11% reduction, 2M-iteration micro-benchmark with GC.GetAllocatedBytesForCurrentThread(). Created draft PR on branch perf-assist/stack-booleanquery-capacity. Tests: 150 passed, 0 failed, 2 skipped. Build succeeded (0 errors).
+- Task 7: Updated monthly activity issue #543
+
+## Last Run Tasks (2026-08-17 earlier run)
+- Task 2/3: Implemented remaining LOW-priority backlog item — OrderedDictionary.Values LINQ Select+ToArray → direct array copy. Measured -68% allocs/call (728→232 bytes), -45% time (2M-call micro-benchmark, GC.GetAllocatedBytesForCurrentThread). Created draft PR branch perf-assist/ordereddict-values (PR #569). Tests: 150 passed, 0 failed, 2 skipped.
 - Task 7: Updated monthly activity issue #543
 
 ## Last Run Tasks (2026-08-14)
@@ -50,8 +55,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | SearchContext.SearchableFields | efficiency-improver PR #545 — foreach loop (MERGED 2026-08-13) |
 | DONE | ValueSet constructor | efficiency-improver PR #541 — eliminate LINQ ToDictionary allocs (MERGED 2026-08-13) |
 | DONE | ReadOnlyFieldDefinitionCollection + LuceneIndex.GetFieldNames | efficiency-improver PR #546 — replace GroupBy + materialize ToArray (MERGED 2026-08-13) |
-| LOW | OrderedDictionary.Values | DONE — replaced LINQ Select+ToArray with direct array copy (perf-assist/ordereddict-values, this run 2026-08-17) |
-| LOW | Stack<BooleanQuery> initial capacity | new Stack<BooleanQuery>() defaults to capacity 4 — could use 1 for shallow queries |
+| LOW | OrderedDictionary.Values | DONE — replaced LINQ Select+ToArray with direct array copy (PR #569, 2026-08-17) |
+| LOW | Stack<BooleanQuery> initial capacity | DONE — capacity 4→1, ~11% alloc reduction on Queries stack (draft PR, this run 2026-08-17) |
 | EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
 | EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; Lazy<T> wrapper eliminated by PR #532 |
 | EXHAUSTED | ExamineValue boxing | ExamineValue struct boxed to IExamineValue — inherent to interface design |
@@ -72,7 +77,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-08-13: PR #541, #545, #546 merged; PR #542 closed (changes in codebase)
 
 ## Open PRs
-None — all optimization PRs merged or closed.
+- PR #569 (perf-assist/ordereddict-values) — CI passing as of 2026-08-17, awaiting maintainer review
+- New PR (perf-assist/stack-booleanquery-capacity) — created this run 2026-08-17, PR number TBD (check next run)
 
 ## Notes
 - No AGENTS.md in this repo
