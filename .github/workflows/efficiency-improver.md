@@ -67,6 +67,32 @@ tools:
   bash: true
   repo-memory: true
 
+# WORKAROUND for github/gh-aw-actions install_copilot_cli.sh.
+# The agent is launched inside the AWF sandbox via the hardcoded absolute path
+# /usr/local/bin/copilot. A fresh CLI install untars to that path, but a toolcache
+# cache-hit takes activate_cached_copilot_bin(), which appends the toolcache dir to
+# GITHUB_PATH and returns early — it never creates /usr/local/bin/copilot. PATH is
+# irrelevant because spawn() does an F_OK check on the literal path, so the agent
+# dies instantly with ENOENT ("engine terminated before producing output").
+# This restores the wrapper that the script itself installs when GITHUB_PATH is unset.
+# Remove once upstream fixes it: https://github.com/github/gh-aw/issues/53481
+pre-agent-steps:
+  - name: Ensure copilot CLI is at /usr/local/bin (toolcache cache-hit workaround)
+    run: |
+      set -euo pipefail
+      if [ -x /usr/local/bin/copilot ]; then
+        echo "/usr/local/bin/copilot already present (fresh install) — nothing to do"
+        exit 0
+      fi
+      target="$(command -v copilot || true)"
+      if [ -z "$target" ]; then
+        echo "::error::copilot CLI not found on PATH; cannot create /usr/local/bin/copilot"
+        exit 1
+      fi
+      printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$target" | sudo tee /usr/local/bin/copilot >/dev/null
+      sudo chmod 0755 /usr/local/bin/copilot
+      echo "Installed wrapper /usr/local/bin/copilot -> $target"
+
 source: githubnext/agentics/workflows/efficiency-improver.md@42c2ab5b4e4c9273534c39259b2e0df7f20f07e9
 ---
 
