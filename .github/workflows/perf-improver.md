@@ -69,6 +69,41 @@ safe-outputs:
     target: "*"
     required-title-prefix: "[perf-improver] "
     max: 1
+  # Same /usr/local/bin/copilot workaround as pre-agent-steps below, but for the
+  # detection job, which installs and launches the CLI independently of the agent job.
+  # Without this the threat-detection scan dies with ENOENT and continue-on-error
+  # silently degrades it to a warning. See https://github.com/github/gh-aw/issues/53481
+  threat-detection:
+    steps:
+      - name: Ensure copilot CLI is at /usr/local/bin (toolcache cache-hit workaround)
+        run: |
+          set -uo pipefail
+          if [ -x /usr/local/bin/copilot ]; then
+            echo "/usr/local/bin/copilot already exists — nothing to do"
+            exit 0
+          fi
+          # This runs BEFORE "Install GitHub Copilot CLI" in the detection job, so the real
+          # binary is not resolvable yet. Install a shim that resolves it from PATH lazily at
+          # invocation time. A fresh install later untars the real binary over the top of this;
+          # a toolcache cache-hit leaves it in place and the shim does the resolution.
+          sudo tee /usr/local/bin/copilot >/dev/null <<'SHIM'
+          #!/usr/bin/env bash
+          # gh-aw-copilot-shim: locate the real copilot CLI on PATH and exec it.
+          self="/usr/local/bin/copilot"
+          IFS=':' read -r -a __dirs <<< "${PATH:-}"
+          for __d in "${__dirs[@]}"; do
+            [ -n "$__d" ] || continue
+            __c="$__d/copilot"
+            if [ "$__c" = "$self" ]; then continue; fi
+            if [ ! -x "$__c" ]; then continue; fi
+            if grep -q 'gh-aw-copilot-shim' "$__c" 2>/dev/null; then continue; fi
+            exec "$__c" "$@"
+          done
+          echo "gh-aw-copilot-shim: real copilot CLI not found on PATH" >&2
+          exit 127
+          SHIM
+          sudo chmod 0755 /usr/local/bin/copilot
+          echo "Installed gh-aw-copilot-shim at /usr/local/bin/copilot"
 
 tools:
   web-fetch:
