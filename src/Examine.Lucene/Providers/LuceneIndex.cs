@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.Intrinsics.X86;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1313,7 +1312,15 @@ namespace Examine.Lucene.Providers
             var writer = IndexWriter;
             using (var reader = writer.IndexWriter.GetReader(false))
             {
-                return MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name).ToArray();
+                var fieldInfos = MultiFields.GetMergedFieldInfos(reader);
+                var names = new string[fieldInfos.Count];
+                var i = 0;
+                foreach (var fieldInfo in fieldInfos)
+                {
+                    names[i++] = fieldInfo.Name;
+                }
+
+                return names;
             }
         }
 
