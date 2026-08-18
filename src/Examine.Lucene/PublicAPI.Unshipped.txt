@@ -169,7 +169,6 @@ virtual Examine.Lucene.Providers.LuceneIndex.TaxonomySearcher.get -> Examine.Luc
 virtual Examine.Lucene.Search.LuceneFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed) -> Lucene.Net.Facet.Facets!
 virtual Examine.Lucene.Search.LuceneSearchQueryBase.GetFieldInternalQuery(string! fieldName, Examine.Search.IExamineValue! fieldValue) -> Lucene.Net.Search.Query?
 virtual Examine.Lucene.Search.TaxonomySearcherReference.Dispose(bool disposing) -> void
-*REMOVED*Examine.Lucene.Directories.FileSystemDirectoryFactory.FileSystemDirectoryFactory(System.IO.DirectoryInfo baseDir, Examine.Lucene.Directories.ILockFactory lockFactory) -> void
 *REMOVED*Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo localDir, System.IO.DirectoryInfo mainDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, bool tryFixMainIndexIfCorrupt) -> void
 *REMOVED*Examine.Lucene.Directories.SyncedFileSystemDirectoryFactory.SyncedFileSystemDirectoryFactory(System.IO.DirectoryInfo localDir, System.IO.DirectoryInfo mainDir, Examine.Lucene.Directories.ILockFactory lockFactory, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory) -> void
 *REMOVED*Examine.Lucene.Directories.TempEnvFileSystemDirectoryFactory.TempEnvFileSystemDirectoryFactory(Examine.Lucene.Directories.IApplicationIdentifier applicationIdentifier, Examine.Lucene.Directories.ILockFactory lockFactory) -> void

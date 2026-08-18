@@ -29,6 +29,17 @@ namespace Examine.Lucene.Directories
         }
 
         /// <summary>
+        /// Creates an instance of <see cref="FileSystemDirectoryFactory"/>
+        /// </summary>
+        [Obsolete("To remove in Examine 5.0")]
+        public FileSystemDirectoryFactory(
+            DirectoryInfo baseDir,
+            ILockFactory lockFactory)
+            : this (baseDir, lockFactory, new FakeLuceneDirectoryIndexOptionsOptionsMonitor())
+        {
+        }
+
+        /// <summary>
         /// The factory for creating locks
         /// </summary>
         public ILockFactory LockFactory { get; }
@@ -65,13 +76,13 @@ namespace Examine.Lucene.Directories
         public virtual Directory? CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var options = IndexOptions.GetNamedOptions(luceneIndex.Name);
-            
+
             // If taxonomy is not enabled, return null
             if (!options.UseTaxonomyIndex)
             {
                 return null;
             }
-            
+
             var path = Path.Combine(_baseDir.FullName, luceneIndex.Name, "taxonomy");
             var luceneIndexFolder = new DirectoryInfo(path);
 
