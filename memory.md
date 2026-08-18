@@ -15,6 +15,12 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
+## Last Run Tasks (2026-08-18 03:54 run)
+- Task 4: Checked PR #569 and #572 — both CI "pending" (not failing), no action needed.
+- Task 2: Rescanned src/Examine.Lucene + src/Examine for new LINQ/boxing/alloc issues via explore agent. Found only cold-path/low-value items: (1) LuceneSearchQueryBase.cs:367 Convert.ToInt32 boxing in Boosted query path (cold), (2) CreatePhraseQuery Split() alloc (per-query, not hot), (3) LuceneIndex.GetFieldNames() still has LINQ Select+ToArray (diagnostics-only, not per-search), (4) `fields as string[] ?? fields.ToArray()` patterns in query construction (per-query-build, not hot). None deemed worth a PR — all cold-path/construction-time only, not per-doc/per-query-execution hot loops.
+- No new commits on support/3.x since last run (still d6258d0). No new PR created this run — backlog remains exhausted of high-value items.
+- Task 7: Updated monthly activity issue #543
+
 ## Last Run Tasks (2026-08-17 20:44 run)
 - Task 3: PR #569 (ordereddict-values, previous run) — CI passing (CodeQL success), no action needed.
 - Task 3: Implemented Stack<BooleanQuery> initial capacity fix (LOW priority backlog item) — `new Stack<BooleanQuery>()` (default capacity 4) → `new Stack<BooleanQuery>(1)`. Measured via Stack<int> stand-in (allocation size independent of element type): 72.00 bytes/instance (default) → 64.00 bytes/instance (capacity 1), ~11% reduction, 2M-iteration micro-benchmark with GC.GetAllocatedBytesForCurrentThread(). Created draft PR on branch perf-assist/stack-booleanquery-capacity. Tests: 150 passed, 0 failed, 2 skipped. Build succeeded (0 errors).
@@ -56,7 +62,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | ValueSet constructor | efficiency-improver PR #541 — eliminate LINQ ToDictionary allocs (MERGED 2026-08-13) |
 | DONE | ReadOnlyFieldDefinitionCollection + LuceneIndex.GetFieldNames | efficiency-improver PR #546 — replace GroupBy + materialize ToArray (MERGED 2026-08-13) |
 | LOW | OrderedDictionary.Values | DONE — replaced LINQ Select+ToArray with direct array copy (PR #569, 2026-08-17) |
-| LOW | Stack<BooleanQuery> initial capacity | DONE — capacity 4→1, ~11% alloc reduction on Queries stack (draft PR, this run 2026-08-17) |
+| LOW | Stack<BooleanQuery> initial capacity | DONE — capacity 4→1, ~11% alloc reduction on Queries stack (PR #572, 2026-08-17) |
+| COLD | LuceneSearchQueryBase Boosted query Convert.ToInt32 boxing | cold path (boost queries only), not worth PR |
+| COLD | LuceneIndex.GetFieldNames() LINQ Select+ToArray | diagnostics-only, not per-search hot path |
+| COLD | CreatePhraseQuery Split() alloc | per-query construction, not per-doc hot loop |
 | EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
 | EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; Lazy<T> wrapper eliminated by PR #532 |
 | EXHAUSTED | ExamineValue boxing | ExamineValue struct boxed to IExamineValue — inherent to interface design |
@@ -77,8 +86,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-08-13: PR #541, #545, #546 merged; PR #542 closed (changes in codebase)
 
 ## Open PRs
-- PR #569 (perf-assist/ordereddict-values) — CI passing as of 2026-08-17, awaiting maintainer review
-- New PR (perf-assist/stack-booleanquery-capacity) — created this run 2026-08-17, PR number TBD (check next run)
+- PR #569 (perf-assist/ordereddict-values) — CI pending as of 2026-08-18, awaiting maintainer review
+- PR #572 (perf-assist/stack-booleanquery-capacity) — CI pending as of 2026-08-18, awaiting maintainer review
 
 ## Notes
 - No AGENTS.md in this repo
