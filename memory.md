@@ -66,6 +66,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | COLD | LuceneSearchQueryBase Boosted query Convert.ToInt32 boxing | cold path (boost queries only), not worth PR |
 | COLD | LuceneIndex.GetFieldNames() LINQ Select+ToArray | diagnostics-only, not per-search hot path |
 | COLD | CreatePhraseQuery Split() alloc | per-query construction, not per-doc hot loop |
+| EXHAUSTED | ObjectExtensions.ConvertObjectToDictionary | LINQ Where+Cast tried (foreach+HashSet); measured NO improvement (776 bytes/call both) — TypeDescriptor.GetProperties() reflection dominates alloc, not the LINQ. Not worth pursuing further without caching PropertyDescriptorCollection per-Type (bigger change). |
 | EXHAUSTED | ManagedQueryInternal LateBoundQuery | Closure captures _searchContext + fields — inherent to lazy eval, no good fix |
 | EXHAUSTED | CreateSearchResult closure | Captures `doc` — required for lazy field loading; Lazy<T> wrapper eliminated by PR #532 |
 | EXHAUSTED | ExamineValue boxing | ExamineValue struct boxed to IExamineValue — inherent to interface design |
@@ -106,3 +107,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - 2026-08-17: Repo default branch fetched cleanly this run (no shallow-clone issue hit) — origin/support/3.x fetched with --depth=5 successfully, branch created directly off it
 - OrderedDictionary.Values micro-benchmark technique: standalone console app referencing Examine.Core.csproj, GC.GetAllocatedBytesForCurrentThread() before/after N iterations, compare via git stash for baseline vs optimized
+
+## Last Run Tasks (2026-08-19 03:55 run)
+- Task 4: Checked PR #569 and #572 — both CI still "pending" (not failing), no action needed.
+- Task 2/3: Explore agent rescanned src/Examine.Lucene + src/Examine.Core for new hot-path opportunities. Found one new candidate: `ObjectExtensions.ConvertObjectToDictionary` (src/Examine.Core/ObjectExtensions.cs:34) — LINQ `Cast<PropertyDescriptor>().Where(x => !ignoreProperties.Contains(x.Name))` runs once per POCO document indexed via `ValueSet.FromObject`. Implemented fix: foreach loop + HashSet for ignore lookup, removed unused `using System.Linq;`. **Measured no improvement**: baseline and optimized both 776.00 bytes/call, ~1234-1270 ns/call (2M-iteration micro-benchmark, GC.GetAllocatedBytesForCurrentThread, standalone console app referencing Examine.Core.csproj). Root cause: `TypeDescriptor.GetProperties(o)` reflection call dominates allocation (~776 bytes), the LINQ enumerator itself is a negligible/optimized-away portion for this small property count. Per policy (no improvement without measurement), reverted change and did NOT create a PR. Branch discarded.
+- Noted: PR #574 (efficiency-improver bot, not perf-improver) covers LuceneIndex.GetFieldNames LINQ→loop — the known COLD backlog item, already tracked, not our PR to maintain.
+- Backlog remains exhausted of genuinely new hot-path items. TypeDescriptor.GetProperties reflection overhead in ConvertObjectToDictionary is the real bottleneck if this path is ever revisited (would require caching PropertyDescriptorCollection per Type, a bigger change — not attempted here, flagged as EXHAUSTED/not-worth-simple-fix).
+- Task 7: Updated monthly activity issue #543
