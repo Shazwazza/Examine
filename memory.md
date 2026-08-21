@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-08-13
+2026-08-21
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -76,6 +76,9 @@
 - All open PRs merged as of 2026-08-13; no remaining high/medium priority opportunities
 - All major hot-path code-level patterns addressed
 - Next: monitor for new code additions; consider measurement infra improvements
+- PR #569 merged 2026-08-14/18 (OrderedDictionary.Values LINQ elimination) — not ours (author: repo committer)
+- PR #574 (ours, GetFieldNames LINQ elim) was blocked/conflicted against support/3.x after #569 merged; rebased via cherry-pick 2026-08-21, build+tests pass (150 passed), pushed via push_to_pull_request_branch
 
 ## Last Run Tasks
 - 2026-08-13 20:21 UTC: Task 4 (all 6 PRs confirmed merged); Task 2 (full scan, no new opportunities); Task 7 (update monthly issue #544)
+- 2026-08-21 19:58 UTC: Task 4 — rebased/fixed conflicted PR #574 onto latest support/3.x (cherry-pick, build+test verified); Task 2 — quick rescan, no new high-impact opportunities beyond what's already in #574; Task 7 — update monthly issue #544
