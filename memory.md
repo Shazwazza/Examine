@@ -114,3 +114,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Noted: PR #574 (efficiency-improver bot, not perf-improver) covers LuceneIndex.GetFieldNames LINQ→loop — the known COLD backlog item, already tracked, not our PR to maintain.
 - Backlog remains exhausted of genuinely new hot-path items. TypeDescriptor.GetProperties reflection overhead in ConvertObjectToDictionary is the real bottleneck if this path is ever revisited (would require caching PropertyDescriptorCollection per Type, a bigger change — not attempted here, flagged as EXHAUSTED/not-worth-simple-fix).
 - Task 7: Updated monthly activity issue #543
+
+## Last Run Tasks (2026-08-21 17:37 run)
+- Task 4: Checked PR #569 and #572 — both CI still "pending" (not failing), no action needed. PR #574 (efficiency-improver bot) also open/pending.
+- Task 2/3: Explore agent rescanned AddDocument, Execute/CreateSearchResult, SearchContext.SearchableFields, IndexItems, FieldValueTypeCollection.GetValueType for new hot-path (per-doc/per-hit) opportunities. No new candidates found — all remaining LINQ/allocation patterns are in cold/construction-time paths already documented as COLD/EXHAUSTED. Backlog remains exhausted.
+- Task 7: Updated monthly activity issue #543
