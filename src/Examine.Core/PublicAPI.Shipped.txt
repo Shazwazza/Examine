@@ -7,6 +7,7 @@ abstract Examine.BaseSearchProvider.CreateQuery(string category = null, Examine.
 abstract Examine.BaseSearchProvider.Search(string searchText, Examine.Search.QueryOptions options = null) -> Examine.ISearchResults
 abstract Examine.DisposableObjectSlim.DisposeResources() -> void
 const Examine.ExamineFieldNames.CategoryFieldName = "__IndexType" -> string
+const Examine.ExamineFieldNames.DefaultFacetsName = "$facets" -> string
 const Examine.ExamineFieldNames.ItemIdFieldName = "__NodeId" -> string
 const Examine.ExamineFieldNames.ItemTypeFieldName = "__NodeTypeAlias" -> string
 const Examine.ExamineFieldNames.SortedFieldNamePrefix = "__Sort_" -> string
@@ -19,6 +20,30 @@ const Examine.FieldDefinitionTypes.DateTime = "datetime" -> string
 const Examine.FieldDefinitionTypes.DateYear = "date.year" -> string
 const Examine.FieldDefinitionTypes.Double = "double" -> string
 const Examine.FieldDefinitionTypes.EmailAddress = "emailaddress" -> string
+const Examine.FieldDefinitionTypes.FacetDateDay = "facetdate.day" -> string
+const Examine.FieldDefinitionTypes.FacetDateHour = "facetdate.hour" -> string
+const Examine.FieldDefinitionTypes.FacetDateMinute = "facetdate.minute" -> string
+const Examine.FieldDefinitionTypes.FacetDateMonth = "facetdate.month" -> string
+const Examine.FieldDefinitionTypes.FacetDateTime = "facetdatetime" -> string
+const Examine.FieldDefinitionTypes.FacetDateYear = "facetdate.year" -> string
+const Examine.FieldDefinitionTypes.FacetDouble = "facetdouble" -> string
+const Examine.FieldDefinitionTypes.FacetFloat = "facetfloat" -> string
+const Examine.FieldDefinitionTypes.FacetFullText = "facetfulltext" -> string
+const Examine.FieldDefinitionTypes.FacetFullTextSortable = "facetfulltextsortable" -> string
+const Examine.FieldDefinitionTypes.FacetInteger = "facetint" -> string
+const Examine.FieldDefinitionTypes.FacetLong = "facetlong" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateDay = "facettaxonomydate.day" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateHour = "facettaxonomydate.hour" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateMinute = "facettaxonomydate.minute" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateMonth = "facettaxonomydate.month" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateTime = "facettaxonomydatetime" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateYear = "facettaxonomydate.year" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyDouble = "facettaxonomydouble" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyFloat = "facettaxonomyfloat" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyFullText = "facettaxonomyfulltext" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyFullTextSortable = "facettaxonomyfulltextsortable" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyInteger = "facettaxonomyint" -> string
+const Examine.FieldDefinitionTypes.FacetTaxonomyLong = "facettaxonomylong" -> string
 const Examine.FieldDefinitionTypes.Float = "float" -> string
 const Examine.FieldDefinitionTypes.FullText = "fulltext" -> string
 const Examine.FieldDefinitionTypes.FullTextSortable = "fulltextsortable" -> string
@@ -161,21 +186,39 @@ Examine.Search.BooleanOperation
 Examine.Search.BooleanOperation.And = 0 -> Examine.Search.BooleanOperation
 Examine.Search.BooleanOperation.Not = 2 -> Examine.Search.BooleanOperation
 Examine.Search.BooleanOperation.Or = 1 -> Examine.Search.BooleanOperation
+Examine.Search.DoubleRange
+Examine.Search.DoubleRange.DoubleRange() -> void
+Examine.Search.DoubleRange.DoubleRange(string label, double min, bool minInclusive, double max, bool maxInclusive) -> void
+Examine.Search.DoubleRange.Label.get -> string
+Examine.Search.DoubleRange.Max.get -> double
+Examine.Search.DoubleRange.MaxInclusive.get -> bool
+Examine.Search.DoubleRange.Min.get -> double
+Examine.Search.DoubleRange.MinInclusive.get -> bool
 Examine.Search.Examineness
 Examine.Search.Examineness.Boosted = 5 -> Examine.Search.Examineness
 Examine.Search.Examineness.ComplexWildcard = 2 -> Examine.Search.Examineness
+Examine.Search.Examineness.Default = 100 -> Examine.Search.Examineness
 Examine.Search.Examineness.Escaped = 4 -> Examine.Search.Examineness
 Examine.Search.Examineness.Explicit = 3 -> Examine.Search.Examineness
 Examine.Search.Examineness.Fuzzy = 0 -> Examine.Search.Examineness
+Examine.Search.Examineness.Phrase = 7 -> Examine.Search.Examineness
 Examine.Search.Examineness.Proximity = 6 -> Examine.Search.Examineness
 Examine.Search.Examineness.SimpleWildcard = 1 -> Examine.Search.Examineness
 Examine.Search.ExamineValue
 Examine.Search.ExamineValue.Examineness.get -> Examine.Search.Examineness
-Examine.Search.ExamineValue.ExamineValue() -> void
 Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string value, float level) -> void
 Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string value) -> void
 Examine.Search.ExamineValue.Level.get -> float
 Examine.Search.ExamineValue.Value.get -> string
+Examine.Search.ExamineValueExtensions
+Examine.Search.FloatRange
+Examine.Search.FloatRange.FloatRange() -> void
+Examine.Search.FloatRange.FloatRange(string label, float min, bool minInclusive, float max, bool maxInclusive) -> void
+Examine.Search.FloatRange.Label.get -> string
+Examine.Search.FloatRange.Max.get -> float
+Examine.Search.FloatRange.MaxInclusive.get -> bool
+Examine.Search.FloatRange.Min.get -> float
+Examine.Search.FloatRange.MinInclusive.get -> bool
 Examine.Search.IBooleanOperation
 Examine.Search.IBooleanOperation.And() -> Examine.Search.IQuery
 Examine.Search.IBooleanOperation.And(System.Func<Examine.Search.INestedQuery, Examine.Search.INestedBooleanOperation> inner, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.And) -> Examine.Search.IBooleanOperation
@@ -187,6 +230,29 @@ Examine.Search.IExamineValue
 Examine.Search.IExamineValue.Examineness.get -> Examine.Search.Examineness
 Examine.Search.IExamineValue.Level.get -> float
 Examine.Search.IExamineValue.Value.get -> string
+Examine.Search.IExamineValueBoosted
+Examine.Search.IExamineValueBoosted.Boost.get -> float
+Examine.Search.IFaceting
+Examine.Search.IFaceting.WithFacets(System.Action<Examine.Search.IFacetOperations> facets) -> Examine.Search.IQueryExecutor
+Examine.Search.IFacetLabel
+Examine.Search.IFacetLabel.Components.get -> string[]
+Examine.Search.IFacetLabel.Length.get -> int
+Examine.Search.IFacetLabel.Subpath(int length) -> Examine.Search.IFacetLabel
+Examine.Search.IFacetOperations
+Examine.Search.IFacetOperations.FacetDoubleRange(string field, params Examine.Search.DoubleRange[] doubleRanges) -> Examine.Search.IFacetOperations
+Examine.Search.IFacetOperations.FacetFloatRange(string field, params Examine.Search.FloatRange[] floatRanges) -> Examine.Search.IFacetOperations
+Examine.Search.IFacetOperations.FacetLongRange(string field, params Examine.Search.Int64Range[] longRanges) -> Examine.Search.IFacetOperations
+Examine.Search.IFacetOperations.FacetString(string field, System.Action<Examine.Search.IFacetQueryField> facetConfiguration = null, params string[] values) -> Examine.Search.IFacetOperations
+Examine.Search.IFacetQueryField
+Examine.Search.IFacetQueryField.MaxCount(int count) -> Examine.Search.IFacetQueryField
+Examine.Search.IFacetResult
+Examine.Search.IFacetResult.Facet(string label) -> Examine.Search.IFacetValue
+Examine.Search.IFacetResult.TryGetFacet(string label, out Examine.Search.IFacetValue facetValue) -> bool
+Examine.Search.IFacetResults
+Examine.Search.IFacetResults.Facets.get -> System.Collections.Generic.IReadOnlyDictionary<string, Examine.Search.IFacetResult>
+Examine.Search.IFacetValue
+Examine.Search.IFacetValue.Label.get -> string
+Examine.Search.IFacetValue.Value.get -> float
 Examine.Search.INestedBooleanOperation
 Examine.Search.INestedBooleanOperation.And() -> Examine.Search.INestedQuery
 Examine.Search.INestedBooleanOperation.And(System.Func<Examine.Search.INestedQuery, Examine.Search.INestedBooleanOperation> inner, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.And) -> Examine.Search.INestedBooleanOperation
@@ -206,6 +272,14 @@ Examine.Search.INestedQuery.GroupedOr(System.Collections.Generic.IEnumerable<str
 Examine.Search.INestedQuery.GroupedOr(System.Collections.Generic.IEnumerable<string> fields, params string[] query) -> Examine.Search.INestedBooleanOperation
 Examine.Search.INestedQuery.ManagedQuery(string query, string[] fields = null) -> Examine.Search.INestedBooleanOperation
 Examine.Search.INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) -> Examine.Search.INestedBooleanOperation
+Examine.Search.Int64Range
+Examine.Search.Int64Range.Int64Range() -> void
+Examine.Search.Int64Range.Int64Range(string label, long min, bool minInclusive, long max, bool maxInclusive) -> void
+Examine.Search.Int64Range.Label.get -> string
+Examine.Search.Int64Range.Max.get -> long
+Examine.Search.Int64Range.MaxInclusive.get -> bool
+Examine.Search.Int64Range.Min.get -> long
+Examine.Search.Int64Range.MinInclusive.get -> bool
 Examine.Search.IOrdering
 Examine.Search.IOrdering.OrderBy(params Examine.Search.SortableField[] fields) -> Examine.Search.IOrdering
 Examine.Search.IOrdering.OrderByDescending(params Examine.Search.SortableField[] fields) -> Examine.Search.IOrdering
@@ -230,6 +304,7 @@ Examine.Search.IQuery.NativeQuery(string query) -> Examine.Search.IBooleanOperat
 Examine.Search.IQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) -> Examine.Search.IBooleanOperation
 Examine.Search.IQueryExecutor
 Examine.Search.IQueryExecutor.Execute(Examine.Search.QueryOptions options = null) -> Examine.ISearchResults
+Examine.Search.OrderingExtensions
 Examine.Search.QueryOptions
 Examine.Search.QueryOptions.QueryOptions(int skip, int? take = null) -> void
 Examine.Search.QueryOptions.Skip.get -> int
@@ -293,6 +368,10 @@ static Examine.ExamineExtensions.IndexItem(this Examine.IIndex index, Examine.Va
 static Examine.FieldDefinition.operator !=(Examine.FieldDefinition left, Examine.FieldDefinition right) -> bool
 static Examine.FieldDefinition.operator ==(Examine.FieldDefinition left, Examine.FieldDefinition right) -> bool
 static Examine.ObjectExtensions.ConvertObjectToDictionary(object o, params string[] ignoreProperties) -> System.Collections.Generic.IDictionary<string, object>
+static Examine.Search.ExamineValue.Create(Examine.Search.Examineness vagueness, string value, float level) -> Examine.Search.IExamineValue
+static Examine.Search.ExamineValue.Create(Examine.Search.Examineness vagueness, string value) -> Examine.Search.IExamineValue
+static Examine.Search.ExamineValueExtensions.WithBoost(this Examine.Search.IExamineValue examineValue, float boost) -> Examine.Search.IExamineValue
+static Examine.Search.OrderingExtensions.WithFacets(this Examine.Search.IOrdering ordering, System.Action<Examine.Search.IFacetOperations> facets) -> Examine.Search.IQueryExecutor
 static Examine.Search.QueryOptions.Default.get -> Examine.Search.QueryOptions
 static Examine.Search.QueryOptions.SkipTake(int skip, int? take = null) -> Examine.Search.QueryOptions
 static Examine.SearchExtensions.Boost(this string s, float boost) -> Examine.Search.IExamineValue
@@ -300,6 +379,7 @@ static Examine.SearchExtensions.Escape(this string s) -> Examine.Search.IExamine
 static Examine.SearchExtensions.Fuzzy(this string s, float fuzzieness) -> Examine.Search.IExamineValue
 static Examine.SearchExtensions.Fuzzy(this string s) -> Examine.Search.IExamineValue
 static Examine.SearchExtensions.MultipleCharacterWildcard(this string s) -> Examine.Search.IExamineValue
+static Examine.SearchExtensions.Phrase(this string s) -> Examine.Search.IExamineValue
 static Examine.SearchExtensions.Proximity(this string s, int proximity) -> Examine.Search.IExamineValue
 static Examine.SearchExtensions.SingleCharacterWildcard(this string s) -> Examine.Search.IExamineValue
 static Examine.ValueSet.FromObject(string id, string category, object values) -> Examine.ValueSet

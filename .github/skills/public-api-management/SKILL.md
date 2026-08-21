@@ -113,9 +113,10 @@ After a release, this script moves all entries from `PublicAPI.Unshipped.txt` in
 For each project:
 
 1. Reads `PublicAPI.Unshipped.txt` (ignoring blank lines and `#nullable enable`)
-2. Appends those entries to `PublicAPI.Shipped.txt`
-3. Sorts and deduplicates the combined shipped file
-4. Clears `PublicAPI.Unshipped.txt` (preserving `#nullable enable` if present)
+2. Appends the additions to `PublicAPI.Shipped.txt`
+3. Applies `*REMOVED*` entries by deleting the matching signature from `PublicAPI.Shipped.txt`. The `*REMOVED*` marker line is never written to shipped. If a `*REMOVED*` entry has no matching shipped API, the script warns and continues.
+4. Sorts and deduplicates the combined shipped file
+5. Clears `PublicAPI.Unshipped.txt` (preserving `#nullable enable` if present)
 
 #### When to Run
 

@@ -9,9 +9,11 @@
     
     The script:
     1. Finds all PublicAPI.Unshipped.txt files in the src directory
-    2. Appends their content (excluding #nullable enable) to corresponding Shipped files
-    3. Sorts the Shipped files alphabetically
-    4. Clears Unshipped files (leaving only #nullable enable if it was present)
+    2. Appends their additions (excluding #nullable enable) to corresponding Shipped files
+    3. Applies *REMOVED* entries by deleting the matching signature from the Shipped file
+       (the *REMOVED* marker line itself is never written to Shipped)
+    4. Sorts the Shipped files alphabetically
+    5. Clears Unshipped files (leaving only #nullable enable if it was present)
 
 .PARAMETER SourcePath
     The root path to search for PublicAPI files. Defaults to "../src" relative to script location.
@@ -25,7 +27,8 @@
     Merges all PublicAPI files in the specified directory.
 
 .NOTES
-    This script should be run before tagging a release to finalize the public API tracking.
+    This script should be run after tagging a release to finalize the public API tracking.
+    Running it earlier would erase the record of what changed in the release.
 #>
 
 [CmdletBinding()]
@@ -85,7 +88,19 @@ foreach ($unshippedFile in $unshippedFiles) {
         }
         
         Write-Host "  Found $($unshippedLines.Count) API entries to merge" -ForegroundColor Cyan
-        
+
+        # Split into removals and additions. A "*REMOVED*<signature>" entry means the
+        # signature must be deleted from Shipped - the marker itself is never shipped.
+        $removedPrefix = "*REMOVED*"
+        $removedSignatures = @($unshippedLines |
+            Where-Object { $_.TrimStart().StartsWith($removedPrefix) } |
+            ForEach-Object { $_.TrimStart().Substring($removedPrefix.Length).Trim() })
+        $addedLines = @($unshippedLines | Where-Object { -not $_.TrimStart().StartsWith($removedPrefix) })
+
+        if ($removedSignatures.Count -gt 0) {
+            Write-Host "    $($removedSignatures.Count) removal(s), $($addedLines.Count) addition(s)" -ForegroundColor Cyan
+        }
+
         # Read shipped file
         $shippedContent = Get-Content $shippedPath -Raw
         $shippedLines = $shippedContent -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
@@ -95,7 +110,16 @@ foreach ($unshippedFile in $unshippedFiles) {
         
         # Combine and sort (excluding #nullable enable for sorting)
         $apiLines = $shippedLines | Where-Object { $_ -ne "#nullable enable" }
-        $combined = ($apiLines + $unshippedLines) | Sort-Object -Unique
+        $combined = ($apiLines + $addedLines) | Sort-Object -Unique
+
+        # Apply removals, warning about any that didn't match a shipped entry
+        if ($removedSignatures.Count -gt 0) {
+            $notFound = @($removedSignatures | Where-Object { $combined -notcontains $_ })
+            foreach ($missing in $notFound) {
+                Write-Warning "  *REMOVED* entry has no matching Shipped API: $missing"
+            }
+            $combined = @($combined | Where-Object { $removedSignatures -notcontains $_ })
+        }
         
         # Rebuild shipped file with #nullable enable at the top if it was present
         if ($hasNullableDirective) {
