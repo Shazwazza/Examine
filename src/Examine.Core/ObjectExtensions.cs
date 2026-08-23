@@ -4,8 +4,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -16,6 +14,10 @@ namespace Examine
 {
     public static class ObjectExtensions
     {
+        // Caches the reflection-derived property list per type since TypeDescriptor.GetProperties(object)
+        // performs the same reflection/attribute lookup work on every call for a given type.
+        private static readonly ConcurrentDictionary<Type, PropertyDescriptorCollection> s_propertyCache = new();
+
         /// <summary>
         /// Turns object into dictionary
         /// </summary>
@@ -29,10 +31,16 @@ namespace Examine
                 if (o is IDictionary)
                     throw new InvalidOperationException($"The input object is already of type {typeof(IDictionary)}");
 
-                var props = TypeDescriptor.GetProperties(o);
+                var props = s_propertyCache.GetOrAdd(o.GetType(), t => TypeDescriptor.GetProperties(t));
+                var ignoreSet = ignoreProperties.Length == 0 ? null : new HashSet<string>(ignoreProperties);
                 var d = new Dictionary<string, object>();
-                foreach (var prop in props.Cast<PropertyDescriptor>().Where(x => !ignoreProperties.Contains(x.Name)))
+                foreach (PropertyDescriptor prop in props)
                 {
+                    if (ignoreSet != null && ignoreSet.Contains(prop.Name))
+                    {
+                        continue;
+                    }
+
                     var val = prop.GetValue(o);
                     if (val != null)
                     {
