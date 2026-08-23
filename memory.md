@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-08-22
+2026-08-23
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -78,8 +78,10 @@
 - Next: monitor for new code additions; consider measurement infra improvements
 - PR #569 merged 2026-08-14/18 (OrderedDictionary.Values LINQ elimination) — not ours (author: repo committer)
 - PR #574 (ours, GetFieldNames LINQ elim) was blocked/conflicted against support/3.x after #569 merged; rebased via cherry-pick 2026-08-21, build+tests pass (150 passed), pushed via push_to_pull_request_branch
+- 2026-08-23: PR #574 diverged too far to rebase again (1200+ commits behind; conflicts in Examine.sln/csproj/OrderedDictionary.cs unrelated to our 1-file change). Recreated the identical GetFieldNames optimization as a NEW branch/commit off current support/3.x and opened a superseding PR via create_pull_request. LESSON: for small single-file PRs, if rebase conflict count grows large or unrelated files, prefer recreating branch fresh from target base + reapplying the diff rather than repeated rebase/cherry-pick — much faster and avoids repeated conflict resolution churn each run. Old PR #574 flagged for maintainer to close as superseded (do not keep re-rebasing indefinitely).
 
 ## Last Run Tasks
 - 2026-08-13 20:21 UTC: Task 4 (all 6 PRs confirmed merged); Task 2 (full scan, no new opportunities); Task 7 (update monthly issue #544)
 - 2026-08-21 19:58 UTC: Task 4 — rebased/fixed conflicted PR #574 onto latest support/3.x (cherry-pick, build+test verified); Task 2 — quick rescan, no new high-impact opportunities beyond what's already in #574; Task 7 — update monthly issue #544
 - 2026-08-22 19:56 UTC: Task 4 — PR #574 had drifted into conflict again (base moved); rebased cleanly onto origin/support/3.x (no conflicts this time), build succeeded (0 errors), tests 150 passed/0 failed/2 skipped, pushed via push_to_pull_request_branch; Task 2 — rescanned for LINQ Select+ToArray/ToList patterns in Examine.Lucene/Examine.Core, none remaining; Task 7 — updated monthly issue #544
+- 2026-08-23 19:56 UTC: Task 4 — PR #574 unrebasable again (1200+ commits behind support/3.x); recreated fresh branch efficiency/getfieldnames-linq-loop-v2 off current support/3.x, reapplied identical GetFieldNames fix, build+tests verified (150 passed), opened superseding PR via create_pull_request; noted #574 for maintainer to close as superseded; Task 7 — updated monthly issue #544 with new PR + close-#574 action item
