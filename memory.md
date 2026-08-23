@@ -126,3 +126,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Task 5: No open issues labeled/mentioning "performance" found via search — nothing to comment on.
 - Task 7: Updated monthly activity issue #543 (August 2026, still current month).
 - Note: Backlog has been exhausted for several consecutive runs now (2026-08-17 through 2026-08-22). Future runs should consider Task 6 (measurement infrastructure) more seriously, or wait for open PRs to merge to unblock re-scanning against updated baseline.
+
+## Last Run Tasks (2026-08-23 03:58 run)
+- Task 4: Checked PR #572 (perf-improver) and #574 (efficiency-improver) — both CI green, no action needed, still awaiting maintainer review.
+- Task 2/3: Revisited EXHAUSTED backlog item `ObjectExtensions.ConvertObjectToDictionary` reflection overhead (previously the LINQ→foreach swap alone showed no improvement; TypeDescriptor.GetProperties(o) reflection was flagged as the real cost). Implemented the previously-deferred fix: cache `TypeDescriptor.GetProperties(Type)` per-Type in a `ConcurrentDictionary<Type, PropertyDescriptorCollection>` via GetOrAdd, plus HashSet-based ignore-property filtering (replacing LINQ Cast+Where). Measured (2M-iter micro-benchmark, GC.GetAllocatedBytesForCurrentThread, standalone console app referencing Examine.Core.csproj, warm cache — representative of repeated indexing of the same POCO type): 776.00 → 496.00 bytes/call (-36%), ~1.2µs → ~0.4µs/call (~3x faster). Created draft PR on branch perf-assist/cache-typedescriptor-properties. Build succeeded (0 errors). Tests: 150 passed, 0 failed, 2 skipped.
+- Item moved from EXHAUSTED to a new PR — update backlog table on next run once PR number is known from GitHub.
+- Task 5: No issues labeled/mentioning "performance" found — nothing to comment on.
+- Task 7: Updated monthly activity issue #543.
