@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-08-23
+2026-08-24
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -79,8 +79,9 @@
 - PR #569 merged 2026-08-14/18 (OrderedDictionary.Values LINQ elimination) — not ours (author: repo committer)
 - PR #574 (ours, GetFieldNames LINQ elim) was blocked/conflicted against support/3.x after #569 merged; rebased via cherry-pick 2026-08-21, build+tests pass (150 passed), pushed via push_to_pull_request_branch
 - 2026-08-23: PR #574 diverged too far to rebase again (1200+ commits behind; conflicts in Examine.sln/csproj/OrderedDictionary.cs unrelated to our 1-file change). Recreated the identical GetFieldNames optimization as a NEW branch/commit off current support/3.x and opened a superseding PR via create_pull_request. LESSON: for small single-file PRs, if rebase conflict count grows large or unrelated files, prefer recreating branch fresh from target base + reapplying the diff rather than repeated rebase/cherry-pick — much faster and avoids repeated conflict resolution churn each run. Old PR #574 flagged for maintainer to close as superseded (do not keep re-rebasing indefinitely).
+- 2026-08-24: PR #586 (superseding #574) confirmed all CI checks green (CodeQL, Analyze csharp/actions all success). Posted comment on #574 recommending maintainer close it in favor of #586 (do not close PRs ourselves, no update_issue tool for PRs anyway). Noted other open PRs (#585, #572) are from a different bot ("[perf-improver]" prefix, not ours) — cache PropertyDescriptorCollection in ObjectExtensions.ConvertObjectToDictionary and Stack<BooleanQuery> initial capacity — not our responsibility to maintain but worth being aware these duplicate/overlap with our past work (ObjectExtensions caching is new territory, Stack capacity is new too). Full rescan of Examine.Lucene/Examine.Core for LINQ Select/Where/ToArray/ToList/OrderBy/GroupBy patterns: all remaining instances are either necessary (`fields as string[] ?? fields.ToArray()` fallback casts, already optimal), the already-open-PR GetFieldNames case, or low-value (BaseIndexProvider validator path, ValueSet.ToList, ObjectExtensions — the latter two now being addressed by PR #585 from the other bot). No new high-impact opportunities found this run.
 
-## Last Run Tasks
+- 2026-08-24 20:03 UTC: Task 4 — verified PR #586 (superseding #574) has all CI checks green; commented on #574 recommending maintainer close it as superseded; Task 2 — rescanned Examine.Lucene/Examine.Core for LINQ patterns, no new high-impact opportunities (noted PRs #585/#572 from a different bot address ObjectExtensions caching + Stack capacity); Task 7 — updated monthly issue #544
 - 2026-08-13 20:21 UTC: Task 4 (all 6 PRs confirmed merged); Task 2 (full scan, no new opportunities); Task 7 (update monthly issue #544)
 - 2026-08-21 19:58 UTC: Task 4 — rebased/fixed conflicted PR #574 onto latest support/3.x (cherry-pick, build+test verified); Task 2 — quick rescan, no new high-impact opportunities beyond what's already in #574; Task 7 — update monthly issue #544
 - 2026-08-22 19:56 UTC: Task 4 — PR #574 had drifted into conflict again (base moved); rebased cleanly onto origin/support/3.x (no conflicts this time), build succeeded (0 errors), tests 150 passed/0 failed/2 skipped, pushed via push_to_pull_request_branch; Task 2 — rescanned for LINQ Select+ToArray/ToList patterns in Examine.Lucene/Examine.Core, none remaining; Task 7 — updated monthly issue #544
