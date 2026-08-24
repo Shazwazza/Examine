@@ -1,0 +1,27 @@
+# Versioning is driven by tags. Tagging vX.Y.Z on a release/support branch
+# produces exactly that version; untagged commits produce a pre-release.
+#
+# The prevent-increment settings below matter: GitVersion's built-in defaults for
+# 'release' and 'hotfix' branches set when-current-commit-tagged: false, which keeps
+# incrementing past the tag on the current commit. That makes a v4.0.0 tag on
+# release/4.0 build as 4.1.0-beta.1 instead of 4.0.0.
+
+mode: ContinuousDelivery
+tag-prefix: '[vV]'
+
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatchTag
+assembly-informational-format: '{InformationalVersion}'
+
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+no-bump-message: '\+semver:\s?(none|skip)'
+
+branches:
+  release:
+    prevent-increment:
+      when-current-commit-tagged: true
+  hotfix:
+    prevent-increment:
+      when-current-commit-tagged: true
