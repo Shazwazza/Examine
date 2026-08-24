@@ -73,7 +73,7 @@ _**Tip**: There are many unit tests in the source code that can be used as Examp
 
 ## Copyright & Licence
 
-&copy; 2023 by Shannon Deminick
+&copy; 2026 by Shannon Deminick
 
 This is free software and is licensed under the [MIT License](https://opensource.org/licenses/MIT)
 
