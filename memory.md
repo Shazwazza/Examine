@@ -63,6 +63,7 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 | DONE | ReadOnlyFieldDefinitionCollection + LuceneIndex.GetFieldNames | efficiency-improver PR #546 — replace GroupBy + materialize ToArray (MERGED 2026-08-13) |
 | LOW | OrderedDictionary.Values | DONE — replaced LINQ Select+ToArray with direct array copy (PR #569, 2026-08-17) |
 | LOW | Stack<BooleanQuery> initial capacity | DONE — capacity 4→1, ~11% alloc reduction on Queries stack (PR #572, 2026-08-17) |
+| NEW | LuceneSearchExecutor facet fields .Any() x2 + OrderBy | DONE — IReadOnlyCollection + Count check + skip OrderBy for 0/1 fields, ~14% alloc reduction (PR pending, 2026-08-25) |
 | COLD | LuceneSearchQueryBase Boosted query Convert.ToInt32 boxing | cold path (boost queries only), not worth PR |
 | COLD | LuceneIndex.GetFieldNames() LINQ Select+ToArray | diagnostics-only, not per-search hot path |
 | COLD | CreatePhraseQuery Split() alloc | per-query construction, not per-doc hot loop |
@@ -140,3 +141,11 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Task 5: No open issues labeled/mentioning "performance" found — nothing to comment on.
 - Task 7: Updated monthly activity issue #543 (added PR #585, #586 to suggested actions).
 - Note: Backlog has been consistently exhausted since 2026-08-17. Next run should seriously consider Task 6 (measurement infrastructure improvements) instead of another fruitless hot-path scan, or wait for open PRs (#569, #572, #574, #585, #586) to merge before rescanning against updated baseline.
+
+## Last Run Tasks (2026-08-25 03:56 run)
+- Task 4: Checked PR #572 (perf-improver, still CI pending) and #585 (perf-improver, still CI pending) — no action needed. Noted #574/#586 are efficiency-improver bot PRs (not ours to maintain).
+- Task 2/3: Explore agent did a fresh scan focused on previously-unreviewed areas: facet extraction (LuceneSearchExecutor), TaxonomySearchContext, provider commit/NRT logic. Found NEW genuine hot-path item: `LuceneSearchExecutor` calls `_facetFields.Any()` twice per facet query execution (enumerator alloc each time) and always uses LINQ `OrderBy()` in `ExtractFacets()` even for 0/1 facet fields (the common case). Implemented fix: changed `_facetFields` to `IReadOnlyCollection<IFacetField>` (materialized once in ctor), replaced `.Any()` calls with `.Count` checks, and skip `OrderBy()` (only Array.Sort when 2+ fields). Measured (2M-iter micro-benchmark, GC.GetAllocatedBytesForCurrentThread, standalone console app simulating the same call pattern): 56.00 → 48.00 bytes/call (~14% reduction). Created draft PR on branch perf-assist/facet-fields-any-orderby. Build succeeded (0 errors, 0 warnings, all TFMs). Tests: 316 passed, 0 failed, 2 skipped (net8.0).
+- Also noted (not actioned, low priority): `TaxonomySearchContext.SearchableFields` (line ~52-59) still uses LINQ Select().ToList()+Where().ToArray() unlike sibling SearchContext (already converted to foreach) — but this is cold/construction-time (computed once, cached), so left for a future run if backlog gets thin again.
+- Task 5: No open issues labeled/mentioning "performance" found — nothing to comment on.
+- Task 7: Updated monthly activity issue #543 (added new PR #<pending-number> facet-fields-any-orderby to suggested actions; will confirm PR number next run).
+- Backlog: found ONE new item after ~8 exhausted runs — facet/taxonomy code paths were previously unscanned. Worth checking facet/taxonomy-adjacent code again next time if backlog runs dry (e.g. RandomSamplingAmortizedFacets, FacetLabel.Subpath — deemed too niche/low-traffic this run).
