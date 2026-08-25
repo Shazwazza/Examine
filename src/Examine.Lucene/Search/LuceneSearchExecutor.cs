@@ -33,7 +33,9 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string>? _fieldsToLoad;
-        private readonly IEnumerable<IFacetField>? _facetFields;
+        // Materialized once (rather than IEnumerable<T>) so we can cheaply check Count and
+        // avoid repeated enumerator allocations from calling .Any() multiple times per execution.
+        private readonly IReadOnlyCollection<IFacetField>? _facetFields;
         private readonly FacetsConfig? _facetsConfig;
 
         internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
@@ -45,7 +47,7 @@ namespace Examine.Lucene.Search
             _fieldsToLoad = fieldsToLoad;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
-            _facetFields = facetFields;
+            _facetFields = facetFields as IReadOnlyCollection<IFacetField> ?? facetFields?.ToArray();
             _facetsConfig = facetsConfig;
         }
 
@@ -139,7 +141,7 @@ namespace Examine.Lucene.Search
                     topDocsCollector = TopScoreDocCollector.Create(numHits, scoreDocAfter, true);
                 }
                 FacetsCollector? facetsCollector = null;
-                if (_facetFields != null && _facetFields.Any())
+                if (_facetFields != null && _facetFields.Count > 0)
                 {
                     facetsCollector = _luceneQueryOptions?.FacetRandomSampling is { } facetSampling
                         ? new RandomSamplingFacetsCollector(facetSampling.SampleSize, facetSampling.Seed)
@@ -253,12 +255,22 @@ namespace Examine.Lucene.Search
         private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector? facetsCollector, ISearcherReference searcher)
         {
             var facets = new Dictionary<string, IFacetResult>(StringComparer.InvariantCultureIgnoreCase);
-            if (facetsCollector == null || _facetFields is null || !_facetFields.Any())
+            if (facetsCollector == null || _facetFields is null || _facetFields.Count == 0)
             {
                 return facets;
             }
 
-            var facetFields = _facetFields.OrderBy(field => field.FacetField);
+            IEnumerable<IFacetField> facetFields;
+            if (_facetFields.Count > 1)
+            {
+                var sortedFields = _facetFields.ToArray();
+                Array.Sort(sortedFields, (a, b) => Comparer<string?>.Default.Compare(a.FacetField, b.FacetField));
+                facetFields = sortedFields;
+            }
+            else
+            {
+                facetFields = _facetFields;
+            }
 
             foreach (var field in facetFields)
             {
