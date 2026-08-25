@@ -1,10 +1,10 @@
-﻿# Public API Changes Report
-
-Generated: 2026-08-25 12:13:56
+﻿# Public API Changes: v3 to v4
 
 Compares the public API surface of **v3.10.0** against **v4.0.0**, across `Examine.Core`, `Examine.Host` and `Examine.Lucene`.
 
 "Modified" entries are members whose signature changed, which is mostly nullable re-annotation of an otherwise identical member.
+
+Generated 2026-08-25 from the `PublicAPI.Shipped.txt` files tracked by the `Microsoft.CodeAnalysis.PublicApiAnalyzers` Roslyn analyzer, so this is derived from the actual compiled API surface rather than written by hand. See [build/Get-PublicApiReport.ps1](https://github.com/Shazwazza/Examine/blob/dev/build/Get-PublicApiReport.ps1).
 
 ## Summary
 

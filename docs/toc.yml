@@ -3,6 +3,8 @@
 - name: Api Documentation
   href: api/
   homepage: api/index.md
+- name: Breaking Changes
+  href: breaking-changes/toc.yml
 - name: Developer Guide
   href: developerguides/toc.yml
 - name: Source Code

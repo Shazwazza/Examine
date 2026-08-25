@@ -32,6 +32,8 @@
         "files": [
           "articles/**.md",
           "articles/**/toc.yml",
+          "breaking-changes/**.md",
+          "breaking-changes/**/toc.yml",
           "toc.yml",
           "*.md",
           "docs-v1-v2/**.md",
