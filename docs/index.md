@@ -23,10 +23,6 @@ Not all features of [Lucene.NET](https://lucenenet.apache.org/) have Examine abs
 
 **Tip**: There are many unit tests in the source code that can be used as Examples of how to do things. There is also a test web project that has plenty of examples of how to configure indexes and search them.
 
-## [Examine V1 / V2 Conceptual Documentation](xref:v2index)
-
-Conceptual documentation is available for V1 and V2 of Examine.
-
 ## [Releases](https://github.com/Shazwazza/Examine/releases)
 
 Releases are available [here](https://github.com/Shazwazza/Examine/releases) and on [NuGet](https://www.nuget.org/packages/Examine/).
@@ -38,8 +34,6 @@ Releases are available [here](https://github.com/Shazwazza/Examine/releases) and
 | --------------- | ---- |
 | V4 | .NET 8.0, .NET 9.0, .NET 10.0 |
 | V3 | .NET 6.0, .NET 8.0 |
-| V2 | .NET Standard 2.0 |
-| V1 | .NET Framework 4.5.2 |
 
 ## What's new in V4
 
