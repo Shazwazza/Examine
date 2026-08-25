@@ -4,6 +4,10 @@ permalink: /searching
 uid: v2searching
 order: 2
 ---
+
+> [!WARNING]
+> This page documents Examine v1/v2, which is no longer supported. It is kept online so existing links keep working.
+> For the current version, start at the [Examine documentation](xref:index).
 Searching
 ===
 

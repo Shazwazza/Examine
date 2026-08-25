@@ -3,7 +3,11 @@ uid: v2index
 title: V1/V2 Quickstart
 ---
 
-Examine Documentation
+> [!WARNING]
+> This page documents Examine v1/v2, which is no longer supported. It is kept online so existing links keep working.
+> For the current version, start at the [Examine documentation](xref:index).
+
+Examine V1/V2 Documentation
 ===
 
 ## What is Examine?
