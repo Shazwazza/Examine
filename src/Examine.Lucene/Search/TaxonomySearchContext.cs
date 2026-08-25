@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using Examine.Lucene.Indexing;
 using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Index;
@@ -49,14 +49,21 @@ namespace Examine.Lucene.Search
                     var searcherAndTaxonomy = _searcherManager.Acquire();
                     try
                     {
-                        var fields = MultiFields.GetMergedFieldInfos(searcherAndTaxonomy.Searcher.IndexReader)
-                                    .Select(x => x.Name)
-                                    .ToList();
+                        // Manual foreach replaces the Select+Where+ToList+ToArray LINQ chain to
+                        // eliminate iterator-state-machine allocations per SearchableFields
+                        // rebuild (mirrors the fix applied to SearchContext.SearchableFields).
+                        var fieldInfos = MultiFields.GetMergedFieldInfos(searcherAndTaxonomy.Searcher.IndexReader);
+                        var list = new List<string>(fieldInfos.Count);
+                        foreach (var info in fieldInfos)
+                        {
+                            if (!info.Name.StartsWith(ExamineFieldNames.SpecialFieldPrefix, StringComparison.Ordinal)
+                                && !info.Name.Equals(ExamineFieldNames.DefaultFacetsName, StringComparison.Ordinal))
+                            {
+                                list.Add(info.Name);
+                            }
+                        }
 
-                        //exclude the special index fields
-                        var filtered = fields
-                            .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix) && !x.Equals(ExamineFieldNames.DefaultFacetsName))
-                            .ToArray();
+                        var filtered = list.ToArray();
 
                         // Only cache non-empty results so that an initially empty index
                         // will re-read fields once documents have been indexed.
