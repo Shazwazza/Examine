@@ -3,10 +3,18 @@ name: Deploy DocFX with GitHub Pages dependencies preinstalled
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["feature/docfx"]
+    branches: ["dev"]
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - '.github/workflows/docfx-gh-pages.yml'
   pull_request:
     branches:
-      - 'feature/docfx'
+      - 'dev'
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - '.github/workflows/docfx-gh-pages.yml'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,24 +36,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Instal DotNet
-        uses: actions/setup-dotnet@v3
+        uses: actions/checkout@v7
+      - name: Install DotNet
+        uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '6.0.x'
+          # DocFX builds the API reference from src/**.csproj, which multi-targets
+          # net8.0;net9.0;net10.0, so every targeted SDK must be present.
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
       - name: Setup Github Pages
-        uses: actions/configure-pages@v3        
+        uses: actions/configure-pages@v6
+      - name: Install DocFX
+        run: |
+          dotnet tool install -g docfx
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
       - name: Build DocFX Site
-        uses: nunit/docfx-action@v2.10.0
-        with:
-         args: docs/docfx.json
+        run: docfx docs/docfx.json
       - name: Upload docfx built site artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v5
         with:
          path: docs/_site
 
   # Deployment job
   deploy:
+    # Never deploy from a pull request, only from pushes and manual runs
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -54,4 +71,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v5

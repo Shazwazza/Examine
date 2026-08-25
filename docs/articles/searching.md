@@ -7,7 +7,7 @@ order: 2
 Searching
 ===
 
-_**Tip**: There are many examples of searching in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/release/3.0/src/Examine.Test/Examine.Lucene/Search/FluentApiTests.cs) to use as examples/reference._
+_**Tip**: There are many examples of searching in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Examine.Lucene/Search/FluentApiTests.cs) to use as examples/reference._
 
 
 ## Common
@@ -56,17 +56,17 @@ var results = searcher.CreateQuery()
  .Execute();
 ```
 
-The way that terms are split depends on the Analyzer being used. The [`StandardAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Standard.StandardAnalyzer.html) is the default. An example of how Analyzers work are:
+The way that terms are split depends on the Analyzer being used. The [`StandardAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00018/api/analysis-common/Lucene.Net.Analysis.Standard.StandardAnalyzer.html) is the default. An example of how Analyzers work are:
 
-- [`StandardAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Standard.StandardAnalyzer.html) - will split a string based on whitespace and 'stop words' (i.e. common words that are not normally searched on like "and")
-- [`WhitespaceAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Core.WhitespaceAnalyzer.html) - will split a string based only on whitespace
-- [`KeywordAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Core.KeywordAnalyzer.html) - will not split a string and will treat the single string as one term - this means that searching will be done on an exact match
+- [`StandardAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00018/api/analysis-common/Lucene.Net.Analysis.Standard.StandardAnalyzer.html) - will split a string based on whitespace and 'stop words' (i.e. common words that are not normally searched on like "and")
+- [`WhitespaceAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00018/api/analysis-common/Lucene.Net.Analysis.Core.WhitespaceAnalyzer.html) - will split a string based only on whitespace
+- [`KeywordAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00018/api/analysis-common/Lucene.Net.Analysis.Core.KeywordAnalyzer.html) - will not split a string and will treat the single string as one term - this means that searching will be done on an exact match
 
-There are many [Analyzers](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/core/Lucene.Net.Analysis.html) and you can even create your own. See more about analyzers in [configuration](./configuration.md#example---phone-number).
+There are many [Analyzers](https://lucenenet.apache.org/docs/4.8.0-beta00018/api/core/Lucene.Net.Analysis.html) and you can even create your own. See more about analyzers in [configuration](./configuration.md#example---phone-number).
 
 Looking at this example when using the default StandardAnalyser the code above means that the `Address` in this example has to match any the values set in the statement. This is because Examine will create a Lucene query like this one where every word is matched separately: `Address:hills Address:rockyroad Address:hollywood`.
 
-Instead, if you want to search for entries with the values above in that exact order you specified you will need to use the [`.Escape()`](xref:Examine.SearchExtensions#Examine_SearchExtensions_Escape_System_String_) method. See under [Escape](#escape).
+Instead, if you want to search for entries with the values above in that exact order you specified you will need to use the [`.Escape()`](xref:Examine.SearchExtensions#Examine_SearchExtensions_Escape_System_String_) method. See under [Escape and phrase queries](#escape-and-phrase-queries).
 
 ```csharp
 var searcher = myIndex.Searcher;
@@ -88,9 +88,9 @@ Example:
 
 ```csharp
 var searcher = myIndex.Searcher;
-var query = searcher.CreateQuery();
-query.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, minInclusive: true, maxInclusive: true);
-var results = query.Execute(QueryOptions.Default);
+var results = searcher.CreateQuery()
+    .RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, minInclusive: true, maxInclusive: true)
+    .Execute(QueryOptions.Default);
 ```
 
 This will return results where the field `SomeFloat` is within the range 0 - 100 (min value and max value included).
@@ -117,7 +117,81 @@ This will return results where the field `created` is within the date 2000/01/02
 
 ## Booleans, Groups & Sub Groups
 
-_TODO: Fill this in..._
+By default a query created with [`CreateQuery()`](xref:Examine.ISearcher#Examine_ISearcher_CreateQuery_System_String_Examine_Search_BooleanOperation_) combines its clauses with `And`. Pass a [`BooleanOperation`](xref:Examine.Search.BooleanOperation) to change that default.
+
+Every clause returns an [`IBooleanOperation`](xref:Examine.Search.IBooleanOperation), which exposes [`And()`](xref:Examine.Search.IBooleanOperation#Examine_Search_IBooleanOperation_And), [`Or()`](xref:Examine.Search.IBooleanOperation#Examine_Search_IBooleanOperation_Or) and [`Not()`](xref:Examine.Search.IBooleanOperation#Examine_Search_IBooleanOperation_Not) to chain the next clause.
+
+```csharp
+var results = searcher.CreateQuery("content")
+    .Field("nodeName", "hello")
+    .And().Field("bodyText", "world")
+    .Not().Field("writerName", "administrator")
+    .Execute();
+```
+
+### Grouped fields
+
+To match the same term or terms across several fields, use [`GroupedOr`](xref:Examine.Search.IQuery#Examine_Search_IQuery_GroupedOr_System_Collections_Generic_IEnumerable_System_String__System_String___), [`GroupedAnd`](xref:Examine.Search.IQuery#Examine_Search_IQuery_GroupedAnd_System_Collections_Generic_IEnumerable_System_String__System_String___) or [`GroupedNot`](xref:Examine.Search.IQuery#Examine_Search_IQuery_GroupedNot_System_Collections_Generic_IEnumerable_System_String__System_String___). The first argument is the set of fields, the rest are the terms.
+
+```csharp
+// Match "hello" in either nodeName or bodyText
+var results = searcher.CreateQuery("content")
+    .GroupedOr(new[] { "nodeName", "bodyText" }, "hello")
+    .Execute();
+```
+
+Each of these also accepts [`IExamineValue`](xref:Examine.Search.IExamineValue) terms, so wildcards, fuzziness and boosting can be applied per term:
+
+```csharp
+var results = searcher.CreateQuery("content")
+    .GroupedOr(
+        new[] { "nodeName", "bodyText" },
+        "hello".Boost(10),
+        "world".Fuzzy())
+    .Execute();
+```
+
+### Sub groups
+
+[`Group`](xref:Examine.Search.IQuery#Examine_Search_IQuery_Group_System_Func_Examine_Search_INestedQuery_Examine_Search_INestedBooleanOperation__Examine_Search_BooleanOperation_) builds a nested, bracketed query. The inner callback uses [`INestedQuery`](xref:Examine.Search.INestedQuery), which mirrors the outer query API. The `defaultOp` parameter controls how the clauses inside the group combine, defaulting to `Or`.
+
+```csharp
+// nodeTypeAlias:CWS_Home AND (nodeName:home OR bodyText:home)
+var results = searcher.CreateQuery("content")
+    .Field("nodeTypeAlias", "CWS_Home")
+    .And().Group(group => group
+        .Field("nodeName", "home")
+        .Or().Field("bodyText", "home"))
+    .Execute();
+```
+
+[`And`](xref:Examine.Search.IBooleanOperation#Examine_Search_IBooleanOperation_And_System_Func_Examine_Search_INestedQuery_Examine_Search_INestedBooleanOperation__Examine_Search_BooleanOperation_), [`Or`](xref:Examine.Search.IBooleanOperation#Examine_Search_IBooleanOperation_Or_System_Func_Examine_Search_INestedQuery_Examine_Search_INestedBooleanOperation__Examine_Search_BooleanOperation_) and [`AndNot`](xref:Examine.Search.IBooleanOperation#Examine_Search_IBooleanOperation_AndNot_System_Func_Examine_Search_INestedQuery_Examine_Search_INestedBooleanOperation__Examine_Search_BooleanOperation_) have overloads that take the same nested callback, which is how sub groups are combined with the rest of the query.
+
+## Selecting fields
+
+By default all stored fields are loaded for every result. When only a few fields are needed, restricting the loaded set reduces the work done per result.
+
+```csharp
+// Load a single field
+var results = searcher.CreateQuery()
+    .Field("Address", "Hills")
+    .SelectField("Name")
+    .Execute();
+
+// Load a specific set of fields
+var results2 = searcher.CreateQuery()
+    .Field("Address", "Hills")
+    .SelectFields(new HashSet<string> { "Name", "Address" })
+    .Execute();
+
+// Explicitly load everything (the default)
+var results3 = searcher.CreateQuery()
+    .Field("Address", "Hills")
+    .SelectAllFields()
+    .Execute();
+```
+
+_**Note**: each of these replaces the previously selected set rather than adding to it - calling [`SelectField`](xref:Examine.Search.IOrdering#Examine_Search_IOrdering_SelectField_System_String_) twice loads only the field named in the second call. Use [`SelectFields`](xref:Examine.Search.IOrdering#Examine_Search_IOrdering_SelectFields_System_Collections_Generic_ISet_System_String__) to load more than one field, and [`SelectAllFields`](xref:Examine.Search.IOrdering#Examine_Search_IOrdering_SelectAllFields) to reset back to the default._
 
 ## Boosting
 
@@ -127,12 +201,23 @@ Example:
 
 ```csharp
 var searcher = indexer.Searcher;
-var query = searcher.CreateQuery("content");
-query.Field("nodeTypeAlias", "CWS_Home".Boost(20));
-var results = query.Execute();
+var results = searcher.CreateQuery("content")
+    .Field("nodeTypeAlias", "CWS_Home".Boost(20))
+    .Execute();
 ```
 
 This will boost the term `CWS_Home` and make entries with `nodeTypeAlias:CWS_Home` score higher in the results.
+
+[`Boost`](xref:Examine.SearchExtensions#Examine_SearchExtensions_Boost_System_String_System_Single_) creates a new [`IExamineValue`](xref:Examine.Search.IExamineValue) from a string. To apply a boost to a term that already has other behavior - a wildcard or a fuzzy match, for example - use [`WithBoost`](xref:Examine.Search.ExamineValueExtensions#Examine_Search_ExamineValueExtensions_WithBoost_Examine_Search_IExamineValue_System_Single_) instead:
+
+```csharp
+var results = searcher.CreateQuery("content")
+    // A fuzzy match that is also boosted
+    .Field("nodeName", "hello".Fuzzy(0.7f).WithBoost(20))
+    // A multiple character wildcard that is also boosted
+    .Or().Field("bodyText", "hell".MultipleCharacterWildcard().WithBoost(5))
+    .Execute();
+```
 
 ## Proximity
 
@@ -142,11 +227,10 @@ Example:
 
 ```csharp
 var searcher = indexer.Searcher;
-var query = searcher.CreateQuery("content");
-
-// Get all nodes that contain the words warren and creative within 5 words of each other
-query.Field("metaKeywords", "Warren creative".Proximity(5));
-var results = query.Execute();
+var results = searcher.CreateQuery("content")
+    // Get all nodes that contain the words warren and creative within 5 words of each other
+    .Field("metaKeywords", "Warren creative".Proximity(5))
+    .Execute();
 ```
 
 ## Fuzzy
@@ -159,23 +243,32 @@ Example:
 
 ```csharp
 var searcher = indexer.Searcher;
-var query = searcher.CreateQuery();
-
-query.Field("Content", "think".Fuzzy(0.1F));
-var results = query.Execute();
+var results = searcher.CreateQuery()
+    .Field("Content", "think".Fuzzy(0.1F))
+    .Execute();
 ```
 
-## Escape
+## Escape and phrase queries
 
-Escapes the string within Lucene.
+[`Escape()`](xref:Examine.SearchExtensions#Examine_SearchExtensions_Escape_System_String_) turns a string into a single quoted phrase, so the whole value is matched verbatim rather than being split into terms by the analyzer.
 
 ```csharp
 var searcher = indexer.Searcher;
-var query = searcher.CreateQuery("content");
-
-query.Field("__Path", "-1,123,456,789".Escape());
-var results = query.Execute();
+var results = searcher.CreateQuery("content")
+    .Field("__Path", "-1,123,456,789".Escape())
+    .Execute();
 ```
+
+[`Phrase()`](xref:Examine.SearchExtensions#Examine_SearchExtensions_Phrase_System_String_) is the same operation under a name that describes the intent more directly - `Escape()` is implemented as a call to `Phrase()`. Use whichever reads better: `Escape()` when the point is to neutralize special characters, `Phrase()` when the point is to match an exact sequence of words.
+
+```csharp
+var results = searcher.CreateQuery()
+    // Matches the exact phrase, not the three terms separately
+    .Field("Address", "Hills Rockyroad Hollywood".Phrase())
+    .Execute();
+```
+
+Neither can be combined with the wildcard methods below.
 
 ## Wildcards
 
@@ -228,18 +321,76 @@ This will match for example: `test`, `tests` and `tester`
 
 ## Faceting
 
-### String Facets
+Faceting counts the documents matching a query, grouped by the value of a field or by a numeric range. It is the headline addition in Examine V4.
 
-String facets allows for counting the documents that share the same string value. This type of faceting is possible on all faceted index type.
+Faceting is opt-in per field. A field must be mapped to one of the `Facet*` [value types](xref:configuration#value-types) before it can be faceted on - see [facets configuration](xref:configuration#facets-configuration).
+
+Facets are requested with [`WithFacets`](xref:Examine.Search.IFaceting#Examine_Search_IFaceting_WithFacets_System_Action_Examine_Search_IFacetOperations__), which is available on any query once it has a clause. Inside the callback, add one or more facets using the [`IFacetOperations`](xref:Examine.Search.IFacetOperations) methods:
+
+* [`FacetString`](xref:Examine.Search.IFacetOperations#Examine_Search_IFacetOperations_FacetString_System_String_System_Action_Examine_Search_IFacetQueryField__System_String___) - facet on a string field, optionally filtered to specific values
+* [`FacetLongRange`](xref:Examine.Search.IFacetOperations#Examine_Search_IFacetOperations_FacetLongRange_System_String_Examine_Search_Int64Range___) - facet on `int`/`long`/`DateTime` ranges
+* [`FacetDoubleRange`](xref:Examine.Search.IFacetOperations#Examine_Search_IFacetOperations_FacetDoubleRange_System_String_Examine_Search_DoubleRange___) - facet on `double` ranges
+* [`FacetFloatRange`](xref:Examine.Search.IFacetOperations#Examine_Search_IFacetOperations_FacetFloatRange_System_String_Examine_Search_FloatRange___) - facet on `float` ranges
+
+Results are read back with the [`GetFacet`](xref:Examine.Lucene.FacetExtensions#Examine_Lucene_FacetExtensions_GetFacet_Examine_ISearchResults_System_String_) and [`GetFacets`](xref:Examine.Lucene.FacetExtensions#Examine_Lucene_FacetExtensions_GetFacets_Examine_ISearchResults_) extension methods.
+
+### Reading facet results
+
+[`GetFacet`](xref:Examine.Lucene.FacetExtensions#Examine_Lucene_FacetExtensions_GetFacet_Examine_ISearchResults_System_String_) returns a nullable [`IFacetResult`](xref:Examine.Search.IFacetResult) - it is `null` when the query did not request a facet for that field. [`IFacetResult`](xref:Examine.Search.IFacetResult) is an `IEnumerable<`[`IFacetValue`](xref:Examine.Search.IFacetValue)`>`, and each [`IFacetValue`](xref:Examine.Search.IFacetValue) has a `Label` (`string`) and a `Value` (`float`, the document count).
+
+```csharp
+var results = searcher.CreateQuery()
+    .Field("Address", "Hills")
+    .WithFacets(facets => facets.FacetString("Address"))
+    .Execute();
+
+// null if no "Address" facet was requested
+var addressFacet = results.GetFacet("Address");
+
+if (addressFacet is not null)
+{
+    foreach (var value in addressFacet)
+    {
+        Console.WriteLine($"{value.Label}: {value.Value}");
+    }
+}
+```
+
+[`IFacetResult.Facet(label)`](xref:Examine.Search.IFacetResult#Examine_Search_IFacetResult_Facet_System_String_) looks up a single value and is also nullable, so [`TryGetFacet`](xref:Examine.Search.IFacetResult#Examine_Search_IFacetResult_TryGetFacet_System_String_Examine_Search_IFacetValue__) is usually the more convenient form:
+
+```csharp
+if (addressFacet is not null && addressFacet.TryGetFacet("Hills", out var hills))
+{
+    Console.WriteLine($"Hills: {hills!.Value}");
+}
+```
+
+To enumerate every facet on the result set rather than naming one field, use [`GetFacets`](xref:Examine.Lucene.FacetExtensions#Examine_Lucene_FacetExtensions_GetFacets_Examine_ISearchResults_):
+
+```csharp
+foreach (IFacetResult facet in results.GetFacets())
+{
+    foreach (var value in facet)
+    {
+        Console.WriteLine($"{value.Label}: {value.Value}");
+    }
+}
+```
+
+_**Note**: both methods throw [`NotSupportedException`](https://learn.microsoft.com/en-us/dotnet/api/system.notsupportedexception) if the results did not come from a faceted query._
+
+### String facets
+
+String facets count the documents that share the same string value. This works with both the `Facet*` and `FacetTaxonomy*` field value types.
 
 #### Basic example
 
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
- .Field("Address", "Hills")
- .WithFacets(facets => facets.Facet("Address")) // Get facets of the Address field
- .Execute();
+    .Field("Address", "Hills")
+    .WithFacets(facets => facets.FacetString("Address")) // Get facets of the Address field
+    .Execute();
 
 var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
 
@@ -249,38 +400,40 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 * Label: Hollywood, Value: 10
 */
 
-var hillsValue = addressFacetResults.Facet("Hills"); // Gets the IFacetValue for the facet Hills
+var hillsValue = addressFacetResults?.Facet("Hills"); // Gets the IFacetValue for the facet Hills
 ```
 
 #### Filtered value example
+
+Pass one or more values to restrict the facet to only those labels.
 
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address", "Hills")) // Get facets of the Address field
+    .WithFacets(facets => facets.FacetString("Address", values: "Hills"))
     .Execute();
 
-var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
+var addressFacetResults = results.GetFacet("Address");
 
 /* 
 * Example value
 * Label: Hills, Value: 2 <-- As Hills was the only filtered value we will only get this facet
 */
-
-var hillsValue = addressFacetResults.Facet("Hills"); // Gets the IFacetValue for the facet Hills
 ```
 
 #### MaxCount example
+
+[`IFacetQueryField.MaxCount`](xref:Examine.Search.IFacetQueryField#Examine_Search_IFacetQueryField_MaxCount_System_Int32_) limits how many facet values are returned, keeping the highest counts.
 
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address")) // Get facets of the Address field
+    .WithFacets(facets => facets.FacetString("Address"))
     .Execute();
 
-var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
+var addressFacetResults = results.GetFacet("Address");
 
 /* 
 * Example value
@@ -291,10 +444,11 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 
 results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address", config => config.MaxCount(2))) // Get facets of the Address field & Gets the top 2 results (The facets with the highest value)
+    // Gets the top 2 results (the facets with the highest value)
+    .WithFacets(facets => facets.FacetString("Address", config => config.MaxCount(2)))
     .Execute();
 
-addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
+addressFacetResults = results.GetFacet("Address");
 
 /* 
 * Example value (Notice only 2 values are present)
@@ -303,34 +457,30 @@ addressFacetResults = results.GetFacet("Address"); // Returns the facets for the
 */
 ```
 
-#### FacetField example
+#### Custom facet index field example
+
+By default string facets are stored under a shared `$facets` field. [`FacetsConfig.SetIndexFieldName`](https://lucenenet.apache.org/docs/4.8.0-beta00018/api/facet/Lucene.Net.Facet.FacetsConfig.html) stores a field's facets separately. The query does not change - the facet field name is read from the [`FacetsConfig`](https://lucenenet.apache.org/docs/4.8.0-beta00018/api/facet/Lucene.Net.Facet.FacetsConfig.html) automatically.
 
 ```csharp
 // Setup
-
-// Create a config
-var facetsConfig = new FacetsConfig();
-
-// Set the index field name to facet_address. This will store facets of this field under facet_address instead of the default $facets. This requires you to use FacetField in your Facet query. (Only works on string facets).
-facetsConfig.SetIndexFieldName("Address", "facet_address");
-
-services.AddExamineLuceneIndex("MyIndex",
+services.AddExamineLuceneIndex("MyIndex", options =>
+{
     // Set the indexing of your fields to use the facet type
-    fieldDefinitions: new FieldDefinitionCollection(
-        new FieldDefinition("Address", FieldDefinitionTypes.FacetFullText)
-        ),
-    // Pass your config
-    facetsConfig: facetsConfig
-    );
+    options.FieldDefinitions = new FieldDefinitionCollection(
+        new FieldDefinition("Address", FieldDefinitionTypes.FacetFullText));
+
+    // Store facets of this field under facet_address instead of the default $facets
+    options.FacetsConfig.SetIndexFieldName("Address", "facet_address");
+});
 
 
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address")) // Get facets of the Address field from the facet field address_facet (The facet field is automatically read from the FacetsConfig)
+    .WithFacets(facets => facets.FacetString("Address"))
     .Execute();
 
-var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
+var addressFacetResults = results.GetFacet("Address");
 
 /* 
 * Example value
@@ -339,11 +489,11 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 */
 ```
 
-### Numeric Range facet
+### Numeric range facets
 
-Numeric range facets can be used with numbers and get facets for numeric ranges. For example, it would group documents of the same price range.
+Numeric range facets group documents into ranges you define, for example a price band. Each range is labelled, and the label is what comes back as the [`IFacetValue.Label`](xref:Examine.Search.IFacetValue#Examine_Search_IFacetValue_Label).
 
-There's two categories of numeric ranges - `DoubleRanges` and `Int64Range` for double/float values and int/long/datetime values respectively.
+Examine has three range types in the [`Examine.Search`](xref:Examine.Search) namespace - [`DoubleRange`](xref:Examine.Search.DoubleRange), [`FloatRange`](xref:Examine.Search.FloatRange) and [`Int64Range`](xref:Examine.Search.Int64Range) - each constructed as `(label, min, minInclusive, max, maxInclusive)`. Use [`Int64Range`](xref:Examine.Search.Int64Range) for `int`, `long` and `DateTime` fields.
 
 #### Double range example
 
@@ -351,13 +501,12 @@ There's two categories of numeric ranges - `DoubleRanges` and `Int64Range` for d
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .All()
-    .WithFacets(facets => facets.Facet("Price", new DoubleRange[] {
+    .WithFacets(facets => facets.FacetDoubleRange("Price",
         new DoubleRange("0-10", 0, true, 10, true),
-        new DoubleRange("11-20", 11, true, 20, true)
-    })) // Get facets of the price field
+        new DoubleRange("11-20", 11, true, 20, true)))
     .Execute();
 
-var priceFacetResults = results.GetFacet("Price"); // Returns the facets for the specific field Price
+var priceFacetResults = results.GetFacet("Price");
 
 /* 
 * Example value
@@ -365,7 +514,7 @@ var priceFacetResults = results.GetFacet("Price"); // Returns the facets for the
 * Label: 11-20, Value: 10
 */
 
-var firstRangeValue = priceFacetResults.Facet("0-10"); // Gets the IFacetValue for the facet "0-10"
+var firstRangeValue = priceFacetResults?.Facet("0-10"); // Gets the IFacetValue for the facet "0-10"
 ```
 
 #### Float range example
@@ -374,21 +523,18 @@ var firstRangeValue = priceFacetResults.Facet("0-10"); // Gets the IFacetValue f
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .All()
-    .WithFacets(facets => facets.Facet("Price", new FloatRange[] {
-        new FloatRange("0-10", 0, true, 10, true),
-        new FloatRange("11-20", 11, true, 20, true)
-    })) // Get facets of the price field
+    .WithFacets(facets => facets.FacetFloatRange("Price",
+        new FloatRange("0-10", 0f, true, 10f, true),
+        new FloatRange("11-20", 11f, true, 20f, true)))
     .Execute();
 
-var priceFacetResults = results.GetFacet("Price"); // Returns the facets for the specific field Price
+var priceFacetResults = results.GetFacet("Price");
 
 /* 
 * Example value
 * Label: 0-10, Value: 2
 * Label: 11-20, Value: 10
 */
-
-var firstRangeValue = priceFacetResults.Facet("0-10"); // Gets the IFacetValue for the facet "0-10"
 ```
 
 #### Int/Long range example
@@ -397,45 +543,62 @@ var firstRangeValue = priceFacetResults.Facet("0-10"); // Gets the IFacetValue f
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .All()
-    .WithFacets(facets => facets.Facet("Price", new Int64Range[] {
+    .WithFacets(facets => facets.FacetLongRange("Price",
         new Int64Range("0-10", 0, true, 10, true),
-        new Int64Range("11-20", 11, true, 20, true)
-    })) // Get facets of the price field
+        new Int64Range("11-20", 11, true, 20, true)))
     .Execute();
 
-var priceFacetResults = results.GetFacet("Price"); // Returns the facets for the specific field Price
+var priceFacetResults = results.GetFacet("Price");
 
 /* 
 * Example value
 * Label: 0-10, Value: 2
 * Label: 11-20, Value: 10
 */
-
-var firstRangeValue = priceFacetResults.Facet("0-10"); // Gets the IFacetValue for the facet "0-10"
 ```
 
 #### DateTime range example
+
+`DateTime` fields are stored as ticks, so range bounds are expressed with [`DateTime.Ticks`](https://learn.microsoft.com/en-us/dotnet/api/system.datetime.ticks).
 
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .All()
-    .WithFacets(facets => facets.Facet("Created", new Int64Range[] {
+    .WithFacets(facets => facets.FacetLongRange("Created",
         new Int64Range("first", DateTime.UtcNow.AddDays(-1).Ticks, true, DateTime.UtcNow.Ticks, true),
-        new Int64Range("last", DateTime.UtcNow.AddDays(1).Ticks, true, DateTime.UtcNow.AddDays(2).Ticks, true)
-    })) // Get facets of the price field
+        new Int64Range("last", DateTime.UtcNow.AddDays(1).Ticks, true, DateTime.UtcNow.AddDays(2).Ticks, true)))
     .Execute();
 
-var createdFacetResults = results.GetFacet("Created"); // Returns the facets for the specific field Created
+var createdFacetResults = results.GetFacet("Created");
 
 /* 
 * Example value
 * Label: first, Value: 2
 * Label: last, Value: 10
 */
-
-var firstRangeValue = createdFacetResults.Facet("first"); // Gets the IFacetValue for the facet "first"
 ```
+
+### Taxonomy facets
+
+When an index is configured to use the [taxonomy sidecar index](xref:configuration#hierarchical-and-taxonomy-facets-configuration), faceted queries should be issued against [`LuceneIndex.TaxonomySearcher`](xref:Examine.Lucene.Providers.LuceneIndex#Examine_Lucene_Providers_LuceneIndex_TaxonomySearcher) rather than `Searcher`. The query API is otherwise identical.
+
+```csharp
+var taxonomySearcher = myIndex.TaxonomySearcher!;
+
+var results = taxonomySearcher.CreateQuery("content")
+    .Field("writerName", "administrator")
+    .WithFacets(facets => facets.FacetString("nodeName"))
+    .Execute();
+
+var nodeNameFacet = results.GetFacet("nodeName");
+```
+
+[`ILuceneTaxonomySearcher.CategoryCount`](xref:Examine.Lucene.Providers.ILuceneTaxonomySearcher#Examine_Lucene_Providers_ILuceneTaxonomySearcher_CategoryCount) reports the number of categories currently held in the taxonomy index, which is useful when verifying that hierarchical facets are being written as expected.
+
+### Facets and paging
+
+Faceted queries work with [deep paging](xref:paging#deep-paging). Facet counts are calculated over the whole matching set, not just the current page, so they stay stable as you page through results.
 
 ## Lucene queries
 
@@ -445,27 +608,32 @@ Find a reference to how to write Lucene queries in the [Lucene 4.8.0 docs](https
 
 ```csharp
 var searcher = indexer.Searcher;
-var query = searcher.CreateQuery();
-var results = query.NativeQuery("hello:world").Execute();
+var results = searcher.CreateQuery()
+    .NativeQuery("hello:world")
+    .Execute();
 ```
 
 ### Combine a native query and Fluent API searching.
 
 ```csharp
 var searcher = indexer.Searcher;
-var query = searcher.CreateQuery();
-query.NativeQuery("hello:world");
-query.And().Field("Address", "Hills"); // Combine queries
-var results = query.Execute();
+var results = searcher.CreateQuery()
+    .NativeQuery("hello:world")
+    .And().Field("Address", "Hills") // Combine queries
+    .Execute();
 ```
 
 ### Combine a custom lucene query with raw lucene query
 
 ```csharp
 var searcher = indexer.Searcher;
-var query = searcher.CreateQuery();
+var criteria = (LuceneSearchQuery)searcher.CreateQuery();
 
-var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make query ready for extending
-query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)); // Add the raw lucene query
-var results = query.Execute();
+// Make the query ready for extending
+var op = criteria.NativeQuery("hello:world").And();
+
+// Add the raw lucene query
+var results = criteria
+    .LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true))
+    .Execute();
 ```
