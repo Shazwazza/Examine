@@ -28,6 +28,11 @@ This page covers the roadmap for the core Examine abstractions and the Examine.L
 
 ## Release Notes
 
+### Examine 4.0.0
+[Examine 4.0.0 Release Notes](https://github.com/Shazwazza/Examine/releases/tag/v4.0.0)
+
+See also the [v3 to v4 public API changes](../breaking-changes/v3-to-v4.md).
+
 ### Examine 4.0.0 beta 1
 [Examine 4.0.0 beta 1 Release Notes](https://github.com/Shazwazza/Examine/releases/tag/v4.0.0-beta.1)
 

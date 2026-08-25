@@ -25,8 +25,8 @@ Configuration of Examine indexes is done with [.NET's Options pattern](https://d
 There are several options that can be configured, the most common ones are:
 
 * __FieldDefinitions__ _[`FieldDefinitionCollection`](xref:Examine.FieldDefinitionCollection)_ - Manages the mappings between a field name and it's index value type
-* __Analyzer__ _`Analyzer`_ - The default Lucene Analyzer to use for each field (default = [`StandardAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Standard.StandardAnalyzer.html))
-* __Validator__ _[`IValueSetValidator`]([`IValueSetValidator`](xref:Examine.IValueSetValidator))_ - Used to validate a value set to be indexed, if validation fails it will not be indexed
+* __Analyzer__ _`Analyzer`_ - The default Lucene Analyzer to use for each field (default = [`StandardAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00018/api/analysis-common/Lucene.Net.Analysis.Standard.StandardAnalyzer.html))
+* __Validator__ _[`IValueSetValidator`](xref:Examine.IValueSetValidator)_ - Used to validate a value set to be indexed, if validation fails it will not be indexed
 * __[IndexValueTypesFactory](xref:Examine.Lucene.IFieldValueTypeFactory)__ _`IReadOnlyDictionary<string, IFieldValueTypeFactory>`_ - Allows you to define custom Value Types
 
 ```cs
@@ -35,7 +35,7 @@ There are several options that can be configured, the most common ones are:
 /// </summary>
 public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirectoryIndexOptions>
 {
-    public void Configure(string name, LuceneDirectoryIndexOptions options)
+    public void Configure(string? name, LuceneDirectoryIndexOptions options)
     {
         switch (name)
         {
@@ -52,38 +52,21 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
 }
 ```
 
-### After construction
+### At registration
 
-You can modify the field definitions [FieldDefinitionCollection](xref:Examine.FieldDefinitionCollection) for an index after it is constructed by using any of the following methods:
-
-* `myIndex.FieldDefinitionCollection.TryAdd`
-* `myIndex.FieldDefinitionCollection.AddOrUpdate`
-* `myIndex.FieldDefinitionCollection.GetOrAdd`
-
-These modifications __must__ be done before any indexing or searching is executed.
-
-### Add a field value type after construction
-
-It is possible to add custom field value types after the construction of the index, but this must be done before the index is used. Some people may prefer this method of adding custom field value types. Generally, these should be modified directly after the construction of the index.
+The same options can be set inline when the index is registered, without a separate
+[`IConfigureNamedOptions`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.iconfigurenamedoptions-1)
+implementation:
 
 ```cs
-// Create the index with all of the defaults
-var myIndex = new LuceneIndex(
-    "MyIndex",
-    new SimpleFSDirectory(new DirectoryInfo("C:\\TestIndexes")));
-
-// Add a custom field value type
-myIndex.FieldValueTypeCollection.ValueTypeFactories
-    .TryAdd(
-        "phonenumber", 
-        name => new GenericAnalyzerFieldValueType(
-            name, 
-            new PhoneNumberAnalyzer()));
-
-// Map a field to use the custom field value type
-myIndex.FieldDefinitionCollection.TryAdd(
-    new FieldDefinition("Phone", "phonenumber"));
+services.AddExamineLuceneIndex("MyIndex", options =>
+{
+    options.FieldDefinitions = new FieldDefinitionCollection(
+        new FieldDefinition("Price", FieldDefinitionTypes.Double));
+});
 ```
+
+An index's field definitions are fixed once the index is in use. [`IIndex.FieldDefinitions`](xref:Examine.IIndex#Examine_IIndex_FieldDefinitions) exposes them as a [`ReadOnlyFieldDefinitionCollection`](xref:Examine.ReadOnlyFieldDefinitionCollection) for inspection only - all configuration __must__ be done through the options above, before any indexing or searching is executed.
 
 ## Value types
 
@@ -163,7 +146,7 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
     public ConfigureIndexOptions(ILoggerFactory loggerFactory)
         => _loggerFactory = loggerFactory;
 
-    public void Configure(string name, LuceneDirectoryIndexOptions options)
+    public void Configure(string? name, LuceneDirectoryIndexOptions options)
     {
         switch (name)
         {
@@ -215,71 +198,88 @@ That returns an result [`ValueSetValidationResult`](xref:Examine.ValueSetValidat
 
 Examine only has one implementation: [`ValueSetValidatorDelegate`](xref:Examine.Lucene.Providers.ValueSetValidatorDelegate) which can be used by developers as a simple way to create a validator based on a callback, else developers can implement this interface if required. By default, no ValueSet validation is done with Examine.
 
+## Index behavior options
+
+[`LuceneIndexOptions`](xref:Examine.Lucene.LuceneIndexOptions) also controls how the underlying Lucene index reader and writer behave. These are set the same way as any other option.
+
+* __NrtEnabled__ _`bool`_ - Whether Near Real-Time (NRT) searching is enabled. Default `true`. With NRT enabled, searchers see indexed documents without waiting for a commit.
+* __NrtTargetMinStaleSec__ _`double`_ - The lower staleness bound for NRT reopens, in seconds. Default `1.0`.
+* __NrtTargetMaxStaleSec__ _`double`_ - The upper staleness bound for NRT reopens, in seconds. Default `60.0`.
+* __NrtCacheMaxMergeSizeMB__ _`double`_ - Maximum merge size in megabytes held in the NRT cache. Default `5.0`.
+* __NrtCacheMaxCachedMB__ _`double`_ - Maximum total megabytes held in the NRT cache. Default `60.0`.
+* __IndexDeletionPolicy__ _`IndexDeletionPolicy`_ - The Lucene index deletion policy. Required when [replicating](xref:replication) an index.
+* __UnlockIndex__ _`bool`_ - On [`LuceneDirectoryIndexOptions`](xref:Examine.Lucene.LuceneDirectoryIndexOptions). If `true`, forcibly unlocks the index directory on startup.
+* __DirectoryFactory__ _[`IDirectoryFactory`](xref:Examine.Lucene.Directories.IDirectoryFactory)_ - On [`LuceneDirectoryIndexOptions`](xref:Examine.Lucene.LuceneDirectoryIndexOptions). Determines the Lucene `Directory` backing the index.
+
+```cs
+services.AddExamineLuceneIndex("MyIndex", options =>
+{
+    // Reopen the searcher more aggressively than the default
+    options.NrtTargetMinStaleSec = 0.5;
+    options.NrtTargetMaxStaleSec = 10.0;
+});
+```
+
+Lowering the staleness targets makes newly indexed documents searchable sooner at the cost of more frequent reader reopens.
+
 ## Facets configuration
 
 When using the facets feature it's possible to add facets configuration to change the behavior of the indexing.
 
 For example, you can allow multiple values in an indexed field with the configuration below.
 ```csharp
-// Create a config
-var facetsConfig = new FacetsConfig();
-
-// Set field to be able to contain multiple values (This is default for a field in Examine. But you only need this if you are actually using multiple values for a single field)
-facetsConfig.SetMultiValued("MultiIdField", true);
-
-services.AddExamineLuceneIndex("MyIndex",
+services.AddExamineLuceneIndex("MyIndex", options =>
+{
     // Set the indexing of your fields to use the facet type
-    fieldDefinitions: new FieldDefinitionCollection(
+    options.FieldDefinitions = new FieldDefinitionCollection(
         new FieldDefinition("Timestamp", FieldDefinitionTypes.FacetDateTime),
+        new FieldDefinition("MultiIdField", FieldDefinitionTypes.FacetFullText));
 
-        new FieldDefinition("MultiIdField", FieldDefinitionTypes.FacetFullText)
-        ),
-    // Pass your config
-    facetsConfig: facetsConfig
-    );
+    // Set field to be able to contain multiple values. (This is default for a field in Examine,
+    // so you only need this if you are actually using multiple values for a single field.)
+    options.FacetsConfig.SetMultiValued("MultiIdField", true);
+});
 ```
 
 Without this configuration for multiple values, you'll notice that your faceted search breaks or behaves differently than expected.
 
 ### Hierarchical and Taxonomy Facets configuration
 
-To enable support for hierarchical facets as well as supporting faster faceting the Taxonomy Facet sidecar index can be enabled.
+To enable support for hierarchical facets as well as supporting faster faceting the Taxonomy Facet sidecar index can be used.
 
-1. Set LuceneIndexOptions.UseTaxonomyIndex = true; for the index. This enables the use of the Taxonomy sidecar index.
-2. Change the Field Definitions to use the "FacetTaxonomy" Field Definition Types instead of the "Facet" types. E.g. FieldDefinitionTypes.FacetFullText => FieldDefinitionTypes.FacetTaxonomyFullText.
-3. To enable hierarchical facets on a field, call FacetsConfig.SetHierarchical("facetfieldname", true);
+[`LuceneIndexOptions.UseTaxonomyIndex`](xref:Examine.Lucene.LuceneIndexOptions#Examine_Lucene_LuceneIndexOptions_UseTaxonomyIndex) is __`true` by default__. Setting it to `false` switches faceting over to `SortedSetDocValues` and no sidecar index is written.
+
+1. Leave `LuceneIndexOptions.UseTaxonomyIndex` as `true` for the index (or set it explicitly).
+2. Change the Field Definitions to use the "FacetTaxonomy" Field Definition Types instead of the "Facet" types. E.g. `FieldDefinitionTypes.FacetFullText` => `FieldDefinitionTypes.FacetTaxonomyFullText`.
+3. To enable hierarchical facets on a field, call `FacetsConfig.SetHierarchical("facetfieldname", true)`.
 
 Example:
 
 ```csharp
-// Create a config
-var facetsConfig = new FacetsConfig();
-
-// Set field to be able to support hierarchical facets
-facetsConfig.SetHierarchical("hierarchyFacetfield", true);
-
-// Set field to be able to contain multiple values (This is default for a field in Examine. But you only need this if you are actually using multiple values for a single field)
-facetsConfig.SetMultiValued("MultiIdField", true);
-
-services.AddExamineLuceneIndex("MyIndex",
+services.AddExamineLuceneIndex("MyIndex", options =>
+{
     // Set the indexing of your fields to use the facet Taxonomy type
-    fieldDefinitions: new FieldDefinitionCollection(
+    options.FieldDefinitions = new FieldDefinitionCollection(
         new FieldDefinition("Timestamp", FieldDefinitionTypes.FacetTaxonomyDateTime),
         new FieldDefinition("hierarchyFacetfield", FieldDefinitionTypes.FacetTaxonomyFullText),
+        new FieldDefinition("MultiIdField", FieldDefinitionTypes.FacetTaxonomyFullText));
 
-        new FieldDefinition("MultiIdField", FieldDefinitionTypes.FacetTaxonomyFullText)
-        ),
-    // Pass your config
-    facetsConfig: facetsConfig,
-    // Enable the Taxonomy sidecar index
-    useTaxonomyIndex: true
-    );
+    // Use the Taxonomy sidecar index (this is the default)
+    options.UseTaxonomyIndex = true;
+
+    // Set field to be able to support hierarchical facets
+    options.FacetsConfig.SetHierarchical("hierarchyFacetfield", true);
+
+    // Set field to be able to contain multiple values. (This is default for a field in Examine,
+    // so you only need this if you are actually using multiple values for a single field.)
+    options.FacetsConfig.SetMultiValued("MultiIdField", true);
+});
 ```
 
 **Note: See more examples of how facets configuration can be used under [Searching](xref:searching)**
 
 To explore other configuration settings see the links below:
-- [FacetsConfig API docs](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/facet/Lucene.Net.Facet.FacetsConfig.html#methods)
+- [FacetsConfig API docs](https://lucenenet.apache.org/docs/4.8.0-beta00018/api/facet/Lucene.Net.Facet.FacetsConfig.html#methods)
 - [Facets with lucene](https://norconex.com/facets-with-lucene/). See how the config is used in the code examples.
 
 ## Luke

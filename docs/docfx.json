@@ -10,7 +10,8 @@
             "**/bin/**",
             "**/obj/**",
             "**/Examine.Test**",
-            "**/Examine.Web**"
+            "**/Examine.Web**",
+            "**/Examine.Benchmarks**"
           ],
            "src": "../"
         }
@@ -89,7 +90,7 @@
       "_enableSearch": true,
       "_gitContribute": {
         "repo": "https://github.com/Shazwazza/Examine",
-        "branch": "feature/docfx",
+        "branch": "dev",
         "apiSpecFolder": "docs/apiSpec"
       },
       "_appLogoPath": "images/headerlogo.png",

@@ -8,7 +8,7 @@ order: 3
 Sorting
 ===
 
-_**Tip**: There are many examples of sorting in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/master/src/Examine.Test/Search/FluentApiTests.cs) to use as examples/reference._
+_**Tip**: There are many examples of sorting in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Examine.Lucene/Search/FluentApiTests.cs) to use as examples/reference._
 
 ## Score
 
@@ -16,7 +16,7 @@ By default search results are ordered by Score descending so there's nothing spe
 
 ## Custom sorting
 
-Any field that is a [numerical or date based](https://shazwazza.github.io/Examine/configuration.html#default-value-types) is automatically sortable. To make text based fields sortable you need to explicitly opt-in for that behavior. By default all fields are [`FieldDefinitionTypes.FullText`](https://shazwazza.github.io/Examine/configuration.html#default-value-types) which are not sortable. To make a text field sortable it needs to be [`FieldDefinitionTypes.FullTextSortable`](xref:Examine.FieldDefinitionTypes#Examine_FieldDefinitionTypes_FullTextSortable).
+Any field that is a [numerical or date based](xref:configuration#value-types) is automatically sortable. To make text based fields sortable you need to explicitly opt-in for that behavior. By default all fields are [`FieldDefinitionTypes.FullText`](xref:configuration#value-types) which are not sortable. To make a text field sortable it needs to be [`FieldDefinitionTypes.FullTextSortable`](xref:Examine.FieldDefinitionTypes#Examine_FieldDefinitionTypes_FullTextSortable).
 
 _You cannot sort on both the score and a custom field._
 
@@ -28,7 +28,7 @@ Sorting is done by either the [`OrderBy`](xref:Examine.Search.IOrdering#Examine_
 Example:
 
 ```cs
- var searcher = indexer.GetSearcher();
+ var searcher = indexer.Searcher;
 
  var orderedResults = searcher
    .CreateQuery("content")
