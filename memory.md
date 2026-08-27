@@ -156,3 +156,10 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Task 5: Searched issues for "performance slow" — 0 results. Nothing to comment on.
 - Task 7: Updated monthly activity issue #543.
 - Note: Given sustained backlog exhaustion, next run should prioritize Task 6 (measurement infrastructure) or wait for #572/#585/#587/#586/#590 to merge before further hot-path scans.
+
+## Last Run Tasks (2026-08-27 14:09 UTC run)
+- Task 4: Checked open [perf-improver] PRs #572, #585, #587 — all CI "pending" (not failing), no action needed, awaiting maintainer review. Noted #574, #586, #590 are efficiency-improver bot PRs (not ours to maintain).
+- Task 5: No open issues labeled/mentioning "performance" found — nothing to comment on.
+- Task 6: Backlog has been exhausted for ~10 consecutive runs (2026-08-17 through 2026-08-26). Pivoted to measurement infrastructure: created `src/Examine.Benchmarks/README.md` documenting how to run the BenchmarkDotNet suite (full run, filtered run, LocalBuild vs NuGet-version flag), a table mapping each benchmark file to what it covers, and explicitly listing coverage gaps (IndexItems bulk indexing, ConvertObjectToDictionary reflection path, facet extraction, SearchContext/TaxonomySearchContext field resolution). Docs-only change — no code touched, no tests needed. Build verified: `dotnet build src/Examine.sln --configuration Release` succeeded, 0 warnings/errors. Created draft PR on branch perf-assist/benchmarks-readme.
+- Task 7: Updated monthly activity issue #543 (added new benchmarks-readme PR to run history; will confirm PR number next run).
+- Note: Next run should go back to a hot-path rescan against whatever of #572/#585/#587/#586/#590 have merged by then, since the benchmark gaps documented today (IndexItems, ConvertObjectToDictionary, facets, SearchContext field resolution) are candidates for NEW BenchmarkDotNet suite entries if a future run wants to invest further in Task 6, OR could seed Task 2/3 hot-path work directly.
