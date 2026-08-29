@@ -1564,7 +1564,17 @@ namespace Examine.Lucene.Providers
             var writer = IndexWriter;
             using (var reader = writer.IndexWriter.GetReader(false))
             {
-                return MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name).ToArray();
+                // Manual foreach replaces the Select+ToArray LINQ chain to avoid the
+                // iterator-state-machine allocation; the result is materialized into a
+                // pre-sized array while the reader is still open.
+                var fieldInfos = MultiFields.GetMergedFieldInfos(reader);
+                var result = new string[fieldInfos.Count];
+                var i = 0;
+                foreach (var info in fieldInfos)
+                {
+                    result[i++] = info.Name;
+                }
+                return result;
             }
         }
 
