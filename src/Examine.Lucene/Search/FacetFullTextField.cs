@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
@@ -57,7 +58,14 @@ namespace Examine.Lucene.Search
                     var value = facetCounts.GetSpecificValue(Field, label);
                     facetValues.Add(new FacetValue(label, value));
                 }
-                yield return new KeyValuePair<string, IFacetResult>(Field, new FacetResult(facetValues.OrderBy(value => value.Value).Take(MaxCount).OfType<IFacetValue>()));
+                facetValues.Sort((x, y) => x.Value.CompareTo(y.Value));
+                var takeCount = Math.Min(MaxCount, facetValues.Count);
+                var topFacetValues = new IFacetValue[takeCount];
+                for (var i = 0; i < takeCount; i++)
+                {
+                    topFacetValues[i] = facetValues[i];
+                }
+                yield return new KeyValuePair<string, IFacetResult>(Field, new FacetResult(topFacetValues));
             }
             else
             {
