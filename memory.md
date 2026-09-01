@@ -88,8 +88,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-08-13: PR #541, #545, #546 merged; PR #542 closed (changes in codebase)
 
 ## Open PRs
-- PR #569 (perf-assist/ordereddict-values) — CI pending as of 2026-08-18, awaiting maintainer review
-- PR #572 (perf-assist/stack-booleanquery-capacity) — CI pending as of 2026-08-18, awaiting maintainer review
+- PR #572 (perf-assist/stack-booleanquery-capacity), #585 (perf-assist/cache-typedescriptor-properties, support/3.x), #587 (perf-assist/facet-fields-any-orderby, dev), #595 (perf-assist/cache-typedescriptor-properties-dev, dev) — all CI "pending" as of 2026-09-01, awaiting maintainer review (unmerged for weeks)
+- Also efficiency-improver bot PRs open: #574, #586, #590, #592, #594
 
 ## Notes
 - No AGENTS.md in this repo
@@ -99,7 +99,8 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - Default branch: support/3.x (at 55978e9 as of 2026-08-14)
 - Targets net6.0;net8.0 — GetOrAdd<TArg> available on both (since .NET Core 2.0)
 - Benchmark suite covers: concurrent search, bulk indexing, concurrent searcher acquire, QueryBuilder, ValueSet ctor, ManagedQuery
-- Monthly issue: August 2026 #543 (updated 2026-08-14)
+- Monthly issue: August 2026 #543 CLOSED 2026-09-01; September 2026 issue created 2026-09-01 (new issue number pending confirmation)
+- Default branch confirmed `dev` (not support/3.x) as of 2026-09-01 — HEAD 392bf1f
 - efficiency-improver bot merged PRs #545, #546, #541, #537, #536 between 2026-08-11 and 2026-08-13
 - Backlog exhausted: remaining items are LOW priority or EXHAUSTED
 - ManagedQueryAllFields benchmark: ~371 KB per query execution (baseline), ~356 KB after SearchResult Lazy<T> elimination PR
@@ -108,6 +109,12 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - ExamineValue is readonly struct — no heap alloc when created, but boxed when passed as IExamineValue interface
 - 2026-08-17: Repo default branch fetched cleanly this run (no shallow-clone issue hit) — origin/support/3.x fetched with --depth=5 successfully, branch created directly off it
 - OrderedDictionary.Values micro-benchmark technique: standalone console app referencing Examine.Core.csproj, GC.GetAllocatedBytesForCurrentThread() before/after N iterations, compare via git stash for baseline vs optimized
+
+## Last Run Tasks (2026-09-01 08:36 UTC run)
+- Task 4: Checked PR #572, #585, #587, #595 (perf-improver) — all CI "pending" (no checks run, not failing), no action needed, still awaiting maintainer review. Noted #569 no longer in open PR list (may have been merged/closed — verify next run) and #593/#591 issues exist but filtered by integrity policy (couldn't read).
+- Task 2/3: Explore agent scanned previously-unreviewed facet extraction files (RandomSamplingAmortizedFacets.cs, LuceneFacetExtractionContext.cs, FacetLabel.cs) plus FacetFullTextField.cs. Found genuine new item: `FacetFullTextField.ExtractFacets` explicit-Values path used `facetValues.OrderBy(v=>v.Value).Take(MaxCount).OfType<IFacetValue>()` (3 nested LINQ iterators) per query. Replaced with `List<T>.Sort()` + pre-sized `IFacetValue[]` array copy. Measured (2M-iter, GC.GetAllocatedBytesForCurrentThread, standalone console app, 10 facet values/MaxCount=5): 752.00 → 440.00 bytes/call (-41%), time neutral (~0.35ns both). Also evaluated the sibling default-path `sortedFacets.LabelValues.Select(...)` for-loop conversion — measured WORSE (424 vs 368 bytes/call, +15%) because pre-sized array alloc costs more than lazy Select+boxed struct here; reverted that part per no-improvement policy, kept only the genuinely-improved explicit-Values path. Created draft PR on branch perf-assist/facet-fulltextfield-linq. Build succeeded (0 warnings, all TFMs). Tests: 316 passed, 0 failed, 2 skipped (net8.0).
+- Task 7: Updated monthly activity issue #543.
+- Lesson: not every LINQ→loop conversion is a win — always measure both directions; lazy Select over small arrays can beat eager pre-sized-array materialization when enumerator overhead is cheap and boxing dominates either way.
 
 ## Last Run Tasks (2026-08-19 03:55 run)
 - Task 4: Checked PR #569 and #572 — both CI still "pending" (not failing), no action needed.
