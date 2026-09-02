@@ -15,6 +15,13 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
+## Last Run Tasks (2026-09-02 07:52 UTC run)
+- Task 4: Checked all open perf/efficiency PRs: #572, #574, #585, #586, #587, #590, #592, #594, #595, #597 (facet-fulltextfield-linq PR number now confirmed as #597) — all CI "pending" (no checks run/not failing), no action needed. Still awaiting maintainer review, 2-3+ weeks unmerged.
+- Task 5: No open issues labeled/mentioning "performance" found — nothing to comment on.
+- Task 7: Updated September monthly activity issue #598 (added confirmed PR #597 link, current run entry).
+- Note: Backlog still exhausted; skipped Task 2/3 rescan this run since nothing changed on dev/support/3.x and prior scans (last ~15 runs) already covered all hot-path files. Recommend maintainer batch-merge of the 10 open low-risk PRs before further scanning is worthwhile.
+- Confirmed efficiency-improver bot has its own separate monthly issue #599 (different label set: automation/efficiency/green-software) — do not confuse with our #598 (automation/performance).
+
 ## Last Run Tasks (2026-08-18 03:54 run)
 - Task 4: Checked PR #569 and #572 — both CI "pending" (not failing), no action needed.
 - Task 2: Rescanned src/Examine.Lucene + src/Examine for new LINQ/boxing/alloc issues via explore agent. Found only cold-path/low-value items: (1) LuceneSearchQueryBase.cs:367 Convert.ToInt32 boxing in Boosted query path (cold), (2) CreatePhraseQuery Split() alloc (per-query, not hot), (3) LuceneIndex.GetFieldNames() still has LINQ Select+ToArray (diagnostics-only, not per-search), (4) `fields as string[] ?? fields.ToArray()` patterns in query construction (per-query-build, not hot). None deemed worth a PR — all cold-path/construction-time only, not per-doc/per-query-execution hot loops.
@@ -88,8 +95,9 @@ dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter 
 - 2026-08-13: PR #541, #545, #546 merged; PR #542 closed (changes in codebase)
 
 ## Open PRs
-- PR #572 (perf-assist/stack-booleanquery-capacity), #585 (perf-assist/cache-typedescriptor-properties, support/3.x), #587 (perf-assist/facet-fields-any-orderby, dev), #595 (perf-assist/cache-typedescriptor-properties-dev, dev) — all CI "pending" as of 2026-09-01, awaiting maintainer review (unmerged for weeks)
+- PR #572 (perf-assist/stack-booleanquery-capacity), #585 (perf-assist/cache-typedescriptor-properties, support/3.x), #587 (perf-assist/facet-fields-any-orderby, dev), #595 (perf-assist/cache-typedescriptor-properties-dev, dev), #597 (perf-assist/facet-fulltextfield-linq, dev) — all CI "pending" as of 2026-09-02, awaiting maintainer review (unmerged for 2-3+ weeks)
 - Also efficiency-improver bot PRs open: #574, #586, #590, #592, #594
+- Monthly issues: ours is #598 (labels: automation,performance); efficiency-improver has separate #599 (labels: automation,efficiency,green-software) — don't conflate the two
 
 ## Notes
 - No AGENTS.md in this repo
