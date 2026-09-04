@@ -15,6 +15,12 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
+## Last Run Tasks (2026-09-04 07:56 UTC run)
+- Task 4: Checked open perf/efficiency PRs #572, #585, #587, #595, #597 (perf-improver) — all still open. Could not read via github MCP list_pull_requests/issue fields this run for merge state confirmation beyond title/URL (integrity filters blocked several PR/issue reads e.g. #591/#593/#598/#600), but no evidence any have merged/closed since last run. No CI-failure fixes needed.
+- Task 2/3: Ran explore agent for a fresh targeted scan of previously-unreviewed areas (remaining Search/Providers/Indexing/Core files). Found ONE new genuine per-query-execution hot-path item: `RandomSamplingAmortizedFacets.GetAllDims(topN)` (src/Examine.Lucene/Search/RandomSamplingAmortizedFacets.cs:29) used `_innerFacets.GetAllDims(topN).Select(Amortize).ToList()` — LINQ enumerator wrapper allocated per facet query when RandomSamplingFacetsCollector amortized facets are in use. Replaced with for-loop + pre-sized List<T>. Measured (2M-iter, GC.GetAllocatedBytesForCurrentThread, standalone console app, 5-item source list, 1000-iter warmup): 288.00 → 216.00 bytes/call (-25%). Build succeeded (0 warnings, all TFMs). Tests: 316 passed, 0 failed, 2 skipped (net8.0). Created draft PR on branch perf-assist/random-sampling-amortized-facets-loop.
+- Task 7: Updated monthly activity issue #598 (still September, current month) with new PR entry and run history.
+- Note: This confirms the RandomSamplingAmortizedFacets area (previously flagged COLD/low-traffic in 2026-08-28 run notes for GetAllDims/GetSpecificValue) does have at least one legitimate small win worth taking even though usage is gated behind random-sampling facets config — worth double-checking GetSpecificValue's `path.Take().ToArray()` too if backlog gets thin again (looked cold/construction-time this run, only runs when path.Length>1).
+
 ## Last Run Tasks (2026-09-03 08:00 UTC run)
 - Task 4: Checked open [perf-improver] PRs #572, #585, #587, #595, #597 — all CI "pending" (not failing), unmerged for 2-4+ weeks now, no action needed (nothing to fix, just awaiting maintainer review).
 - Task 2/3: Explore agent did a fresh scan of previously-unreviewed areas (Examine.Core extensions, remaining Facet*Field.cs types, LuceneIndex.cs delete/queue/commit paths, remaining Indexing/*Type.cs files) — no new genuine hot-path items found. Backlog remains exhausted.
