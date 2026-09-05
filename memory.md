@@ -15,6 +15,13 @@ dotnet run --project src/Examine.Benchmarks --configuration Release
 dotnet run --project src/Examine.Benchmarks --configuration Release -- --filter "*ManagedQuery*"
 ```
 
+## Last Run Tasks (2026-09-05 07:41 UTC run)
+- Task 4: Checked open [perf-improver] PRs #572, #585, #587, #595, #597, #601 — all CI "pending" (not failing), still open/unmerged, no action needed. Total open perf/efficiency PRs now 12: #572,#574,#585,#586,#587,#590,#592,#594,#595,#597,#601,#602 (last one #602 is new efficiency-improver PR on range facet field extraction).
+- Task 2/3: Ran explore agent fresh scan of Facet*Field.cs (Long/Double/Float/FullText/Query), RandomSamplingAmortizedFacets.cs, Providers/*, Indexing/*.cs value types, LuceneSearchExecutor hot loop. No new genuinely hot-path candidates found — everything remaining is either already-optimized or cold/bounded-size (small facet top-N lists, not per-doc). Backlog exhausted (consistent with recent runs).
+- Task 5: No open issues labeled/mentioning "performance" found.
+- Task 7: Updated monthly activity issue #598 (still September, current month) with this run's history entry and updated open-PR count note.
+- Note: Backlog generation has stalled for many consecutive runs pending merges of the 12 open perf/efficiency PRs. Consider next run: if still no merges, do Task 6 (measurement infra) again or wait further.
+
 ## Last Run Tasks (2026-09-04 07:56 UTC run)
 - Task 4: Checked open perf/efficiency PRs #572, #585, #587, #595, #597 (perf-improver) — all still open. Could not read via github MCP list_pull_requests/issue fields this run for merge state confirmation beyond title/URL (integrity filters blocked several PR/issue reads e.g. #591/#593/#598/#600), but no evidence any have merged/closed since last run. No CI-failure fixes needed.
 - Task 2/3: Ran explore agent for a fresh targeted scan of previously-unreviewed areas (remaining Search/Providers/Indexing/Core files). Found ONE new genuine per-query-execution hot-path item: `RandomSamplingAmortizedFacets.GetAllDims(topN)` (src/Examine.Lucene/Search/RandomSamplingAmortizedFacets.cs:29) used `_innerFacets.GetAllDims(topN).Select(Amortize).ToList()` — LINQ enumerator wrapper allocated per facet query when RandomSamplingFacetsCollector amortized facets are in use. Replaced with for-loop + pre-sized List<T>. Measured (2M-iter, GC.GetAllocatedBytesForCurrentThread, standalone console app, 5-item source list, 1000-iter warmup): 288.00 → 216.00 bytes/call (-25%). Build succeeded (0 warnings, all TFMs). Tests: 316 passed, 0 failed, 2 skipped (net8.0). Created draft PR on branch perf-assist/random-sampling-amortized-facets-loop.
