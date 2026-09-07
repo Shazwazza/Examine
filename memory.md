@@ -1,7 +1,7 @@
 # Efficiency Improver Memory — Shazwazza/Examine
 
 ## Last Updated
-2026-08-24
+2026-09-07
 
 ## Build/Test Commands (Validated)
 - Restore: `dotnet restore src/Examine.sln`
@@ -112,3 +112,5 @@
 - 2026-09-05 21:43 UTC: Task 4 — verified all tracked PRs (#602 facet range fields, #590 TaxonomySearchContext, #586 GetFieldNames support/3.x, #592 OrderedDictionary.Values, #594 GetFieldNames dev, #574 superseded) still open, CI green where checked, no new maintainer activity, no pushes needed. Task 2 — confirmed no new commits on `dev` (still 392bf1fe) or `support/3.x` (still 70e1985) since last run. Delegated fresh LINQ/allocation/blocking-I/O/O(n²) scan via explore agent across Examine.Core/Examine.Lucene — no new candidates found; all matching patterns already covered by prior fixes. Task 7 — updated September monthly issue #599.
 
 - 2026-09-06 21:46 UTC: Task 4 — verified all tracked PRs (#602 facet range fields, #590 TaxonomySearchContext, #586 GetFieldNames support/3.x, #592 OrderedDictionary.Values, #594 GetFieldNames dev) still open, CI green (CodeQL/Analyze csharp/actions success), no new maintainer activity, no pushes needed. PR #574 unchanged (superseded, awaiting maintainer close). Task 2 — confirmed no new commits on `dev` (still 392bf1fe) or `support/3.x` (still 70e1985) since last run. Delegated fresh LINQ/allocation/blocking-I/O/O(n²) scan via explore agent across Examine.Core/Examine.Lucene — no new opportunities found; all matching patterns already covered by prior fixes or are in low-frequency/non-hot paths (e.g. GetFieldNames public stats API, GetMultiFieldQuery bounded cross-product). Task 7 — updated monthly issue #599.
+
+- 2026-09-07 22:17 UTC: Task 4 — verified all tracked PRs (#602, #590, #586, #592, #594, #574) still open, CI green/pending where checked, no new maintainer activity since last run, no pushes needed. Task 2 — confirmed no new commits on `dev` (still 392bf1fe) or `support/3.x` (still 70e1985). Explore agent flagged two candidates (`LuceneSearchExecutor.ExtractFacets` OrderBy/Any, `FacetFullTextField.ExtractFacets` OrderBy/Take/OfType) as possibly-new; verified by pulling actual diffs of other-bot PRs #587 and #597 — both candidates are ALREADY fully addressed by those PRs (confirmed via diff inspection, not just title-matching). LESSON: when an explore agent flags "possibly not covered" due to ambiguity with an excluded-list PR description, always pull the actual PR diff via `pull_request_read get_diff` to verify overlap precisely — title-based matching alone is unreliable and can lead to duplicate PRs. No new opportunities found this run. Task 7 — updated monthly issue #599 with new run history entry.
