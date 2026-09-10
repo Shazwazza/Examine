@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -35,9 +34,17 @@ namespace Examine
                 }
 
                 var props = TypeDescriptor.GetProperties(o);
-                var d = new Dictionary<string, object>();
-                foreach (var prop in props.Cast<PropertyDescriptor>().Where(x => !ignoreProperties.Contains(x.Name)))
+                var ignoreSet = ignoreProperties == null || ignoreProperties.Length == 0
+                    ? null
+                    : new HashSet<string>(ignoreProperties);
+                var d = new Dictionary<string, object>(props.Count);
+                foreach (PropertyDescriptor prop in props)
                 {
+                    if (ignoreSet != null && ignoreSet.Contains(prop.Name))
+                    {
+                        continue;
+                    }
+
                     var val = prop.GetValue(o);
                     if (val != null)
                     {
