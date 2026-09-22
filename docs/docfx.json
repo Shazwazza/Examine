@@ -10,7 +10,8 @@
             "**/bin/**",
             "**/obj/**",
             "**/Examine.Test**",
-            "**/Examine.Web**"
+            "**/Examine.Web**",
+            "**/Examine.Benchmarks**"
           ],
            "src": "../"
         }
@@ -32,6 +33,8 @@
         "files": [
           "articles/**.md",
           "articles/**/toc.yml",
+          "breaking-changes/**.md",
+          "breaking-changes/**/toc.yml",
           "toc.yml",
           "*.md",
           "docs-v1-v2/**.md",
@@ -87,7 +90,7 @@
       "_enableSearch": true,
       "_gitContribute": {
         "repo": "https://github.com/Shazwazza/Examine",
-        "branch": "feature/docfx",
+        "branch": "dev",
         "apiSpecFolder": "docs/apiSpec"
       },
       "_appLogoPath": "images/headerlogo.png",

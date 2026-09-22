@@ -15,8 +15,13 @@ The easiest way to get started is to edit an existing page by clicking the Impro
 
 ## Building documentation
 
-1. Install [docfx](https://github.com/dotnet/docfx/releases) dotnet tool update -g docfx.
-2. Unzip the release and add the folder to your system path variables.
-3. Open a terminal, for example PowerShell or the VS Code terminal.
-4. Change directory to /docs
-5. Enter "docfx" into the terminal and press enter. This will build the docs into the /docs/_site folder. Alternatively enter "docfx --serve" to build the documentation and serve the site. By default, the site is hosted on http://localhost:8080
+DocFX generates the API reference by building the projects under `src`, so the [.NET 10 SDK](https://dotnet.microsoft.com/download) is required.
+
+1. Install the docfx global tool: `dotnet tool update -g docfx`
+2. Open a terminal, for example PowerShell or the VS Code terminal.
+3. From the repository root, run `docfx docs/docfx.json`. This builds the docs into `docs/_site`.
+4. To build and serve the site locally, add `--serve`: `docfx docs/docfx.json --serve`. By default the site is hosted on http://localhost:8080
+
+## Publishing
+
+The site is published to [GitHub Pages](https://shazwazza.github.io/Examine/) by the `.github/workflows/docfx-gh-pages.yml` workflow, which runs on every push to `dev` that touches `docs/**` or `src/**`, and can also be run manually from the Actions tab.

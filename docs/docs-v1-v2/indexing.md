@@ -5,6 +5,10 @@ uid: v2indexing
 order: 0
 ---
 
+> [!WARNING]
+> This page documents Examine v1/v2, which is no longer supported. It is kept online so existing links keep working.
+> For the current version, start at the [Examine documentation](xref:index).
+
 Indexing
 ===
 _**Tip**: There are many examples of indexing in the [`LuceneIndexTests` source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Index/LuceneIndexTests.cs) to use as examples/reference._
