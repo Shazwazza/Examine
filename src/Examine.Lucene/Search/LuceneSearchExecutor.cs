@@ -33,8 +33,8 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string>? _fieldsToLoad;
-        // Materialized once (rather than IEnumerable<T>) so we can cheaply check Count and
-        // avoid repeated enumerator allocations from calling .Any() multiple times per execution.
+        // Stored as an IReadOnlyCollection<T> so we can cheaply check Count and avoid repeated
+        // enumerator allocations from calling .Any() multiple times per execution.
         private readonly IReadOnlyCollection<IFacetField>? _facetFields;
         private readonly FacetsConfig? _facetsConfig;
 
@@ -264,7 +264,7 @@ namespace Examine.Lucene.Search
             if (_facetFields.Count > 1)
             {
                 var sortedFields = _facetFields.ToArray();
-                Array.Sort(sortedFields, (a, b) => Comparer<string?>.Default.Compare(a.FacetField, b.FacetField));
+                StableSortFacetFields(sortedFields);
                 facetFields = sortedFields;
             }
             else
@@ -294,6 +294,23 @@ namespace Examine.Lucene.Search
             }
 
             return facets;
+        }
+
+        private static void StableSortFacetFields(IFacetField[] fields)
+        {
+            for (var i = 1; i < fields.Length; i++)
+            {
+                var field = fields[i];
+                var j = i - 1;
+
+                while (j >= 0 && Comparer<string?>.Default.Compare(fields[j].FacetField, field.FacetField) > 0)
+                {
+                    fields[j + 1] = fields[j];
+                    j--;
+                }
+
+                fields[j + 1] = field;
+            }
         }
 
         private LuceneSearchResult GetSearchResult(ScoreDoc scoreDoc, IndexSearcher luceneSearcher)
