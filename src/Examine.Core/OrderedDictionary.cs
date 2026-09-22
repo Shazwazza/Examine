@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace Examine
 {
@@ -111,6 +110,23 @@ namespace Examine
 
         public ICollection<TKey> Keys => base.Dictionary != null ? base.Dictionary.Keys : EmptyCollection;
 
-        public ICollection<TVal> Values => base.Dictionary != null ? base.Dictionary.Values.Select(x => x.Value).ToArray() : EmptyValues;
+        public ICollection<TVal> Values
+        {
+            get
+            {
+                if (base.Dictionary == null) return EmptyValues;
+
+                // Avoid the LINQ Select() iterator/state-machine allocation by copying
+                // directly into a pre-sized array.
+                var dictValues = base.Dictionary.Values;
+                var result = new TVal[dictValues.Count];
+                var i = 0;
+                foreach (var kvp in dictValues)
+                {
+                    result[i++] = kvp.Value;
+                }
+                return result;
+            }
+        }
     }
 }

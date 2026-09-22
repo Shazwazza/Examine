@@ -55,7 +55,7 @@ safe-outputs:
     title-prefix: "[efficiency-improver] "
     labels: [automation, efficiency, green-software]
     max: 4
-    expires: 60
+    expires: 60d
   update-issue:
     target: "*"
     max: 1

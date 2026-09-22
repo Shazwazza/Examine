@@ -64,7 +64,7 @@ safe-outputs:
     title-prefix: "[perf-improver] "
     labels: [automation, performance]
     max: 4
-    expires: 60
+    expires: 60d
   update-issue:
     target: "*"
     required-title-prefix: "[perf-improver] "

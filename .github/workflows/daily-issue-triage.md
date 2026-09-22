@@ -31,12 +31,15 @@ safe-outputs:
     max: 50
 
 tools:
+  bash: false
+  cli-proxy: false
   web-fetch:
   github:
     toolsets: [issues, labels]
     min-integrity: none
 
 timeout-minutes: 60
+
 source: githubnext/agentics/workflows/daily-issue-triage.md@42c2ab5b4e4c9273534c39259b2e0df7f20f07e9
 ---
 
