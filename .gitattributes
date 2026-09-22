@@ -8,3 +8,11 @@
 .github/workflows/*.lock.yml text eol=lf
 .github/workflows/aw.json text eol=lf
 .github/aw/** text eol=lf
+
+# The remaining gh-aw generated files. These are listed individually rather than
+# via *.yml so the hand-written CI workflows keep the repo default.
+.github/workflows/agentic_commands.yml text eol=lf
+.github/workflows/agentics-maintenance.yml text eol=lf
+.github/workflows/copilot-setup-steps.yml text eol=lf
+.github/agents/** text eol=lf
+.github/skills/** text eol=lf
