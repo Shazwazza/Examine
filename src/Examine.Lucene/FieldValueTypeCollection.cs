@@ -58,6 +58,8 @@ namespace Examine.Lucene
                 return result;
             });
 
+            // Populate the analyzer mappings before the wrapper can cache fallback components for configured fields.
+            _ = _resolvedValueTypes.Value;
             Analyzer = new PerFieldAnalyzerWrapper(defaultAnalyzer, fieldAnalyzers);
         }
 
