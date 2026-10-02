@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Examine.Lucene;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Providers;
