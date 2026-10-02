@@ -8,11 +8,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Examine.Lucene;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Providers;
+using Examine.Test.Examine.Lucene.Analyzers;
 using Examine.Search;
 using Examine.Test.Examine.Lucene.Directories;
+using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet.Taxonomy.Directory;
 using Lucene.Net.Index;
@@ -496,6 +499,33 @@ namespace Examine.Test.Examine.Lucene.Index
                 }
             }
 
+        }
+
+        [Test]
+        public void FieldAnalyzer_Uses_Configured_Analyzer_After_Early_Access()
+        {
+            var valueTypes = new Dictionary<string, IFieldValueTypeFactory>
+            {
+                ["keyword"] = new DelegateFieldValueTypeFactory(name =>
+                    new GenericAnalyzerFieldValueType(name, LoggerFactory, new KeywordAnalyzer()))
+            };
+
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                new StandardAnalyzer(LuceneInfo.CurrentVersion),
+                new FieldDefinitionCollection(new FieldDefinition("someField", "keyword")),
+                indexValueTypesFactory: valueTypes))
+            {
+                var analyzer = indexer.FieldAnalyzer;
+                analyzer.GetTokenStream("someField", "contentPage").GetString();
+
+                _ = indexer.FieldValueTypeCollection.ValueTypes.ToArray();
+
+                Assert.AreEqual("contentPage", analyzer.GetTokenStream("someField", "contentPage").GetString());
+            }
         }
 
         /// <summary>
