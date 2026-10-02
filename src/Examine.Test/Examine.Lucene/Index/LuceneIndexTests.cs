@@ -18,6 +18,8 @@ using Examine.Lucene.Indexing;
 using Examine.Search;
 using Examine.Lucene.Analyzers;
 using System.Diagnostics;
+using Examine.Test.Examine.Lucene.Analyzers;
+using Lucene.Net.Analysis.Core;
 
 namespace Examine.Test.Examine.Lucene.Index
 {
@@ -467,6 +469,31 @@ namespace Examine.Test.Examine.Lucene.Index
                 }
             }
 
+        }
+
+        [Test]
+        public void FieldAnalyzer_Uses_Configured_Analyzer_After_Early_Access()
+        {
+            var valueTypes = new Dictionary<string, IFieldValueTypeFactory>
+            {
+                ["keyword"] = new DelegateFieldValueTypeFactory(name =>
+                    new GenericAnalyzerFieldValueType(name, LoggerFactory, new KeywordAnalyzer()))
+            };
+
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                new StandardAnalyzer(LuceneInfo.CurrentVersion),
+                new FieldDefinitionCollection(new FieldDefinition("someField", "keyword")),
+                indexValueTypesFactory: valueTypes))
+            {
+                var analyzer = indexer.FieldAnalyzer;
+                analyzer.GetTokenStream("someField", "contentPage").GetString();
+
+                _ = indexer.FieldValueTypeCollection.ValueTypes.ToArray();
+
+                Assert.AreEqual("contentPage", analyzer.GetTokenStream("someField", "contentPage").GetString());
+            }
         }
 
         /// <summary>
