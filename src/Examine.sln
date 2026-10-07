@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
 		..\nuget.config = ..\nuget.config
 		..\README.md = ..\README.md
 		SolutionInfo.cs = SolutionInfo.cs
@@ -16,7 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\build.yml = ..\.github\workflows\build.yml
 		..\.github\workflows\test-report.yml = ..\.github\workflows\test-report.yml
-		..\GitVersion.yml.bak = ..\GitVersion.yml.bak
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Lucene", "Examine.Lucene\Examine.Lucene.csproj", "{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}"

@@ -24,8 +24,12 @@
     <Authors>shandem</Authors>
     <PackageIcon>logo-round-small.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <VersionPrefix>2.0.0</VersionPrefix>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>ci</MinVerDefaultPreReleaseIdentifiers>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Examine.Web.Demo' AND '$(MSBuildProjectName)' != 'Examine.Test'">
     <TargetFrameworks>net6.0;net8.0;</TargetFrameworks>
     <LangVersion>latest</LangVersion>
