@@ -6,6 +6,7 @@
   <ItemGroup>
     <!-- Global packages (applied to all projects) -->
     <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.303" PrivateAssets="All" />
+    <GlobalPackageReference Include="MinVer" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

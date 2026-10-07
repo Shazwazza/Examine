@@ -108,32 +108,28 @@ jobs:
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
 
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v4.2.0
-      with:
-        versionSpec: '6.4.x'
-        preferLatestVersion: true
-
-    - name: Determine Version
-      uses: gittools/actions/gitversion/execute@v4.2.0
-
-    - name: Export version
+    # MinVer derives the version from the nearest v* tag; this resolves it for artifact naming and the publish job
+    - name: Determine package version
       id: version
-      run: echo "semver=${{ env.GitVersion_SemVer }}" >> "$GITHUB_OUTPUT"
-
-    - run: |
-        echo "FullSemVer (env.GitVersion_FullSemVer) : ${{ env.GitVersion_FullSemVer }}"
-      name: Display GitVersion variables (with prefix)
+      run: |
+        $PackageVersionOutputFile = Join-Path $Env:GITHUB_WORKSPACE "_PackageVersion.env"
+        dotnet msbuild src/Examine.Core/Examine.Core.csproj `
+          -restore `
+          -target:WritePackageVersion `
+          -property:Configuration=${{ env.Configuration }} `
+          -property:ContinuousIntegrationBuild=true `
+          -property:PackageVersionOutputFile="$PackageVersionOutputFile"
+        $PackageVersion = (Get-Content $PackageVersionOutputFile).Substring("PackageVersion=".Length)
+        Write-Host "Using package version: $PackageVersion"
+        Get-Content $PackageVersionOutputFile >> $Env:GITHUB_ENV
+        "semver=$PackageVersion" >> $Env:GITHUB_OUTPUT
+      shell: pwsh
 
     - name: Pack
       # This will do a full ebuild
       run: |
         dotnet pack ${{ env.Solution_File }} \
           --configuration ${{ env.Configuration }} \
-          -p:PackageVersion=${{ env.GitVersion_SemVer }} \
-          -p:AssemblyVersion=${{ env.GitVersion_AssemblySemVer }} \
-          -p:FileVersion=${{ env.GitVersion_AssemblySemFileVer }} \
-          -p:InformationalVersion=${{ env.GitVersion_InformationalVersion }} \
           -p:ContinuousIntegrationBuild=true \
           -p:Copyright="${{ env.Copyright }}" \
           --output=${{ github.workspace }}/_NugetOutput
@@ -142,7 +138,7 @@ jobs:
       uses: actions/upload-artifact@v4  # upload nuget
       if: success()
       with:
-        name: examine-nuget-${{ env.GitVersion_SemVer }}
+        name: examine-nuget-${{ env.PackageVersion }}
         path:  ${{ github.workspace }}/_NugetOutput/*.*
 
   # Opt-in publish: only runs for v* tags and pauses for approval via the protected 'nuget' environment.
