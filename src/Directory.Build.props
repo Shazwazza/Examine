@@ -27,7 +27,8 @@
     <Authors>shandem</Authors>
     <PackageIcon>logo-round-small.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <VersionPrefix>4.0.0</VersionPrefix>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>ci</MinVerDefaultPreReleaseIdentifiers>
   </PropertyGroup>
   
 </Project>

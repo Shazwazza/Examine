@@ -1,0 +1,23 @@
+<Project>
+
+  <!-- Keep the previous GitVersion behaviour (MajorMinorPatch) instead of MinVer's default {Major}.0.0.0 -->
+  <Target Name="SetAssemblyVersion" AfterTargets="MinVer">
+    <PropertyGroup>
+      <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).0</AssemblyVersion>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Used by CI to resolve the MinVer generated package version for artifact naming -->
+  <Target Name="WritePackageVersion" DependsOnTargets="MinVer">
+    <WriteLinesToFile
+      Condition="'$(PackageVersionOutputFile)' != ''"
+      File="$(PackageVersionOutputFile)"
+      Lines="PackageVersion=$(PackageVersion)"
+      Overwrite="true" />
+    <Message
+      Condition="'$(PackageVersionOutputFile)' == ''"
+      Importance="High"
+      Text="$(PackageVersion)" />
+  </Target>
+
+</Project>
