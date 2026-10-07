@@ -5,7 +5,7 @@
 
   <ItemGroup>
     <!-- Global packages (applied to all projects) -->
-    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="All" />
+    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.303" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
