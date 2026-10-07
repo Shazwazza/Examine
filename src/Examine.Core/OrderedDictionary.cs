@@ -128,6 +128,23 @@ namespace Examine
         public ICollection<TKey> Keys => Dictionary != null ? Dictionary.Keys : EmptyCollection;
 
         /// <inheritdoc/>
-        public ICollection<TVal> Values => Dictionary != null ? Dictionary.Values.Select(x => x.Value).ToArray() : EmptyValues;
+        public ICollection<TVal> Values
+        {
+            get
+            {
+                if (Dictionary == null) return EmptyValues;
+
+                // Avoid the LINQ Select() iterator/state-machine allocation by copying
+                // directly into a pre-sized array.
+                var dictValues = Dictionary.Values;
+                var result = new TVal[dictValues.Count];
+                var i = 0;
+                foreach (var kvp in dictValues)
+                {
+                    result[i++] = kvp.Value;
+                }
+                return result;
+            }
+        }
     }
 }

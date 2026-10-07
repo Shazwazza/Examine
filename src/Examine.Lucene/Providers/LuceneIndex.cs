@@ -1564,7 +1564,15 @@ namespace Examine.Lucene.Providers
             var writer = IndexWriter;
             using (var reader = writer.IndexWriter.GetReader(false))
             {
-                return MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name).ToArray();
+                var fieldInfos = MultiFields.GetMergedFieldInfos(reader);
+                var names = new string[fieldInfos.Count];
+                var i = 0;
+                foreach (var fieldInfo in fieldInfos)
+                {
+                    names[i++] = fieldInfo.Name;
+                }
+
+                return names;
             }
         }
 

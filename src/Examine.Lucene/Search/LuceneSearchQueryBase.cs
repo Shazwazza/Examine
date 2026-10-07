@@ -22,7 +22,9 @@ namespace Examine.Lucene.Search
         /// </summary>
         public QueryParser QueryParser => _queryParser;
 
-        internal Stack<BooleanQuery> Queries { get; } = new Stack<BooleanQuery>();
+        // Initial capacity of 1 avoids over-allocating the default backing array (capacity 4)
+        // for the common case of a single, non-nested BooleanQuery per search.
+        internal Stack<BooleanQuery> Queries { get; } = new Stack<BooleanQuery>(1);
 
         /// <summary>
         /// The <see cref="BooleanQuery"/>
