@@ -1,7 +1,8 @@
 <Project>
 
-  <!-- Keep the previous GitVersion behaviour (MajorMinorPatch) instead of MinVer's default {Major}.0.0.0 -->
-  <Target Name="SetAssemblyVersion" AfterTargets="MinVer">
+  <!-- Keep the previous GitVersion behaviour (MajorMinorPatch) instead of MinVer's default {Major}.0.0.0.
+       Skipped when MinVer didn't run (e.g. design-time builds used by docfx/CodeQL), otherwise AssemblyVersion would be '...0' -->
+  <Target Name="SetAssemblyVersion" AfterTargets="MinVer" Condition="'$(MinVerMajor)' != ''">
     <PropertyGroup>
       <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).0</AssemblyVersion>
     </PropertyGroup>
