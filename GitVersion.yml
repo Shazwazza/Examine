@@ -2,9 +2,10 @@
 # produces exactly that version; untagged commits produce a pre-release.
 #
 # The prevent-increment settings below matter: GitVersion's built-in defaults for
-# 'release' and 'hotfix' branches set when-current-commit-tagged: false, which keeps
+# 'release', 'hotfix' and 'develop' branches set when-current-commit-tagged: false, which keeps
 # incrementing past the tag on the current commit. That makes a v4.0.0 tag on
-# release/4.0 build as 4.1.0-beta.1 instead of 4.0.0.
+# release/4.0 build as 4.1.0-beta.1 instead of 4.0.0, and a v4.0.1 tag on dev build
+# as 4.1.0-alpha.0 instead of 4.0.1.
 
 mode: ContinuousDelivery
 tag-prefix: '[vV]'
@@ -23,5 +24,8 @@ branches:
     prevent-increment:
       when-current-commit-tagged: true
   hotfix:
+    prevent-increment:
+      when-current-commit-tagged: true
+  develop:
     prevent-increment:
       when-current-commit-tagged: true
