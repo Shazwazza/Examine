@@ -1,7 +1,7 @@
 <Project>
 
   <!-- Keep the previous GitVersion behaviour (MajorMinorPatch) instead of MinVer's default {Major}.0.0.0 -->
-  <Target Name="SetAssemblyVersion" AfterTargets="MinVer">
+  <Target Name="SetAssemblyVersion" AfterTargets="MinVer" Condition="'$(MinVerMajor)' != ''">
     <PropertyGroup>
       <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).0</AssemblyVersion>
     </PropertyGroup>
