@@ -27,7 +27,16 @@ namespace Examine.Lucene.Search
         }
 
         public override IList<LuceneFacetResult> GetAllDims(int topN)
-            => _innerFacets.GetAllDims(topN).Select(Amortize).ToList();
+        {
+            var allDims = _innerFacets.GetAllDims(topN);
+            var result = new List<LuceneFacetResult>(allDims.Count);
+            for (var i = 0; i < allDims.Count; i++)
+            {
+                result.Add(Amortize(allDims[i]));
+            }
+
+            return result;
+        }
 
         public override float GetSpecificValue(string dim, params string[] path)
         {
