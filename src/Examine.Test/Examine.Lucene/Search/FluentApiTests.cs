@@ -3542,17 +3542,25 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Act
                 var results1 = filter1.WithFacets(facets => facets.FacetString("SomeNumber", config => config.MaxCount(1))).Execute();
                 var results2 = filter2.WithFacets(facets => facets.FacetString("SomeNumber", config => config.MaxCount(1))).Execute();
+                var duplicateFacetResults = searcher.CreateQuery().All()
+                    .WithFacets(facets => facets
+                        .FacetString("SomeNumber", config => config.MaxCount(1))
+                        .FacetString("SomeNumber", config => config.MaxCount(2)))
+                    .Execute();
 
                 var facetResults1 = results1.GetFacet("SomeNumber");
                 var facetResults2 = results2.GetFacet("SomeNumber");
+                var duplicateFacetResult = duplicateFacetResults.GetFacet("SomeNumber");
 
                 //Assert
                 Assert.IsNotNull(facetResults1);
                 Assert.IsNotNull(facetResults2);
+                Assert.IsNotNull(duplicateFacetResult);
                 Assert.AreEqual(3, results1.TotalItemCount);
                 Assert.AreEqual(1, results2.TotalItemCount);
                 Assert.AreEqual(1, facetResults1!.Count());
                 Assert.AreEqual(1, facetResults2!.Count());
+                Assert.AreEqual(2, duplicateFacetResult!.Count());
             }
             else
             {
