@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
@@ -107,6 +108,53 @@ namespace Examine.Lucene.Indexing
                 }
                 parsedVal = valType;
                 return true;
+            }
+
+            // Fast path: the overwhelmingly common case during indexing is converting a string
+            // value to one of these primitive types. Avoid the reflection-heavy TypeDescriptor
+            // machinery below for these well-known conversions.
+            if (val is string strVal)
+            {
+                if (typeof(T) == typeof(int))
+                {
+                    if (int.TryParse(strVal, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i))
+                    {
+                        parsedVal = (T)(object)i;
+                        return true;
+                    }
+                }
+                else if (typeof(T) == typeof(long))
+                {
+                    if (long.TryParse(strVal, NumberStyles.Integer, CultureInfo.InvariantCulture, out var l))
+                    {
+                        parsedVal = (T)(object)l;
+                        return true;
+                    }
+                }
+                else if (typeof(T) == typeof(double))
+                {
+                    if (double.TryParse(strVal, NumberStyles.Float, CultureInfo.InvariantCulture, out var d))
+                    {
+                        parsedVal = (T)(object)d;
+                        return true;
+                    }
+                }
+                else if (typeof(T) == typeof(float))
+                {
+                    if (float.TryParse(strVal, NumberStyles.Float, CultureInfo.InvariantCulture, out var f))
+                    {
+                        parsedVal = (T)(object)f;
+                        return true;
+                    }
+                }
+                else if (typeof(T) == typeof(DateTime))
+                {
+                    if (DateTime.TryParse(strVal, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                    {
+                        parsedVal = (T)(object)dt;
+                        return true;
+                    }
+                }
             }
 
             var inputConverter = TypeDescriptor.GetConverter(val);
