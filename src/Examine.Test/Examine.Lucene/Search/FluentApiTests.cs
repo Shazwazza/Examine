@@ -395,6 +395,43 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void Given_Leading_Wildcard_When_ConfiguredBeforeOrAfterCreation_Then_FieldAndGroupQueriesMatch(
+            bool configureAfterCreation,
+            bool grouped)
+        {
+            using var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using var luceneDir = new RandomIdRAMDirectory();
+            using var luceneTaxonomyDir = new RandomIdRAMDirectory();
+            using var indexer = GetTestIndex(luceneDir, luceneTaxonomyDir, analyzer);
+            indexer.IndexItems([
+                ValueSet.FromObject("1", "content", new { drawingCategoryArray = "zabcx" }),
+                ValueSet.FromObject("2", "content", new { drawingCategoryArray = "abcxyz" }),
+                ValueSet.FromObject("3", "content", new { drawingCategoryArray = "unrelated" })
+            ]);
+
+            var searcher = (BaseLuceneSearcher)indexer.Searcher;
+            var query = (LuceneSearchQuery)searcher.CreateQuery(
+                null,
+                BooleanOperation.Or,
+                searcher.LuceneAnalyzer,
+                new LuceneSearchOptions { AllowLeadingWildcard = !configureAfterCreation });
+
+            if (configureAfterCreation)
+            {
+                query.QueryParser.AllowLeadingWildcard = true;
+            }
+
+            var results = grouped
+                ? query.Group(g => g.Field("drawingCategoryArray", "*abc".MultipleCharacterWildcard())).Execute()
+                : query.Field("drawingCategoryArray", "*abc".MultipleCharacterWildcard()).Execute();
+
+            Assert.That(results.Select(x => x.Id), Is.EquivalentTo(new[] { "1", "2" }));
+        }
+
         [Test]
         public void Field_With_Empty_Value_Throws_For_FieldValue()
         {
