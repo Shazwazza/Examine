@@ -8,6 +8,10 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Options to configure <see cref="LuceneSearchQuery"/>
     /// </summary>
+    /// <remarks>
+    /// These options are applied when the query is created. To change parser settings afterward,
+    /// use <see cref="LuceneSearchQueryBase.QueryParser"/>.
+    /// </remarks>
     public class LuceneSearchOptions
     {
         /// <summary>

@@ -20,6 +20,9 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// The query parser of the query
         /// </summary>
+        /// <remarks>
+        /// Use this property to change parser settings after the query has been created.
+        /// </remarks>
         public QueryParser QueryParser => _queryParser;
 
         // Initial capacity of 1 avoids over-allocating the default backing array (capacity 4)
@@ -95,6 +98,10 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// The query search options
         /// </summary>
+        /// <remarks>
+        /// These options are applied when the query is created. Changes made afterward do not update
+        /// the query parser; use <see cref="QueryParser"/> to change parser settings after creation.
+        /// </remarks>
         public LuceneSearchOptions SearchOptions { get; }
 
         /// <inheritdoc />
