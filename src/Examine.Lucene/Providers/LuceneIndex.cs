@@ -17,6 +17,7 @@ using Lucene.Net.Facet.Taxonomy.Directory;
 using Lucene.Net.Index;
 using Lucene.Net.Replicator;
 using Lucene.Net.Search;
+using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Lucene.Net.Index.IndexWriter;
@@ -421,6 +422,15 @@ namespace Examine.Lucene.Providers
 
                     try
                     {
+                        // The index folders may have been deleted from disk while the app was running (e.g. by an
+                        // OS temp folder cleaner). Lucene won't recreate them because FSDirectory caches whether
+                        // the folder exists, so recreate them here so the index can be (re)created. See #629.
+                        EnsureFileSystemFolderExists(GetLuceneDirectory());
+                        if (taxonomyEnabled)
+                        {
+                            EnsureFileSystemFolderExists(GetLuceneTaxonomyDirectory());
+                        }
+
                         // if force override and at least one index exists
                         if ((mainIndexExists || (taxonomyEnabled && taxonomyIndexExists)) && forceOverwrite)
                         {
@@ -533,6 +543,52 @@ namespace Examine.Lucene.Providers
                 {
                     // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
                     OnIndexingError(new IndexingErrorEventArgs(this, "Could not acquire lock in EnsureIndex so cannot create new index", null, null));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Recreates the file system folder backing the directory if it no longer exists on disk
+        /// </summary>
+        private void EnsureFileSystemFolderExists(Directory? dir)
+        {
+            var fsDirectory = GetFSDirectory(dir);
+            if (fsDirectory is null)
+            {
+                return;
+            }
+
+            var folder = fsDirectory.Directory;
+
+            // FSDirectory caches the existence of its folder, so refresh it to reflect the current state on disk.
+            folder.Refresh();
+            if (folder.Exists)
+            {
+                return;
+            }
+
+            _logger.LogWarning("The folder {IndexFolder} for index {IndexName} is missing from disk and will be recreated", folder.FullName, Name);
+
+            System.IO.Directory.CreateDirectory(folder.FullName);
+            folder.Refresh();
+        }
+
+        private static FSDirectory? GetFSDirectory(Directory? dir)
+        {
+            while (true)
+            {
+                switch (dir)
+                {
+                    case FSDirectory fsDirectory:
+                        return fsDirectory;
+                    case NRTCachingDirectory nrtCachingDirectory:
+                        dir = nrtCachingDirectory.Delegate;
+                        break;
+                    case FilterDirectory filterDirectory:
+                        dir = filterDirectory.Delegate;
+                        break;
+                    default:
+                        return null;
                 }
             }
         }
